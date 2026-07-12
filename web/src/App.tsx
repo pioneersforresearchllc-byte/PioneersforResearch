@@ -13,6 +13,7 @@ import { OwnerOtpPage } from '@/pages/auth/OwnerOtpPage'
 import { MarketingHome } from '@/pages/marketing/MarketingHome'
 import { CourseDetailPage } from '@/pages/marketing/CourseDetailPage'
 import { ArticleDetailPage } from '@/pages/marketing/ArticleDetailPage'
+import { ChatPage } from '@/pages/dashboard/chat/ChatPage'
 
 const studentTabs: DashboardTab[] = [
   { key: 'overview', label: 'نظرة عامة', to: '/student' },
@@ -90,7 +91,7 @@ export default function App() {
           <Route path="/student/feedback" element={<Placeholder title="ملاحظات المعلم" />} />
           <Route path="/student/articles" element={<Placeholder title="المقالات" />} />
           <Route path="/student/articles/:id" element={<Placeholder title="المقال" />} />
-          <Route path="/student/chat" element={<Placeholder title="الرسائل" />} />
+          <Route path="/student/chat" element={<ChatPage />} />
           <Route path="/student/account" element={<Placeholder title="حسابي" />} />
         </Route>
       </Route>
@@ -103,7 +104,7 @@ export default function App() {
           <Route path="/teacher/courses/:id" element={<Placeholder title="تفاصيل البرنامج" />} />
           <Route path="/teacher/review" element={<Placeholder title="مراجعة الواجبات" />} />
           <Route path="/teacher/articles" element={<Placeholder title="مقالاتي" />} />
-          <Route path="/teacher/chat" element={<Placeholder title="الرسائل" />} />
+          <Route path="/teacher/chat" element={<ChatPage />} />
           <Route path="/teacher/account" element={<Placeholder title="حسابي" />} />
         </Route>
       </Route>
@@ -116,7 +117,7 @@ export default function App() {
           <Route path="/owner/courses" element={<Placeholder title="البرامج" />} />
           <Route path="/owner/certificates" element={<Placeholder title="الشهادات" />} />
           <Route path="/owner/admins" element={<Placeholder title="أعضاء الإدارة" />} />
-          <Route path="/owner/messages" element={<Placeholder title="الرسائل" />} />
+          <Route path="/owner/messages" element={<ChatPage />} />
           <Route path="/owner/contact" element={<Placeholder title="رسائل التواصل" />} />
           <Route path="/owner/account" element={<Placeholder title="حسابي" />} />
         </Route>
