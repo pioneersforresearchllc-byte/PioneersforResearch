@@ -31,8 +31,18 @@ const ANON_KEY = firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) ||
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 const RESEND_FROM = Deno.env.get('RESEND_FROM') || 'Pioneers for Research <onboarding@resend.dev>'
 
+// Browser calls to Edge Functions are cross-origin (the site runs on
+// Vercel, the function on supabase.co), so without these headers the
+// browser blocks the response entirely — curl/server-to-server calls never
+// hit this since CORS is a browser-only enforcement.
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
 function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
+  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } })
 }
 
 async function sha256Hex(input: string) {
@@ -62,6 +72,8 @@ async function sendOtpEmail(to: string, code: string) {
 }
 
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS })
+
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) return json({ error: 'missing authorization' }, 401)
 
