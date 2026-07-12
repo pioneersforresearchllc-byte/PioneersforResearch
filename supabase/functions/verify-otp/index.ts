@@ -4,9 +4,25 @@
 // database access, not just the UI route.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
+// This project migrated to Supabase's new JWT Signing Keys, which
+// deprecates the auto-injected SUPABASE_SERVICE_ROLE_KEY / SUPABASE_ANON_KEY
+// in favor of JSON dictionaries (SUPABASE_SECRET_KEYS / SUPABASE_PUBLISHABLE_KEYS).
+// Prefer the new ones; fall back to the legacy vars for projects that
+// haven't migrated.
+function firstFromJsonDict(raw: string | undefined): string {
+  if (!raw) return ''
+  try {
+    const values = Object.values(JSON.parse(raw)) as string[]
+    return values[0] ?? ''
+  } catch {
+    return raw
+  }
+}
+
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
-const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
+const SERVICE_ROLE_KEY =
+  firstFromJsonDict(Deno.env.get('SUPABASE_SECRET_KEYS')) || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const ANON_KEY = firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) || Deno.env.get('SUPABASE_ANON_KEY')!
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })

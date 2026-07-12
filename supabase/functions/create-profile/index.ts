@@ -4,8 +4,23 @@
 // client can't rely on RLS's `id = auth.uid()` self-insert policy).
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
+// This project migrated to Supabase's new JWT Signing Keys, which
+// deprecates the auto-injected SUPABASE_SERVICE_ROLE_KEY in favor of a JSON
+// dictionary (SUPABASE_SECRET_KEYS). Prefer the new one; fall back to the
+// legacy var for projects that haven't migrated.
+function firstFromJsonDict(raw: string | undefined): string {
+  if (!raw) return ''
+  try {
+    const values = Object.values(JSON.parse(raw)) as string[]
+    return values[0] ?? ''
+  } catch {
+    return raw
+  }
+}
+
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
-const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const SERVICE_ROLE_KEY =
+  firstFromJsonDict(Deno.env.get('SUPABASE_SECRET_KEYS')) || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
