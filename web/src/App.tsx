@@ -14,6 +14,7 @@ import { MarketingHome } from '@/pages/marketing/MarketingHome'
 import { CourseDetailPage } from '@/pages/marketing/CourseDetailPage'
 import { ArticleDetailPage } from '@/pages/marketing/ArticleDetailPage'
 import { ChatPage } from '@/pages/dashboard/chat/ChatPage'
+import { OwnerCoursesPage } from '@/pages/dashboard/owner/CoursesPage'
 
 const studentTabs: DashboardTab[] = [
   { key: 'overview', label: 'نظرة عامة', to: '/student' },
@@ -114,7 +115,7 @@ export default function App() {
           <Route path="/owner" element={<Placeholder title="نظرة عامة" />} />
           <Route path="/owner/applications" element={<Placeholder title="طلبات المعلمين" />} />
           <Route path="/owner/teachers" element={<Placeholder title="المعلمون" />} />
-          <Route path="/owner/courses" element={<Placeholder title="البرامج" />} />
+          <Route path="/owner/courses" element={<OwnerCoursesPage />} />
           <Route path="/owner/certificates" element={<Placeholder title="الشهادات" />} />
           <Route path="/owner/admins" element={<Placeholder title="أعضاء الإدارة" />} />
           <Route path="/owner/messages" element={<ChatPage />} />
