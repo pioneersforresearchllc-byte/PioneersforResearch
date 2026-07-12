@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --font-heading: "El Messiri", serif;
+  --font-body: "IBM Plex Sans Arabic", sans-serif;
+
+  --color-navy: #0b1f3a;
+  --color-navy-hover: #14335c;
+  --color-gold: #c9a24b;
+  --color-gold-hover: #b38f3f;
+  --color-gold-light: #e0bb68;
+  --color-accent: #a97c3f;
+  --color-muted: #5b6b82;
+  --color-muted-2: #3d4a5c;
+  --color-border: #e2e7ee;
+  --color-border-2: #f0f3f7;
+  --color-bg-soft: #f6f8fb;
+  --color-faint: #a3adba;
+  --color-success: #1f8a5b;
+  --color-success-bg: #e7f5ee;
+  --color-error: #b3261e;
+  --color-error-bg: #fdecea;
+}
+
+body {
+  margin: 0;
+  background: #fff;
+  font-family: var(--font-body);
+  color: var(--color-navy);
+}
+
+a {
+  color: var(--color-navy);
+}
+a:hover {
+  color: var(--color-gold);
+}
+
+input,
+textarea {
+  font-family: var(--font-body);
+  outline: none;
+}
+input:focus,
+textarea:focus {
+  border-color: var(--color-navy) !important;
+}
+
+.font-heading {
+  font-family: var(--font-heading);
+}

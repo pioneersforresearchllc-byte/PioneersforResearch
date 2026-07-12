@@ -1,0 +1,99 @@
+// Creates the `profiles` row for a just-registered auth user, using the
+// service role so it works regardless of whether the project requires
+// email confirmation (a brand-new user may not have a session yet, so the
+// client can't rely on RLS's `id = auth.uid()` self-insert policy).
+import { createClient } from 'npm:@supabase/supabase-js@2'
+
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
+const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+  auth: { autoRefreshToken: false, persistSession: false },
+})
+
+interface StudentPayload {
+  user_id: string
+  role: 'student'
+  name: string
+  username: string
+}
+
+interface TeacherPayload {
+  user_id: string
+  role: 'teacher'
+  name: string
+  username: string
+  specialty: string
+  qualification: string
+  years_experience: number
+  cv_text: string
+}
+
+type Payload = StudentPayload | TeacherPayload
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
+Deno.serve(async (req) => {
+  if (req.method !== 'POST') return json({ error: 'method not allowed' }, 405)
+
+  let payload: Payload
+  try {
+    payload = await req.json()
+  } catch {
+    return json({ error: 'invalid json body' }, 400)
+  }
+
+  if (!payload.user_id || !payload.name?.trim() || !payload.username?.trim()) {
+    return json({ error: 'missing required fields' }, 400)
+  }
+  if (payload.role !== 'student' && payload.role !== 'teacher') {
+    return json({ error: 'invalid role' }, 400)
+  }
+
+  // Verify the auth user actually exists and has no profile yet (defends
+  // against this function being called for an arbitrary user_id).
+  const { data: authUser, error: authErr } = await admin.auth.admin.getUserById(payload.user_id)
+  if (authErr || !authUser?.user) return json({ error: 'unknown user_id' }, 404)
+
+  const { data: existing } = await admin
+    .from('profiles')
+    .select('id')
+    .eq('id', payload.user_id)
+    .maybeSingle()
+  if (existing) return json({ error: 'profile already exists' }, 409)
+
+  const row =
+    payload.role === 'student'
+      ? {
+          id: payload.user_id,
+          role: 'student' as const,
+          status: 'active' as const,
+          name: payload.name.trim(),
+          username: payload.username.trim(),
+        }
+      : {
+          id: payload.user_id,
+          role: 'teacher' as const,
+          status: 'pending' as const,
+          name: payload.name.trim(),
+          username: payload.username.trim(),
+          specialty: payload.specialty?.trim() || null,
+          qualification: payload.qualification?.trim() || null,
+          years_experience: Number.isFinite(payload.years_experience) ? payload.years_experience : null,
+          cv_text: payload.cv_text?.trim() || null,
+        }
+
+  const { data, error } = await admin.from('profiles').insert(row).select('*').single()
+  if (error) {
+    // Unique violation on username is the one expected failure mode here.
+    const status = error.code === '23505' ? 409 : 500
+    return json({ error: error.message }, status)
+  }
+
+  return json({ profile: data })
+})

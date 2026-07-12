@@ -1,0 +1,11 @@
+{
+  "name": "research-academy-supabase",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed": "node seed/seed.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.2"
+  }
+}
