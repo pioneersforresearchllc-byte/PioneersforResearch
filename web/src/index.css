@@ -22,28 +22,35 @@
   --color-error-bg: #fdecea;
 }
 
-body {
-  margin: 0;
-  background: #fff;
-  font-family: var(--font-body);
-  color: var(--color-navy);
-}
+/* Tailwind v4 puts utilities in their own cascade layer; unlayered rules
+   (like a plain `a { color }` here) win over ALL layered rules regardless
+   of specificity — so without @layer base, this was overriding utility
+   classes like text-white on <a> elements (e.g. the active sidebar link in
+   DashboardShell), making the label invisible against its own background. */
+@layer base {
+  body {
+    margin: 0;
+    background: #fff;
+    font-family: var(--font-body);
+    color: var(--color-navy);
+  }
 
-a {
-  color: var(--color-navy);
-}
-a:hover {
-  color: var(--color-gold);
-}
+  a {
+    color: var(--color-navy);
+  }
+  a:hover {
+    color: var(--color-gold);
+  }
 
-input,
-textarea {
-  font-family: var(--font-body);
-  outline: none;
-}
-input:focus,
-textarea:focus {
-  border-color: var(--color-navy) !important;
+  input,
+  textarea {
+    font-family: var(--font-body);
+    outline: none;
+  }
+  input:focus,
+  textarea:focus {
+    border-color: var(--color-navy);
+  }
 }
 
 .font-heading {
