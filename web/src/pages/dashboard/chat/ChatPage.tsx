@@ -82,6 +82,7 @@ export function ChatPage() {
   const refreshActiveMessages = () => {
     if (!activeId) return
     listMessages(activeId).then(setMessages)
+    void queryClient.invalidateQueries({ queryKey: ['conversations', myUserId] })
   }
 
   if (!profile) return null
