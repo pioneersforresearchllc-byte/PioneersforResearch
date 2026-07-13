@@ -21,6 +21,8 @@ import { StudentCoursesPage } from '@/pages/dashboard/student/CoursesPage'
 import { StudentCourseDetailPage } from '@/pages/dashboard/student/CourseDetailPage'
 import { TeacherCoursesPage } from '@/pages/dashboard/teacher/CoursesPage'
 import { TeacherCourseDetailPage } from '@/pages/dashboard/teacher/CourseDetailPage'
+import { TeacherReviewPage } from '@/pages/dashboard/teacher/ReviewPage'
+import { StudentAssignmentsPage } from '@/pages/dashboard/student/AssignmentsPage'
 
 const studentTabs: DashboardTab[] = [
   { key: 'overview', label: 'نظرة عامة', to: '/student' },
@@ -92,7 +94,7 @@ export default function App() {
           <Route path="/student" element={<Placeholder title="نظرة عامة" />} />
           <Route path="/student/courses" element={<StudentCoursesPage />} />
           <Route path="/student/courses/:id" element={<StudentCourseDetailPage />} />
-          <Route path="/student/assignments" element={<Placeholder title="واجباتي" />} />
+          <Route path="/student/assignments" element={<StudentAssignmentsPage />} />
           <Route path="/student/grades" element={<Placeholder title="تقدمي ودرجاتي" />} />
           <Route path="/student/certificates" element={<Placeholder title="شهاداتي" />} />
           <Route path="/student/feedback" element={<Placeholder title="ملاحظات المعلم" />} />
@@ -109,7 +111,7 @@ export default function App() {
           <Route path="/teacher/students" element={<Placeholder title="الطلاب" />} />
           <Route path="/teacher/courses" element={<TeacherCoursesPage />} />
           <Route path="/teacher/courses/:id" element={<TeacherCourseDetailPage />} />
-          <Route path="/teacher/review" element={<Placeholder title="مراجعة الواجبات" />} />
+          <Route path="/teacher/review" element={<TeacherReviewPage />} />
           <Route path="/teacher/articles" element={<Placeholder title="مقالاتي" />} />
           <Route path="/teacher/chat" element={<ChatPage />} />
           <Route path="/teacher/account" element={<Placeholder title="حسابي" />} />
