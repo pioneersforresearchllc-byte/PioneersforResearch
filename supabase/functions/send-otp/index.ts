@@ -63,8 +63,11 @@ async function sha256Hex(input: string) {
     .join('')
 }
 
-async function sendOtpEmail(to: string, code: string) {
-  if (!SMTP_USER || !SMTP_PASS) return false
+// TEMP diagnostic return shape (ok + reason) instead of a plain boolean, so
+// send-otp's response can surface exactly why SMTP failed — remove once
+// delivery is confirmed working.
+async function sendOtpEmail(to: string, code: string): Promise<{ ok: boolean; reason: string }> {
+  if (!SMTP_USER || !SMTP_PASS) return { ok: false, reason: 'SMTP_USER or SMTP_PASS not set' }
   const client = new SMTPClient({
     connection: {
       hostname: SMTP_HOST,
@@ -80,12 +83,15 @@ async function sendOtpEmail(to: string, code: string) {
       subject: 'رمز الدخول إلى بوابة الإدارة',
       html: `<div dir="rtl" style="font-family:sans-serif"><p>رمز الدخول الخاص بك هو:</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p>صالح لمدة 10 دقائق.</p></div>`,
     })
-    return true
+    return { ok: true, reason: '' }
   } catch (err) {
-    console.error('smtp send failed', err)
-    return false
+    return { ok: false, reason: String(err) }
   } finally {
-    await client.close()
+    try {
+      await client.close()
+    } catch {
+      // already closed/never opened — ignore
+    }
   }
 }
 
@@ -120,14 +126,11 @@ Deno.serve(async (req) => {
     .insert({ user_id: user.id, code_hash: codeHash, expires_at: expiresAt })
   if (insertErr) return json({ error: insertErr.message }, 500)
 
-  const emailed = await sendOtpEmail(user.email, code)
+  const { ok: emailed, reason } = await sendOtpEmail(user.email, code)
 
   return json({
     sent: true,
     emailed,
-    // Only present in sandbox mode (no RESEND_API_KEY) — returned solely to
-    // this already-authenticated owner, mirroring the design's "no real
-    // email in this prototype" screen until real credentials are added.
-    ...(emailed ? {} : { devCode: code }),
+    ...(emailed ? {} : { devCode: code, smtpError: reason }),
   })
 })
