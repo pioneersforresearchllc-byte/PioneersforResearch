@@ -10,6 +10,7 @@ import type {
 } from '@/types/chat'
 
 const PROFILE_COLS = 'id, name, username, avatar_url, role'
+export const AI_BOT_USERNAME = 'ai-assistant'
 
 /** Who a given role is allowed to search for when starting a new DM or picking group members. */
 export function eligibleSearchRoles(myRole: UserRole): UserRole[] {
@@ -31,7 +32,17 @@ export async function searchEligibleUsers(myRole: UserRole, query: string): Prom
   }
   const { data, error } = await q
   if (error) throw error
-  return (data ?? []) as ChatProfile[]
+  const results = (data ?? []) as ChatProfile[]
+
+  // The AI assistant is reachable by everyone regardless of the normal
+  // role-search restrictions above (it's not a real teacher/student).
+  if (!results.some((r) => r.username === AI_BOT_USERNAME)) {
+    const { data: bot } = await supabase.from('profiles').select(PROFILE_COLS).eq('username', AI_BOT_USERNAME).maybeSingle()
+    if (bot && (!query.trim() || bot.name.includes(query) || bot.username.includes(query))) {
+      results.unshift(bot as ChatProfile)
+    }
+  }
+  return results
 }
 
 async function membersForConversations(conversationIds: string[]): Promise<ConversationMember[]> {
@@ -271,7 +282,25 @@ export async function sendMessage(params: {
     .select('*')
     .single()
   if (error) throw error
+
+  // Fire-and-forget: if the AI assistant is in this conversation, ask it to
+  // reply. Never blocks the sender's own message from showing immediately.
+  void maybeTriggerAiReply(params.conversationId)
+
   return data as Message
+}
+
+async function maybeTriggerAiReply(conversationId: string) {
+  const { data: bot } = await supabase.from('profiles').select('id').eq('username', AI_BOT_USERNAME).maybeSingle()
+  if (!bot) return
+  const { data: isBotMember } = await supabase
+    .from('conversation_members')
+    .select('user_id')
+    .eq('conversation_id', conversationId)
+    .eq('user_id', bot.id)
+    .maybeSingle()
+  if (!isBotMember) return
+  await supabase.functions.invoke('ai-bot-reply', { body: { conversationId } })
 }
 
 export const EDIT_WINDOW_MS = 15 * 60 * 1000
