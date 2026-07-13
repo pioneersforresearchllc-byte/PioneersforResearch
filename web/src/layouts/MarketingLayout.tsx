@@ -65,8 +65,7 @@ export function MarketingLayout() {
           <span>منصة تدريب على البحث العلمي</span>
           <Link to="/owner-login" className="text-[#9aa6b5] no-underline">
             بوابة الإدارة
-          </Link>{' '}
-          <span className="opacity-50">(admin / Admin@2026)</span>
+          </Link>
         </span>
       </div>
     </div>
