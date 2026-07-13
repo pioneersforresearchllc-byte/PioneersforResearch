@@ -30,6 +30,12 @@ import { StudentArticlesPage } from '@/pages/dashboard/student/ArticlesPage'
 import { OwnerOverviewPage } from '@/pages/dashboard/owner/OverviewPage'
 import { OwnerAdminsPage } from '@/pages/dashboard/owner/AdminsPage'
 import { OwnerContactPage } from '@/pages/dashboard/owner/ContactPage'
+import { StudentGradesPage } from '@/pages/dashboard/student/GradesPage'
+import { StudentFeedbackPage } from '@/pages/dashboard/student/FeedbackPage'
+import { AccountPage } from '@/pages/dashboard/shared/AccountPage'
+import { StudentOverviewPage } from '@/pages/dashboard/student/OverviewPage'
+import { TeacherOverviewPage } from '@/pages/dashboard/teacher/OverviewPage'
+import { TeacherStudentsPage } from '@/pages/dashboard/teacher/StudentsPage'
 
 const studentTabs: DashboardTab[] = [
   { key: 'overview', label: 'نظرة عامة', to: '/student' },
@@ -98,30 +104,30 @@ export default function App() {
 
       <Route element={<RequireRole role="student" />}>
         <Route element={<StudentDashboard />}>
-          <Route path="/student" element={<Placeholder title="نظرة عامة" />} />
+          <Route path="/student" element={<StudentOverviewPage />} />
           <Route path="/student/courses" element={<StudentCoursesPage />} />
           <Route path="/student/courses/:id" element={<StudentCourseDetailPage />} />
           <Route path="/student/assignments" element={<StudentAssignmentsPage />} />
-          <Route path="/student/grades" element={<Placeholder title="تقدمي ودرجاتي" />} />
+          <Route path="/student/grades" element={<StudentGradesPage />} />
           <Route path="/student/certificates" element={<StudentCertificatesPage />} />
-          <Route path="/student/feedback" element={<Placeholder title="ملاحظات المعلم" />} />
+          <Route path="/student/feedback" element={<StudentFeedbackPage />} />
           <Route path="/student/articles" element={<StudentArticlesPage />} />
           <Route path="/student/articles/:id" element={<ArticleDetailPage />} />
           <Route path="/student/chat" element={<ChatPage />} />
-          <Route path="/student/account" element={<Placeholder title="حسابي" />} />
+          <Route path="/student/account" element={<AccountPage />} />
         </Route>
       </Route>
 
       <Route element={<RequireRole role="teacher" />}>
         <Route element={<TeacherDashboard />}>
-          <Route path="/teacher" element={<Placeholder title="نظرة عامة" />} />
-          <Route path="/teacher/students" element={<Placeholder title="الطلاب" />} />
+          <Route path="/teacher" element={<TeacherOverviewPage />} />
+          <Route path="/teacher/students" element={<TeacherStudentsPage />} />
           <Route path="/teacher/courses" element={<TeacherCoursesPage />} />
           <Route path="/teacher/courses/:id" element={<TeacherCourseDetailPage />} />
           <Route path="/teacher/review" element={<TeacherReviewPage />} />
           <Route path="/teacher/articles" element={<TeacherArticlesPage />} />
           <Route path="/teacher/chat" element={<ChatPage />} />
-          <Route path="/teacher/account" element={<Placeholder title="حسابي" />} />
+          <Route path="/teacher/account" element={<AccountPage />} />
         </Route>
       </Route>
 
@@ -135,7 +141,7 @@ export default function App() {
           <Route path="/owner/admins" element={<OwnerAdminsPage />} />
           <Route path="/owner/messages" element={<ChatPage />} />
           <Route path="/owner/contact" element={<OwnerContactPage />} />
-          <Route path="/owner/account" element={<Placeholder title="حسابي" />} />
+          <Route path="/owner/account" element={<AccountPage />} />
         </Route>
       </Route>
 

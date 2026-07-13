@@ -1,0 +1,42 @@
+import { useQuery } from '@tanstack/react-query'
+import { useAuth } from '@/context/AuthContext'
+import { listMyEnrolledCourses } from '@/lib/courses'
+import { listMyAssignments } from '@/lib/assignments'
+
+export function StudentOverviewPage() {
+  const { profile } = useAuth()
+  const coursesQuery = useQuery({
+    queryKey: ['my-enrolled-courses', profile?.id],
+    enabled: !!profile,
+    queryFn: () => listMyEnrolledCourses(profile!.id),
+  })
+  const assignmentsQuery = useQuery({
+    queryKey: ['my-assignments', profile?.id],
+    enabled: !!profile,
+    queryFn: () => listMyAssignments(profile!.id),
+  })
+
+  const pendingCount = (assignmentsQuery.data ?? []).filter((a) => !a.submission).length
+
+  return (
+    <div>
+      <div className="mb-1.5 font-heading text-xl font-bold text-navy">أهلًا {profile?.name}</div>
+      <div className="mb-6 text-[13.5px] text-muted">نظرة سريعة على تقدمك</div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-xl border border-border bg-white p-5 text-center">
+          <div className="font-heading text-[26px] font-bold text-navy">{coursesQuery.data?.length ?? 0}</div>
+          <div className="mt-1.5 text-[12.5px] text-muted">برامج مسجّل فيها</div>
+        </div>
+        <div className="rounded-xl border border-border bg-white p-5 text-center">
+          <div className="font-heading text-[26px] font-bold text-navy">{pendingCount}</div>
+          <div className="mt-1.5 text-[12.5px] text-muted">واجبات لم تُسلَّم</div>
+        </div>
+        <div className="rounded-xl border border-border bg-white p-5 text-center">
+          <div className="font-heading text-[26px] font-bold text-navy">{assignmentsQuery.data?.length ?? 0}</div>
+          <div className="mt-1.5 text-[12.5px] text-muted">إجمالي الواجبات</div>
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -224,6 +224,39 @@ export async function listMyTaughtCourses(teacherId: string): Promise<TaughtCour
   }))
 }
 
+export interface StudentWithCourses {
+  id: string
+  name: string
+  username: string
+  courseTitles: string[]
+}
+
+export async function listMyStudents(teacherId: string): Promise<StudentWithCourses[]> {
+  const { data: links } = await supabase.from('course_teachers').select('course_id').eq('teacher_id', teacherId)
+  const courseIds = (links ?? []).map((l) => l.course_id)
+  if (courseIds.length === 0) return []
+
+  const { data: enrollments, error } = await supabase
+    .from('enrollments')
+    .select('student:profiles(id, name, username), course:courses(title)')
+    .in('course_id', courseIds)
+  if (error) throw error
+
+  const byStudent = new Map<string, StudentWithCourses>()
+  for (const e of enrollments ?? []) {
+    const student = e.student as unknown as { id: string; name: string; username: string } | null
+    const course = e.course as unknown as { title: string } | null
+    if (!student) continue
+    const existing = byStudent.get(student.id)
+    if (existing) {
+      if (course) existing.courseTitles.push(course.title)
+    } else {
+      byStudent.set(student.id, { ...student, courseTitles: course ? [course.title] : [] })
+    }
+  }
+  return [...byStudent.values()]
+}
+
 export interface EnrolledStudent {
   id: string
   name: string
