@@ -23,6 +23,8 @@ import { TeacherCoursesPage } from '@/pages/dashboard/teacher/CoursesPage'
 import { TeacherCourseDetailPage } from '@/pages/dashboard/teacher/CourseDetailPage'
 import { TeacherReviewPage } from '@/pages/dashboard/teacher/ReviewPage'
 import { StudentAssignmentsPage } from '@/pages/dashboard/student/AssignmentsPage'
+import { OwnerCertificatesPage } from '@/pages/dashboard/owner/CertificatesPage'
+import { StudentCertificatesPage } from '@/pages/dashboard/student/CertificatesPage'
 
 const studentTabs: DashboardTab[] = [
   { key: 'overview', label: 'نظرة عامة', to: '/student' },
@@ -96,7 +98,7 @@ export default function App() {
           <Route path="/student/courses/:id" element={<StudentCourseDetailPage />} />
           <Route path="/student/assignments" element={<StudentAssignmentsPage />} />
           <Route path="/student/grades" element={<Placeholder title="تقدمي ودرجاتي" />} />
-          <Route path="/student/certificates" element={<Placeholder title="شهاداتي" />} />
+          <Route path="/student/certificates" element={<StudentCertificatesPage />} />
           <Route path="/student/feedback" element={<Placeholder title="ملاحظات المعلم" />} />
           <Route path="/student/articles" element={<Placeholder title="المقالات" />} />
           <Route path="/student/articles/:id" element={<Placeholder title="المقال" />} />
@@ -124,7 +126,7 @@ export default function App() {
           <Route path="/owner/applications" element={<OwnerApplicationsPage />} />
           <Route path="/owner/teachers" element={<OwnerTeachersPage />} />
           <Route path="/owner/courses" element={<OwnerCoursesPage />} />
-          <Route path="/owner/certificates" element={<Placeholder title="الشهادات" />} />
+          <Route path="/owner/certificates" element={<OwnerCertificatesPage />} />
           <Route path="/owner/admins" element={<Placeholder title="أعضاء الإدارة" />} />
           <Route path="/owner/messages" element={<ChatPage />} />
           <Route path="/owner/contact" element={<Placeholder title="رسائل التواصل" />} />
