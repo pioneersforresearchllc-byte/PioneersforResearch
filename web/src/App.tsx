@@ -5,6 +5,8 @@ import { RequireRole } from '@/routes/RequireRole'
 import { Placeholder } from '@/components/Placeholder'
 import { useAuth } from '@/context/AuthContext'
 import { LoginPage } from '@/pages/auth/LoginPage'
+import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { RegisterOtpPage } from '@/pages/auth/RegisterOtpPage'
 import { TeacherApplyPage } from '@/pages/auth/TeacherApplyPage'
@@ -97,6 +99,8 @@ export default function App() {
       </Route>
 
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/register-otp" element={<RegisterOtpPage />} />
       <Route path="/teacher-apply" element={<TeacherApplyPage />} />

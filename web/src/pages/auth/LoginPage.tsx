@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { fetchProfile } from '@/lib/profile'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
@@ -7,12 +7,14 @@ import { useLanguage } from '@/lib/i18n'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { t } = useLanguage()
   const [role, setRole] = useState<'student' | 'teacher'>('student')
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const passwordResetDone = !!(location.state as { passwordResetDone?: boolean } | null)?.passwordResetDone
 
   const fillDemo = (nextRole: 'student' | 'teacher') => {
     setRole(nextRole)
@@ -85,6 +87,12 @@ export function LoginPage() {
         <div className="mt-1.5 text-sm text-muted">{t('login.title')}</div>
       </div>
 
+      {passwordResetDone && (
+        <div className="mb-5 rounded-md border border-success/30 bg-success/10 px-4 py-2.5 text-center text-[13.5px] text-success">
+          {t('login.passwordResetDone')}
+        </div>
+      )}
+
       <div className="mb-5 flex rounded-lg bg-[#f0f3f7] p-1">
         <button
           type="button"
@@ -121,6 +129,11 @@ export function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           className={inputClass}
         />
+        <div className="-mt-1.5 text-left rtl:text-right">
+          <Link to="/forgot-password" className="text-[13px] text-muted no-underline hover:text-navy">
+            {t('login.forgotPassword')}
+          </Link>
+        </div>
         <FieldError>{error}</FieldError>
         <button
           type="submit"

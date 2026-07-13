@@ -118,6 +118,8 @@ export const translations = {
   'login.notTeacherYet': { ar: 'لست معلمًا مسجلًا؟', en: 'Not a registered teacher yet?' },
   'login.applyAsTeacher': { ar: 'قدّم طلب انضمام كمعلم', en: 'Apply to become a teacher' },
   'login.backHome': { ar: '→ رجوع للرئيسية', en: '→ Back to Home' },
+  'login.forgotPassword': { ar: 'نسيت كلمة السر؟', en: 'Forgot password?' },
+  'login.passwordResetDone': { ar: 'تم تغيير كلمة المرور بنجاح، سجّل الدخول بكلمة المرور الجديدة', en: 'Password changed successfully, log in with your new password' },
 
   'register.title': { ar: 'إنشاء حساب طالب جديد', en: 'Create a new student account' },
   'register.fillFields': { ar: 'يرجى تعبئة جميع الحقول', en: 'Please fill in all fields' },
@@ -216,6 +218,10 @@ export const translations = {
   'ownerOtp.invalidCode': { ar: 'رمز غير صحيح', en: 'Invalid code' },
   'ownerOtp.resend': { ar: 'إعادة إرسال الرمز', en: 'Resend Code' },
   'ownerOtp.backToLogin': { ar: '→ رجوع لتسجيل الدخول', en: '→ Back to Login' },
+  'ownerOtp.rateLimited': {
+    ar: 'انتظر {minutes} دقيقة قبل طلب رمز جديد',
+    en: 'Wait {minutes} minute(s) before requesting a new code',
+  },
 
   'registerOtp.title': { ar: 'تحقق البريد الإلكتروني', en: 'Verify Your Email' },
   'registerOtp.subtitle': {
@@ -236,4 +242,37 @@ export const translations = {
     en: 'Verified, but account creation failed. Please contact support',
   },
   'registerOtp.backToLogin': { ar: '→ رجوع لتسجيل الدخول', en: '→ Back to Login' },
+  'registerOtp.rateLimited': {
+    ar: 'انتظر {minutes} دقيقة قبل طلب رمز جديد',
+    en: 'Wait {minutes} minute(s) before requesting a new code',
+  },
+
+  'forgotPassword.title': { ar: 'نسيت كلمة السر؟', en: 'Forgot password?' },
+  'forgotPassword.subtitle': {
+    ar: 'أدخل بريدك الإلكتروني وسنرسل لك رمز تحقق لإعادة تعيين كلمة المرور',
+    en: 'Enter your email and we’ll send you a verification code to reset your password',
+  },
+  'forgotPassword.emailPh': { ar: 'البريد الإلكتروني', en: 'Email' },
+  'forgotPassword.fillField': { ar: 'يرجى إدخال البريد الإلكتروني', en: 'Please enter your email' },
+  'forgotPassword.submit': { ar: 'إرسال رمز التحقق', en: 'Send Verification Code' },
+  'forgotPassword.backToLogin': { ar: '→ رجوع لتسجيل الدخول', en: '→ Back to Login' },
+
+  'resetPassword.title': { ar: 'إعادة تعيين كلمة المرور', en: 'Reset Password' },
+  'resetPassword.subtitle': {
+    ar: 'إذا كان {email} مسجلًا لدينا، وصلك رمز تحقق من 6 أرقام',
+    en: 'If {email} is registered with us, you received a 6-digit verification code',
+  },
+  'resetPassword.codePh': { ar: 'أدخل الرمز المكوّن من 6 أرقام', en: 'Enter the 6-digit code' },
+  'resetPassword.newPasswordPh': { ar: 'كلمة المرور الجديدة', en: 'New Password' },
+  'resetPassword.confirmPasswordPh': { ar: 'تأكيد كلمة المرور الجديدة', en: 'Confirm New Password' },
+  'resetPassword.passwordLength': {
+    ar: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل',
+    en: 'Password must be at least 6 characters',
+  },
+  'resetPassword.passwordMismatch': { ar: 'كلمتا المرور غير متطابقتين', en: 'Passwords do not match' },
+  'resetPassword.genericError': { ar: 'رمز غير صحيح أو منتهي الصلاحية', en: 'Invalid or expired code' },
+  'resetPassword.submit': { ar: 'تأكيد كلمة المرور الجديدة', en: 'Confirm New Password' },
+  'resetPassword.resend': { ar: 'إعادة إرسال الرمز', en: 'Resend Code' },
+  'resetPassword.backToLogin': { ar: '→ رجوع لتسجيل الدخول', en: '→ Back to Login' },
+  'resetPassword.backToForgot': { ar: '→ نسيت كلمة السر؟', en: '→ Forgot password?' },
 } as const satisfies Record<string, { ar: string; en: string }>

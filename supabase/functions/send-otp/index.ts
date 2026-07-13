@@ -40,6 +40,7 @@ const SMTP_PORT = Number(Deno.env.get('SMTP_PORT') || '465')
 const SMTP_USER = Deno.env.get('SMTP_USER')
 const SMTP_PASS = Deno.env.get('SMTP_PASS')
 const SMTP_FROM = Deno.env.get('SMTP_FROM') || SMTP_USER || ''
+const RESEND_COOLDOWN_MS = 5 * 60 * 1000
 
 // Browser calls to Edge Functions are cross-origin (the site runs on
 // Vercel, the function on supabase.co), so without these headers the
@@ -120,6 +121,18 @@ Deno.serve(async (req) => {
 
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).maybeSingle()
   if (!profile || profile.role !== 'owner') return json({ error: 'not an owner account' }, 403)
+
+  const { data: recent } = await admin
+    .from('admin_login_otps')
+    .select('created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (recent) {
+    const waitMs = RESEND_COOLDOWN_MS - (Date.now() - new Date(recent.created_at).getTime())
+    if (waitMs > 0) return json({ error: 'rate_limited', retryAfterSeconds: Math.ceil(waitMs / 1000) }, 429)
+  }
 
   const code = String(Math.floor(100000 + Math.random() * 900000))
   const codeHash = await sha256Hex(code)

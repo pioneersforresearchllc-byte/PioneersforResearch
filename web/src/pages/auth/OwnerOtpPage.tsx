@@ -39,7 +39,13 @@ export function OwnerOtpPage() {
   const resend = async () => {
     setError('')
     const { data } = await supabase.functions.invoke('send-otp')
-    setDevCode((data as { devCode?: string })?.devCode ?? null)
+    const result = data as { devCode?: string; error?: string; retryAfterSeconds?: number } | null
+    if (result?.error === 'rate_limited') {
+      const minutes = Math.max(1, Math.ceil((result.retryAfterSeconds ?? 300) / 60))
+      setError(t('ownerOtp.rateLimited', { minutes: String(minutes) }))
+      return
+    }
+    setDevCode(result?.devCode ?? null)
   }
 
   return (

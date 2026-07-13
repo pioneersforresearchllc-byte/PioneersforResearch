@@ -28,6 +28,7 @@ const SMTP_PORT = Number(Deno.env.get('SMTP_PORT') || '465')
 const SMTP_USER = Deno.env.get('SMTP_USER')
 const SMTP_PASS = Deno.env.get('SMTP_PASS')
 const SMTP_FROM = Deno.env.get('SMTP_FROM') || SMTP_USER || ''
+const RESEND_COOLDOWN_MS = 5 * 60 * 1000
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -101,6 +102,18 @@ Deno.serve(async (req) => {
   // they already have a profile (registration is a one-time flow).
   const { data: existingProfile } = await admin.from('profiles').select('id').eq('id', user.id).maybeSingle()
   if (existingProfile) return json({ error: 'already registered' }, 409)
+
+  const { data: recent } = await admin
+    .from('signup_otps')
+    .select('created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (recent) {
+    const waitMs = RESEND_COOLDOWN_MS - (Date.now() - new Date(recent.created_at).getTime())
+    if (waitMs > 0) return json({ error: 'rate_limited', retryAfterSeconds: Math.ceil(waitMs / 1000) }, 429)
+  }
 
   const code = String(Math.floor(100000 + Math.random() * 900000))
   const codeHash = await sha256Hex(code)
