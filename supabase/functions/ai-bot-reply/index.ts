@@ -117,7 +117,10 @@ Deno.serve(async (req) => {
 
   if (!aiRes.ok) {
     const errText = await aiRes.text()
-    return json({ error: `ai request failed: ${errText}` }, 502)
+    // TEMP diagnostics — list what models this key can actually use.
+    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`)
+    const listText = await listRes.text()
+    return json({ error: `ai request failed: ${errText}`, availableModels: listText }, 502)
   }
 
   const aiData = (await aiRes.json()) as {
