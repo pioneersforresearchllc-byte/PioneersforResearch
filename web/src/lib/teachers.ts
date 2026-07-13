@@ -53,3 +53,13 @@ export async function rejectTeacher(id: string) {
   const { error } = await supabase.from('profiles').update({ status: 'rejected' }).eq('id', id)
   if (error) throw error
 }
+
+// Revokes an already-active teacher's access and unassigns them from every
+// course they were teaching (a dismissed teacher shouldn't keep showing up
+// on students' course pages).
+export async function dismissTeacher(id: string) {
+  const { error: statusErr } = await supabase.from('profiles').update({ status: 'rejected' }).eq('id', id)
+  if (statusErr) throw statusErr
+  const { error: unassignErr } = await supabase.from('course_teachers').delete().eq('teacher_id', id)
+  if (unassignErr) throw unassignErr
+}

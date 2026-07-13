@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { listAllTeachers } from '@/lib/teachers'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { dismissTeacher, listAllTeachers } from '@/lib/teachers'
 
 const statusLabel: Record<string, string> = { active: 'نشط', rejected: 'مرفوض' }
 const statusClass: Record<string, string> = {
@@ -8,7 +8,14 @@ const statusClass: Record<string, string> = {
 }
 
 export function OwnerTeachersPage() {
+  const queryClient = useQueryClient()
   const { data, isLoading } = useQuery({ queryKey: ['all-teachers'], queryFn: listAllTeachers })
+
+  const dismiss = async (id: string, name: string) => {
+    if (!confirm(`إقالة ${name}؟ سيفقد صلاحية الدخول ويُزال من كل البرامج المكلّف فيها.`)) return
+    await dismissTeacher(id)
+    void queryClient.invalidateQueries({ queryKey: ['all-teachers'] })
+  }
 
   return (
     <div>
@@ -26,9 +33,19 @@ export function OwnerTeachersPage() {
                 @{t.username} {t.specialty ? `· ${t.specialty}` : ''}
               </div>
             </div>
-            <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${statusClass[t.status] ?? ''}`}>
-              {statusLabel[t.status] ?? t.status}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${statusClass[t.status] ?? ''}`}>
+                {statusLabel[t.status] ?? t.status}
+              </span>
+              {t.status === 'active' && (
+                <button
+                  onClick={() => void dismiss(t.id, t.name)}
+                  className="rounded-md border border-error px-3.5 py-1.5 text-[12.5px] text-error hover:bg-error-bg"
+                >
+                  إقالة
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>
