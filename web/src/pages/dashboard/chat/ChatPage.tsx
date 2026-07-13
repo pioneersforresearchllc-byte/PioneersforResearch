@@ -10,6 +10,7 @@ import { MessageComposer } from '@/pages/dashboard/chat/MessageComposer'
 import { NewConversationModal } from '@/pages/dashboard/chat/NewConversationModal'
 import { GroupInfoPanel } from '@/pages/dashboard/chat/GroupInfoPanel'
 import {
+  ensureAiBotConversation,
   listConversations,
   listMessages,
   markConversationRead,
@@ -41,6 +42,15 @@ export function ChatPage() {
   useEffect(() => {
     if (!myUserId) return
     return subscribeToMyConversations(myUserId, () => {
+      void queryClient.invalidateQueries({ queryKey: ['conversations', myUserId] })
+    })
+  }, [myUserId, queryClient])
+
+  // Pin the AI assistant DM for everyone — create it silently on first
+  // visit so it's always in the list instead of something to search for.
+  useEffect(() => {
+    if (!myUserId) return
+    void ensureAiBotConversation(myUserId).then(() => {
       void queryClient.invalidateQueries({ queryKey: ['conversations', myUserId] })
     })
   }, [myUserId, queryClient])

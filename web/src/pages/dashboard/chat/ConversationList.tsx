@@ -25,13 +25,21 @@ function previewFor(c: ConversationSummary) {
   return m.text ?? ''
 }
 
+const AI_BOT_USERNAME = 'ai-assistant'
+
 export function ConversationList({ conversations, activeId, onSelect, onStartNew, loading }: ConversationListProps) {
   const [search, setSearch] = useState('')
 
   const filtered = useMemo(() => {
     const q = search.trim()
-    if (!q) return conversations
-    return conversations.filter((c) => labelFor(c).includes(q))
+    const base = q ? conversations.filter((c) => labelFor(c).includes(q)) : conversations
+    // The AI assistant always sits at the top, regardless of last-message
+    // recency — it's meant to be reachable without hunting for it.
+    return [...base].sort((a, b) => {
+      const aIsBot = a.otherMember?.username === AI_BOT_USERNAME ? 1 : 0
+      const bIsBot = b.otherMember?.username === AI_BOT_USERNAME ? 1 : 0
+      return bIsBot - aIsBot
+    })
   }, [conversations, search])
 
   return (

@@ -172,6 +172,15 @@ export async function findOrCreateDm(myUserId: string, otherUserId: string): Pro
   return conv.id
 }
 
+// Ensures the AI assistant DM exists for this user (creating it silently on
+// first call) so it's always pinned in their conversation list instead of
+// something they have to search for.
+export async function ensureAiBotConversation(myUserId: string): Promise<string | null> {
+  const { data: bot } = await supabase.from('profiles').select('id').eq('username', AI_BOT_USERNAME).maybeSingle()
+  if (!bot) return null
+  return findOrCreateDm(myUserId, bot.id)
+}
+
 export async function createGroup(creatorId: string, name: string, memberIds: string[]): Promise<string> {
   const { data: conv, error: convErr } = await supabase
     .from('conversations')
