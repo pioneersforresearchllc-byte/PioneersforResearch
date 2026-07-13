@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import {
@@ -7,6 +7,7 @@ import {
   uploadSubmissionFile,
   type MyAssignment,
 } from '@/lib/assignments'
+import { PaperclipIcon } from '@/pages/dashboard/chat/Icons'
 
 function statusLabel(a: MyAssignment) {
   if (!a.submission || a.submission.status === 'pending') return 'لم يُسلّم بعد'
@@ -16,15 +17,18 @@ function statusLabel(a: MyAssignment) {
 
 function SubmitForm({ assignment, onSubmitted }: { assignment: MyAssignment; onSubmitted: () => void }) {
   const { profile } = useAuth()
-  const [answer, setAnswer] = useState(assignment.submission?.answer_text ?? '')
+  const [answer, setAnswer] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const submit = async () => {
     if (!profile) return
     setBusy(true)
+    setError('')
     try {
-      const fileUrl = file ? await uploadSubmissionFile(profile.id, file) : (assignment.submission?.file_url ?? null)
+      const fileUrl = file ? await uploadSubmissionFile(profile.id, file) : null
       await submitAnswer({
         assignmentId: assignment.id,
         studentId: profile.id,
@@ -32,6 +36,8 @@ function SubmitForm({ assignment, onSubmitted }: { assignment: MyAssignment; onS
         fileUrl,
       })
       onSubmitted()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'تعذر تسليم الواجب، حاول مجددًا')
     } finally {
       setBusy(false)
     }
@@ -46,13 +52,31 @@ function SubmitForm({ assignment, onSubmitted }: { assignment: MyAssignment; onS
         rows={3}
         className="resize-y rounded-md border border-border px-3 py-2 text-[13.5px]"
       />
-      <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+      />
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          title="إرفاق ملف"
+          className="flex shrink-0 items-center justify-center rounded-full border border-border p-2 text-muted hover:border-navy hover:text-navy"
+        >
+          <PaperclipIcon />
+        </button>
+        {file && <span className="truncate text-[12.5px] text-navy">{file.name}</span>}
+      </div>
+      {error && <div className="text-[12px] text-error">{error}</div>}
+      <div className="text-[11.5px] text-faint">تنبيه: ما تقدر تعدّل إجابتك بعد التسليم.</div>
       <button
         onClick={() => void submit()}
         disabled={busy}
         className="self-start rounded-md bg-navy px-4.5 py-2 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
       >
-        {assignment.submission ? 'تحديث الإجابة' : 'تسليم الواجب'}
+        تسليم الواجب
       </button>
     </div>
   )
@@ -110,12 +134,34 @@ export function StudentAssignmentsPage() {
                       📎 ملف الواجب من المعلم
                     </a>
                   )}
-                  {graded && a.submission?.feedback && (
-                    <div className="mb-2 rounded-md bg-success-bg p-2.5 text-[13px] text-success">
-                      ملاحظات المعلم: {a.submission.feedback}
+
+                  {a.submission ? (
+                    <div className="rounded-md bg-bg-soft p-2.5">
+                      {a.submission.answer_text && (
+                        <p className="mb-1.5 whitespace-pre-wrap text-[13px] text-muted-2">{a.submission.answer_text}</p>
+                      )}
+                      {a.submission.file_url && (
+                        <a
+                          href={a.submission.file_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mb-1.5 inline-block text-[12.5px] text-navy"
+                        >
+                          📎 ملفك المرفق
+                        </a>
+                      )}
+                      {graded && a.submission.feedback && (
+                        <div className="mt-1.5 rounded-md bg-success-bg p-2 text-[13px] text-success">
+                          ملاحظات المعلم: {a.submission.feedback}
+                        </div>
+                      )}
+                      {!graded && (
+                        <div className="text-[12.5px] text-muted">تم التسليم — بانتظار التصحيح. لا يمكن تعديل الإجابة.</div>
+                      )}
                     </div>
+                  ) : (
+                    <SubmitForm assignment={a} onSubmitted={refresh} />
                   )}
-                  {!graded && <SubmitForm assignment={a} onSubmitted={refresh} />}
                 </div>
               )}
             </div>

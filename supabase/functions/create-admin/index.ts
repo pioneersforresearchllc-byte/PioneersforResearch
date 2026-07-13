@@ -48,13 +48,13 @@ Deno.serve(async (req) => {
   const { data: isOwner } = await userClient.rpc('is_verified_owner')
   if (!isOwner) return json({ error: 'not a verified owner' }, 403)
 
-  let body: { name?: string; username?: string; email?: string; password?: string }
+  let body: { name?: string; username?: string; email?: string; password?: string; isTemp?: boolean }
   try {
     body = await req.json()
   } catch {
     return json({ error: 'invalid json body' }, 400)
   }
-  const { name, username, email, password } = body
+  const { name, username, email, password, isTemp } = body
   if (!name?.trim() || !username?.trim() || !email?.trim() || !password) {
     return json({ error: 'missing required fields' }, 400)
   }
@@ -71,7 +71,14 @@ Deno.serve(async (req) => {
 
   const { data: profile, error: profileErr } = await admin
     .from('profiles')
-    .insert({ id: created.user.id, role: 'owner', status: 'active', name: name.trim(), username: username.trim() })
+    .insert({
+      id: created.user.id,
+      role: 'owner',
+      status: 'active',
+      name: name.trim(),
+      username: username.trim(),
+      is_temp_admin: !!isTemp,
+    })
     .select('*')
     .single()
   if (profileErr) {

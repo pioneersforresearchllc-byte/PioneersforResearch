@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createAdmin, listAdmins, removeAdmin } from '@/lib/owner'
+import { useAuth } from '@/context/AuthContext'
 
 function NewAdminModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const [name, setName] = useState('')
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [isTemp, setIsTemp] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -18,7 +20,7 @@ function NewAdminModal({ onClose, onCreated }: { onClose: () => void; onCreated:
     setBusy(true)
     setError('')
     try {
-      await createAdmin({ name: name.trim(), username: username.trim(), email: email.trim(), password })
+      await createAdmin({ name: name.trim(), username: username.trim(), email: email.trim(), password, isTemp })
       onCreated()
       onClose()
     } catch (e) {
@@ -59,6 +61,10 @@ function NewAdminModal({ onClose, onCreated }: { onClose: () => void; onCreated:
             placeholder="كلمة المرور"
             className="rounded-md border border-border px-3.5 py-2.5 text-[14px]"
           />
+          <label className="flex items-center gap-2 text-[13.5px] text-navy">
+            <input type="checkbox" checked={isTemp} onChange={(e) => setIsTemp(e.target.checked)} />
+            حساب مؤقت (لا يقدر يزيل أعضاء إدارة آخرين)
+          </label>
           {error && <div className="text-[13px] text-error">{error}</div>}
           <div className="mt-1 flex gap-2.5">
             <button
@@ -80,8 +86,11 @@ function NewAdminModal({ onClose, onCreated }: { onClose: () => void; onCreated:
 
 export function OwnerAdminsPage() {
   const queryClient = useQueryClient()
+  const { profile } = useAuth()
   const [showNew, setShowNew] = useState(false)
   const { data, isLoading } = useQuery({ queryKey: ['admins'], queryFn: listAdmins })
+
+  const canRemove = !profile?.is_temp_admin
 
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ['admins'] })
 
@@ -108,16 +117,23 @@ export function OwnerAdminsPage() {
       <div className="flex flex-col gap-2.5">
         {(data ?? []).map((a) => (
           <div key={a.id} className="flex items-center justify-between rounded-lg border border-border bg-white p-4">
-            <div>
-              <div className="text-[14.5px] font-semibold text-navy">{a.name}</div>
-              <div className="text-[12.5px] text-muted">@{a.username}</div>
+            <div className="flex items-center gap-2.5">
+              <div>
+                <div className="text-[14.5px] font-semibold text-navy">{a.name}</div>
+                <div className="text-[12.5px] text-muted">@{a.username}</div>
+              </div>
+              {a.is_temp_admin && (
+                <span className="rounded-full bg-bg-soft px-2.5 py-1 text-[11px] text-muted">مؤقت</span>
+              )}
             </div>
-            <button
-              onClick={() => void remove(a.id, a.name)}
-              className="rounded-md border border-error px-3.5 py-1.5 text-[12.5px] text-error hover:bg-error-bg"
-            >
-              إزالة
-            </button>
+            {canRemove && a.id !== profile?.id && (
+              <button
+                onClick={() => void remove(a.id, a.name)}
+                className="rounded-md border border-error px-3.5 py-1.5 text-[12.5px] text-error hover:bg-error-bg"
+              >
+                إزالة
+              </button>
+            )}
           </div>
         ))}
       </div>

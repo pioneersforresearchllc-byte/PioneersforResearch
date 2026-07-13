@@ -12,5 +12,7 @@ export interface Profile {
   qualification: string | null
   years_experience: number | null
   cv_text: string | null
+  cv_file_url: string | null
+  is_temp_admin: boolean
   created_at: string
 }

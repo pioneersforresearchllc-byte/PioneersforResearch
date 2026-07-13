@@ -20,20 +20,27 @@ export interface AdminRow {
   id: string
   name: string
   username: string
+  is_temp_admin: boolean
   created_at: string
 }
 
 export async function listAdmins(): Promise<AdminRow[]> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, name, username, created_at')
+    .select('id, name, username, is_temp_admin, created_at')
     .eq('role', 'owner')
     .order('created_at')
   if (error) throw error
   return data ?? []
 }
 
-export async function createAdmin(params: { name: string; username: string; email: string; password: string }) {
+export async function createAdmin(params: {
+  name: string
+  username: string
+  email: string
+  password: string
+  isTemp: boolean
+}) {
   const { data: session } = await supabase.auth.getSession()
   const { data, error } = await supabase.functions.invoke('create-admin', {
     body: params,

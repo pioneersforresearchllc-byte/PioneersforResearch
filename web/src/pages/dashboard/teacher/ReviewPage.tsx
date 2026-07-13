@@ -13,43 +13,53 @@ function GradeForm({ submission, onGraded }: { submission: SubmissionWithStudent
   const [grade, setGrade] = useState(submission.grade?.toString() ?? '')
   const [feedback, setFeedback] = useState(submission.feedback ?? '')
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
 
   const save = async () => {
     const g = Number(grade)
-    if (!grade || Number.isNaN(g) || g < 0 || g > 100) return
+    if (!grade || Number.isNaN(g) || g < 0 || g > 100) {
+      setError('الدرجة يجب أن تكون رقمًا بين 0 و100')
+      return
+    }
+    setError('')
     setBusy(true)
     try {
       await gradeSubmission(submission.id, g, feedback.trim() || null)
       onGraded()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'تعذر حفظ الدرجة')
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-2">
-      <input
-        type="number"
-        min={0}
-        max={100}
-        value={grade}
-        onChange={(e) => setGrade(e.target.value)}
-        placeholder="الدرجة /100"
-        className="w-24 rounded-md border border-border px-2.5 py-1.5 text-[12.5px]"
-      />
-      <input
-        value={feedback}
-        onChange={(e) => setFeedback(e.target.value)}
-        placeholder="ملاحظات (اختياري)"
-        className="min-w-32 flex-1 rounded-md border border-border px-2.5 py-1.5 text-[12.5px]"
-      />
-      <button
-        onClick={() => void save()}
-        disabled={busy}
-        className="rounded-md bg-navy px-4 py-1.5 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
-      >
-        {submission.status === 'graded' ? 'تحديث الدرجة' : 'حفظ الدرجة'}
-      </button>
+    <div className="mt-2 flex flex-col gap-1.5">
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          type="number"
+          min={0}
+          max={100}
+          value={grade}
+          onChange={(e) => setGrade(e.target.value)}
+          placeholder="الدرجة /100"
+          className="w-24 rounded-md border border-border px-2.5 py-1.5 text-[12.5px]"
+        />
+        <input
+          value={feedback}
+          onChange={(e) => setFeedback(e.target.value)}
+          placeholder="ملاحظات (اختياري)"
+          className="min-w-32 flex-1 rounded-md border border-border px-2.5 py-1.5 text-[12.5px]"
+        />
+        <button
+          onClick={() => void save()}
+          disabled={busy}
+          className="rounded-md bg-navy px-4 py-1.5 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+        >
+          {submission.status === 'graded' ? 'تحديث الدرجة' : 'حفظ الدرجة'}
+        </button>
+      </div>
+      {error && <div className="text-[12px] text-error">{error}</div>}
     </div>
   )
 }
