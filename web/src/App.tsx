@@ -6,6 +6,7 @@ import { Placeholder } from '@/components/Placeholder'
 import { useAuth } from '@/context/AuthContext'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
+import { RegisterOtpPage } from '@/pages/auth/RegisterOtpPage'
 import { TeacherApplyPage } from '@/pages/auth/TeacherApplyPage'
 import { TeacherPendingPage } from '@/pages/auth/TeacherPendingPage'
 import { OwnerLoginPage } from '@/pages/auth/OwnerLoginPage'
@@ -97,6 +98,7 @@ export default function App() {
 
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/register-otp" element={<RegisterOtpPage />} />
       <Route path="/teacher-apply" element={<TeacherApplyPage />} />
       <Route path="/teacher-pending" element={<TeacherPendingPage />} />
       <Route path="/owner-login" element={<OwnerLoginPage />} />

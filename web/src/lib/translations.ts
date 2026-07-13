@@ -216,4 +216,24 @@ export const translations = {
   'ownerOtp.invalidCode': { ar: 'رمز غير صحيح', en: 'Invalid code' },
   'ownerOtp.resend': { ar: 'إعادة إرسال الرمز', en: 'Resend Code' },
   'ownerOtp.backToLogin': { ar: '→ رجوع لتسجيل الدخول', en: '→ Back to Login' },
+
+  'registerOtp.title': { ar: 'تحقق البريد الإلكتروني', en: 'Verify Your Email' },
+  'registerOtp.subtitle': {
+    ar: 'أرسلنا رمز تحقق من 6 أرقام إلى {email} لتأكيد إنشاء حسابك',
+    en: 'We sent a 6-digit verification code to {email} to confirm your account',
+  },
+  'registerOtp.sandboxNote': {
+    ar: 'هذا نموذج تصميم بدون بريد فعلي — رمز التحقق للتجربة:',
+    en: 'This is a design prototype with no real email — test verification code:',
+  },
+  'registerOtp.codePh': { ar: 'أدخل الرمز المكوّن من 6 أرقام', en: 'Enter the 6-digit code' },
+  'registerOtp.submit': { ar: 'تأكيد إنشاء الحساب', en: 'Confirm & Create Account' },
+  'registerOtp.invalidCode': { ar: 'رمز غير صحيح', en: 'Invalid code' },
+  'registerOtp.resend': { ar: 'إعادة إرسال الرمز', en: 'Resend Code' },
+  'registerOtp.resendError': { ar: 'تعذر إعادة إرسال الرمز، حاول مجددًا', en: "Couldn't resend the code, try again" },
+  'registerOtp.completeError': {
+    ar: 'تم التحقق، لكن تعذر إكمال إنشاء الحساب. تواصل مع الإدارة',
+    en: 'Verified, but account creation failed. Please contact support',
+  },
+  'registerOtp.backToLogin': { ar: '→ رجوع لتسجيل الدخول', en: '→ Back to Login' },
 } as const satisfies Record<string, { ar: string; en: string }>

@@ -40,24 +40,26 @@ export function RegisterPage() {
         return
       }
 
-      const { data: fnData, error: fnErr } = await supabase.functions.invoke('create-profile', {
-        body: { user_id: signUpData.user.id, role: 'student', name: name.trim(), username: username.trim() },
-      })
-      if (fnErr || (fnData as { error?: string } | null)?.error) {
-        setError(
-          (fnData as { error?: string } | null)?.error === 'profile already exists'
-            ? t('register.usernameTaken')
-            : t('register.completeError'),
-        )
+      if (!signUpData.session) {
+        setError('') // no error — success path with no immediate session
+        navigate('/login')
         return
       }
 
-      if (signUpData.session) {
-        navigate('/student')
-      } else {
-        setError('') // no error — success path with no immediate session
-        navigate('/login')
+      const { data: otpData, error: otpErr } = await supabase.functions.invoke('send-signup-otp')
+      if (otpErr) {
+        setError(t('register.completeError'))
+        return
       }
+
+      navigate('/register-otp', {
+        state: {
+          email: email.trim(),
+          profilePayload: { user_id: signUpData.user.id, role: 'student', name: name.trim(), username: username.trim() },
+          successRoute: '/student',
+          devCode: (otpData as { devCode?: string })?.devCode ?? null,
+        },
+      })
     } finally {
       setBusy(false)
     }

@@ -94,29 +94,30 @@ export function TeacherApplyPage() {
         cvFileUrl = path
       }
 
-      const { data: fnData, error: fnErr } = await supabase.functions.invoke('create-profile', {
-        body: {
-          user_id: signUpData.user.id,
-          role: 'teacher',
-          name: name.trim(),
-          username: username.trim(),
-          specialty: specialty.trim(),
-          qualification: qualification.trim(),
-          years_experience: Number(years) || 0,
-          cv_text: cv.trim(),
-          cv_file_url: cvFileUrl,
-        },
-      })
-      if (fnErr || (fnData as { error?: string } | null)?.error) {
-        setError(
-          (fnData as { error?: string } | null)?.error === 'profile already exists'
-            ? t('teacherApply.usernameTaken')
-            : t('teacherApply.genericError'),
-        )
+      const { data: otpData, error: otpErr } = await supabase.functions.invoke('send-signup-otp')
+      if (otpErr) {
+        setError(t('teacherApply.genericError'))
         return
       }
 
-      navigate('/teacher-pending')
+      navigate('/register-otp', {
+        state: {
+          email: email.trim(),
+          profilePayload: {
+            user_id: signUpData.user.id,
+            role: 'teacher',
+            name: name.trim(),
+            username: username.trim(),
+            specialty: specialty.trim(),
+            qualification: qualification.trim(),
+            years_experience: Number(years) || 0,
+            cv_text: cv.trim(),
+            cv_file_url: cvFileUrl,
+          },
+          successRoute: '/teacher-pending',
+          devCode: (otpData as { devCode?: string })?.devCode ?? null,
+        },
+      })
     } finally {
       setBusy(false)
     }

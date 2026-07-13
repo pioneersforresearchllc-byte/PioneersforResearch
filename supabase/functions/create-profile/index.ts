@@ -94,6 +94,18 @@ Deno.serve(async (req) => {
     .maybeSingle()
   if (existing) return json({ error: 'profile already exists' }, 409)
 
+  // Require a verified signup_otps row before allowing the profile to be
+  // created — this is the actual bot gate, enforced server-side so it
+  // can't be skipped by calling this function directly without going
+  // through send-signup-otp / verify-signup-otp first.
+  const { data: verifiedOtp } = await admin
+    .from('signup_otps')
+    .select('id')
+    .eq('user_id', payload.user_id)
+    .eq('consumed', true)
+    .maybeSingle()
+  if (!verifiedOtp) return json({ error: 'email not verified' }, 403)
+
   const row =
     payload.role === 'student'
       ? {
