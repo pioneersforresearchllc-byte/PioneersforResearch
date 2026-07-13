@@ -21,10 +21,17 @@ const SERVICE_ROLE_KEY =
 const ANON_KEY = firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) || Deno.env.get('SUPABASE_ANON_KEY')!
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')!
 const AI_BOT_USERNAME = 'ai-assistant'
-// gemini-2.0-flash returned a hard 0-quota error on this project's free
-// tier; gemini-1.5-flash doesn't exist on this key's v1beta at all. Confirmed
-// via ListModels that gemini-2.5-flash is available and supports generateContent.
-const GEMINI_MODEL = 'gemini-2.5-flash'
+// Model availability for this API key has been inconsistent (0-quota on
+// gemini-2.0-flash, gemini-1.5-flash not found, gemini-2.5-flash "no longer
+// available to new users"). Try a short list of candidates in order and use
+// whichever one actually responds, instead of hardcoding a single name.
+const GEMINI_MODEL_CANDIDATES = [
+  'gemini-flash-latest',
+  'gemini-2.5-flash-lite',
+  'gemini-flash-lite-latest',
+  'gemini-2.0-flash-001',
+  'gemini-pro-latest',
+]
 
 const SYSTEM_PROMPT =
   'أنت المساعد الذكي لمنصة "Pioneers for Research" التدريبية على البحث العلمي. ' +
@@ -102,32 +109,40 @@ Deno.serve(async (req) => {
 
   if (contents.length === 0) return json({ skipped: true, reason: 'no text to respond to' })
 
-  const aiRes = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        contents,
-        generationConfig: { maxOutputTokens: 700 },
-      }),
-    },
-  )
-
-  if (!aiRes.ok) {
-    const errText = await aiRes.text()
-    return json({ error: `ai request failed: ${errText}` }, 502)
+  let replyText = ''
+  let workingModel = ''
+  let lastErr = ''
+  for (const model of GEMINI_MODEL_CANDIDATES) {
+    const aiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents,
+          generationConfig: { maxOutputTokens: 700 },
+        }),
+      },
+    )
+    if (!aiRes.ok) {
+      lastErr = await aiRes.text()
+      continue
+    }
+    const aiData = (await aiRes.json()) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[]
+    }
+    const text = (aiData.candidates?.[0]?.content?.parts ?? [])
+      .map((p) => p.text ?? '')
+      .join('\n')
+      .trim()
+    if (text) {
+      replyText = text
+      workingModel = model
+      break
+    }
   }
-
-  const aiData = (await aiRes.json()) as {
-    candidates?: { content?: { parts?: { text?: string }[] } }[]
-  }
-  const replyText = (aiData.candidates?.[0]?.content?.parts ?? [])
-    .map((p) => p.text ?? '')
-    .join('\n')
-    .trim()
-  if (!replyText) return json({ error: 'empty ai response' }, 502)
+  if (!replyText) return json({ error: `all candidate models failed: ${lastErr}` }, 502)
 
   const { error: insertErr } = await admin.from('messages').insert({
     conversation_id: conversationId,
@@ -136,5 +151,5 @@ Deno.serve(async (req) => {
   })
   if (insertErr) return json({ error: insertErr.message }, 500)
 
-  return json({ replied: true })
+  return json({ replied: true, model: workingModel })
 })
