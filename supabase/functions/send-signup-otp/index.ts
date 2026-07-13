@@ -62,6 +62,10 @@ async function sendOtpEmail(to: string, code: string) {
       from: SMTP_FROM,
       to,
       subject: 'رمز تأكيد إنشاء الحساب',
+      // denomailer needs a plain-text `content` alongside `html` to build a
+      // correct multipart/alternative message — omitting it produced a
+      // malformed MIME structure that showed up as raw source in Gmail.
+      content: `رمز تأكيد إنشاء حسابك في منصة Pioneers for Research هو: ${code}\nصالح لمدة 10 دقائق. إذا لم تطلب هذا الرمز، تجاهل هذه الرسالة.`,
       html: `<div dir="rtl" style="font-family:sans-serif"><p>رمز تأكيد إنشاء حسابك في منصة Pioneers for Research هو:</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p>صالح لمدة 10 دقائق. إذا لم تطلب هذا الرمز، تجاهل هذه الرسالة.</p></div>`,
     })
     return true

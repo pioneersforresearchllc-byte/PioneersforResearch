@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { fetchProfile } from '@/lib/profile'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 
@@ -35,12 +36,41 @@ export function RegisterPage() {
         email: email.trim(),
         password,
       })
+
+      let userId: string
+      let hasSession: boolean
+
       if (signUpErr || !signUpData.user) {
-        setError(signUpErr?.message === 'User already registered' ? t('register.emailInUse') : t('register.genericError'))
-        return
+        if (signUpErr?.message !== 'User already registered') {
+          setError(t('register.genericError'))
+          return
+        }
+        // Could be someone who signed up earlier but abandoned the email
+        // verification step. signInWithPassword only succeeds if they
+        // actually know this account's password, so this can't be used to
+        // probe whether a stranger's email is registered.
+        const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        })
+        if (signInErr || !signInData.user) {
+          setError(t('register.emailInUse'))
+          return
+        }
+        const existingProfile = await fetchProfile(signInData.user.id)
+        if (existingProfile) {
+          await supabase.auth.signOut()
+          setError(t('register.emailInUse'))
+          return
+        }
+        userId = signInData.user.id
+        hasSession = true
+      } else {
+        userId = signUpData.user.id
+        hasSession = !!signUpData.session
       }
 
-      if (!signUpData.session) {
+      if (!hasSession) {
         setError('') // no error — success path with no immediate session
         navigate('/login')
         return
@@ -55,7 +85,7 @@ export function RegisterPage() {
       navigate('/register-otp', {
         state: {
           email: email.trim(),
-          profilePayload: { user_id: signUpData.user.id, role: 'student', name: name.trim(), username: username.trim() },
+          profilePayload: { user_id: userId, role: 'student', name: name.trim(), username: username.trim() },
           successRoute: '/student',
           devCode: (otpData as { devCode?: string })?.devCode ?? null,
         },

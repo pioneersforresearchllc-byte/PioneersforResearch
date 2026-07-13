@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { fetchProfile } from '@/lib/profile'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 
@@ -72,20 +73,42 @@ export function TeacherApplyPage() {
         email: email.trim(),
         password,
       })
+
+      let userId: string
+
       if (signUpErr || !signUpData.user) {
-        setError(
-          signUpErr?.message === 'User already registered'
-            ? t('teacherApply.emailInUse')
-            : t('teacherApply.genericError'),
-        )
-        return
+        if (signUpErr?.message !== 'User already registered') {
+          setError(t('teacherApply.genericError'))
+          return
+        }
+        // Could be someone who applied earlier but abandoned the email
+        // verification step. signInWithPassword only succeeds if they
+        // actually know this account's password, so this can't be used to
+        // probe whether a stranger's email is registered.
+        const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        })
+        if (signInErr || !signInData.user) {
+          setError(t('teacherApply.emailInUse'))
+          return
+        }
+        const existingProfile = await fetchProfile(signInData.user.id)
+        if (existingProfile) {
+          await supabase.auth.signOut()
+          setError(t('teacherApply.emailInUse'))
+          return
+        }
+        userId = signInData.user.id
+      } else {
+        userId = signUpData.user.id
       }
 
       // Private bucket — path is scoped to the applicant's own user id, and
       // only they or a verified owner can read it back (see storage RLS).
       let cvFileUrl: string | null = null
       if (cvFile) {
-        const path = `${signUpData.user.id}/${Date.now()}-${cvFile.name}`
+        const path = `${userId}/${Date.now()}-${cvFile.name}`
         const { error: uploadErr } = await supabase.storage.from('teacher-cv-documents').upload(path, cvFile)
         if (uploadErr) {
           setError(t('teacherApply.cvUploadError'))
@@ -104,7 +127,7 @@ export function TeacherApplyPage() {
         state: {
           email: email.trim(),
           profilePayload: {
-            user_id: signUpData.user.id,
+            user_id: userId,
             role: 'teacher',
             name: name.trim(),
             username: username.trim(),
