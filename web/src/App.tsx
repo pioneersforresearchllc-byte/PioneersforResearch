@@ -27,6 +27,9 @@ import { OwnerCertificatesPage } from '@/pages/dashboard/owner/CertificatesPage'
 import { StudentCertificatesPage } from '@/pages/dashboard/student/CertificatesPage'
 import { TeacherArticlesPage } from '@/pages/dashboard/teacher/ArticlesPage'
 import { StudentArticlesPage } from '@/pages/dashboard/student/ArticlesPage'
+import { OwnerOverviewPage } from '@/pages/dashboard/owner/OverviewPage'
+import { OwnerAdminsPage } from '@/pages/dashboard/owner/AdminsPage'
+import { OwnerContactPage } from '@/pages/dashboard/owner/ContactPage'
 
 const studentTabs: DashboardTab[] = [
   { key: 'overview', label: 'نظرة عامة', to: '/student' },
@@ -124,14 +127,14 @@ export default function App() {
 
       <Route element={<RequireRole role="owner" />}>
         <Route element={<OwnerDashboard />}>
-          <Route path="/owner" element={<Placeholder title="نظرة عامة" />} />
+          <Route path="/owner" element={<OwnerOverviewPage />} />
           <Route path="/owner/applications" element={<OwnerApplicationsPage />} />
           <Route path="/owner/teachers" element={<OwnerTeachersPage />} />
           <Route path="/owner/courses" element={<OwnerCoursesPage />} />
           <Route path="/owner/certificates" element={<OwnerCertificatesPage />} />
-          <Route path="/owner/admins" element={<Placeholder title="أعضاء الإدارة" />} />
+          <Route path="/owner/admins" element={<OwnerAdminsPage />} />
           <Route path="/owner/messages" element={<ChatPage />} />
-          <Route path="/owner/contact" element={<Placeholder title="رسائل التواصل" />} />
+          <Route path="/owner/contact" element={<OwnerContactPage />} />
           <Route path="/owner/account" element={<Placeholder title="حسابي" />} />
         </Route>
       </Route>
