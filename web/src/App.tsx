@@ -17,6 +17,10 @@ import { ChatPage } from '@/pages/dashboard/chat/ChatPage'
 import { OwnerCoursesPage } from '@/pages/dashboard/owner/CoursesPage'
 import { OwnerApplicationsPage } from '@/pages/dashboard/owner/ApplicationsPage'
 import { OwnerTeachersPage } from '@/pages/dashboard/owner/TeachersPage'
+import { StudentCoursesPage } from '@/pages/dashboard/student/CoursesPage'
+import { StudentCourseDetailPage } from '@/pages/dashboard/student/CourseDetailPage'
+import { TeacherCoursesPage } from '@/pages/dashboard/teacher/CoursesPage'
+import { TeacherCourseDetailPage } from '@/pages/dashboard/teacher/CourseDetailPage'
 
 const studentTabs: DashboardTab[] = [
   { key: 'overview', label: 'نظرة عامة', to: '/student' },
@@ -86,8 +90,8 @@ export default function App() {
       <Route element={<RequireRole role="student" />}>
         <Route element={<StudentDashboard />}>
           <Route path="/student" element={<Placeholder title="نظرة عامة" />} />
-          <Route path="/student/courses" element={<Placeholder title="دوراتي" />} />
-          <Route path="/student/courses/:id" element={<Placeholder title="تفاصيل البرنامج" />} />
+          <Route path="/student/courses" element={<StudentCoursesPage />} />
+          <Route path="/student/courses/:id" element={<StudentCourseDetailPage />} />
           <Route path="/student/assignments" element={<Placeholder title="واجباتي" />} />
           <Route path="/student/grades" element={<Placeholder title="تقدمي ودرجاتي" />} />
           <Route path="/student/certificates" element={<Placeholder title="شهاداتي" />} />
@@ -103,8 +107,8 @@ export default function App() {
         <Route element={<TeacherDashboard />}>
           <Route path="/teacher" element={<Placeholder title="نظرة عامة" />} />
           <Route path="/teacher/students" element={<Placeholder title="الطلاب" />} />
-          <Route path="/teacher/courses" element={<Placeholder title="الدورات والبرامج" />} />
-          <Route path="/teacher/courses/:id" element={<Placeholder title="تفاصيل البرنامج" />} />
+          <Route path="/teacher/courses" element={<TeacherCoursesPage />} />
+          <Route path="/teacher/courses/:id" element={<TeacherCourseDetailPage />} />
           <Route path="/teacher/review" element={<Placeholder title="مراجعة الواجبات" />} />
           <Route path="/teacher/articles" element={<Placeholder title="مقالاتي" />} />
           <Route path="/teacher/chat" element={<ChatPage />} />

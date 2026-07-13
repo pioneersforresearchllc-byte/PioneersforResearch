@@ -132,3 +132,132 @@ export async function deleteSession(id: string) {
   const { error } = await supabase.from('course_sessions').delete().eq('id', id)
   if (error) throw error
 }
+
+export interface EnrolledCourse extends Course {
+  progress: number
+  status: 'active' | 'completed'
+  teacherNames: string[]
+}
+
+export async function listMyEnrolledCourses(studentId: string): Promise<EnrolledCourse[]> {
+  const { data: enrollments, error } = await supabase
+    .from('enrollments')
+    .select('progress, status, course:courses(*)')
+    .eq('student_id', studentId)
+  if (error) throw error
+  const rows = (enrollments ?? []).filter((e) => e.course) as unknown as {
+    progress: number
+    status: 'active' | 'completed'
+    course: Course
+  }[]
+  if (rows.length === 0) return []
+
+  const courseIds = rows.map((r) => r.course.id)
+  const { data: teacherLinks } = await supabase
+    .from('course_teachers')
+    .select('course_id, teacher:profiles(name)')
+    .in('course_id', courseIds)
+
+  return rows.map((r) => ({
+    ...r.course,
+    progress: r.progress,
+    status: r.status,
+    teacherNames: (teacherLinks ?? [])
+      .filter((t) => t.course_id === r.course.id)
+      .map((t) => (t.teacher as unknown as { name: string } | null)?.name ?? '')
+      .filter(Boolean),
+  }))
+}
+
+export async function getEnrolledCourseDetail(
+  courseId: string,
+  studentId: string,
+): Promise<{ course: Course; sessions: CourseSession[]; teacherNames: string[] } | null> {
+  const { data: enrollment } = await supabase
+    .from('enrollments')
+    .select('course_id')
+    .eq('course_id', courseId)
+    .eq('student_id', studentId)
+    .maybeSingle()
+  if (!enrollment) return null
+
+  const [{ data: course }, { data: sessions }, { data: teacherLinks }] = await Promise.all([
+    supabase.from('courses').select('*').eq('id', courseId).single(),
+    supabase.from('course_sessions').select('*').eq('course_id', courseId).order('session_date'),
+    supabase.from('course_teachers').select('teacher:profiles(name)').eq('course_id', courseId),
+  ])
+  if (!course) return null
+
+  return {
+    course,
+    sessions: sessions ?? [],
+    teacherNames: (teacherLinks ?? [])
+      .map((t) => (t.teacher as unknown as { name: string } | null)?.name ?? '')
+      .filter(Boolean),
+  }
+}
+
+export interface TaughtCourse extends Course {
+  enrolledCount: number
+  sessionCount: number
+}
+
+export async function listMyTaughtCourses(teacherId: string): Promise<TaughtCourse[]> {
+  const { data: links, error } = await supabase
+    .from('course_teachers')
+    .select('course:courses(*)')
+    .eq('teacher_id', teacherId)
+  if (error) throw error
+  const courses = (links ?? []).map((l) => l.course).filter(Boolean) as unknown as Course[]
+  if (courses.length === 0) return []
+
+  const ids = courses.map((c) => c.id)
+  const [{ data: enrollments }, { data: sessions }] = await Promise.all([
+    supabase.from('enrollments').select('course_id').in('course_id', ids),
+    supabase.from('course_sessions').select('course_id').in('course_id', ids),
+  ])
+
+  return courses.map((c) => ({
+    ...c,
+    enrolledCount: (enrollments ?? []).filter((e) => e.course_id === c.id).length,
+    sessionCount: (sessions ?? []).filter((s) => s.course_id === c.id).length,
+  }))
+}
+
+export interface EnrolledStudent {
+  id: string
+  name: string
+  username: string
+  progress: number
+}
+
+export async function getTaughtCourseDetail(
+  courseId: string,
+  teacherId: string,
+): Promise<{ course: Course; sessions: CourseSession[]; students: EnrolledStudent[] } | null> {
+  const { data: link } = await supabase
+    .from('course_teachers')
+    .select('course_id')
+    .eq('course_id', courseId)
+    .eq('teacher_id', teacherId)
+    .maybeSingle()
+  if (!link) return null
+
+  const [{ data: course }, { data: sessions }, { data: enrollments }] = await Promise.all([
+    supabase.from('courses').select('*').eq('id', courseId).single(),
+    supabase.from('course_sessions').select('*').eq('course_id', courseId).order('session_date'),
+    supabase.from('enrollments').select('progress, student:profiles(id, name, username)').eq('course_id', courseId),
+  ])
+  if (!course) return null
+
+  return {
+    course,
+    sessions: sessions ?? [],
+    students: (enrollments ?? [])
+      .map((e) => {
+        const s = e.student as unknown as { id: string; name: string; username: string } | null
+        return s ? { id: s.id, name: s.name, username: s.username, progress: e.progress } : null
+      })
+      .filter((s): s is EnrolledStudent => s !== null),
+  }
+}
