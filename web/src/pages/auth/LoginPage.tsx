@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { fetchProfile } from '@/lib/profile'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
+import { useLanguage } from '@/lib/i18n'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const [role, setRole] = useState<'student' | 'teacher'>('student')
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
@@ -24,7 +26,7 @@ export function LoginPage() {
     e.preventDefault()
     setError('')
     if (!identifier.trim() || !password) {
-      setError('يرجى إدخال اسم المستخدم أو البريد الإلكتروني وكلمة المرور')
+      setError(t('login.fillFields'))
       return
     }
     setBusy(true)
@@ -33,7 +35,7 @@ export function LoginPage() {
         identifier: identifier.trim(),
       })
       if (resolveErr || !email) {
-        setError('لا يوجد حساب بهذا الاسم أو البريد الإلكتروني')
+        setError(t('login.noAccount'))
         return
       }
 
@@ -42,20 +44,20 @@ export function LoginPage() {
         password,
       })
       if (signInErr || !data.user) {
-        setError('البريد الإلكتروني أو كلمة المرور غير صحيحة')
+        setError(t('login.wrongCreds'))
         return
       }
 
       const profile = await fetchProfile(data.user.id)
       if (!profile) {
-        setError('تعذر تحميل بيانات الحساب')
+        setError(t('login.profileLoadFail'))
         await supabase.auth.signOut()
         return
       }
 
       if (profile.role === 'owner') {
         await supabase.auth.signOut()
-        setError('يرجى استخدام بوابة الإدارة لتسجيل الدخول')
+        setError(t('login.useAdminPortal'))
         return
       }
 
@@ -65,7 +67,7 @@ export function LoginPage() {
       }
       if (profile.role === 'teacher' && profile.status === 'rejected') {
         await supabase.auth.signOut()
-        setError('تم رفض طلب انضمامك كمعلم')
+        setError(t('login.teacherRejected'))
         return
       }
 
@@ -80,7 +82,7 @@ export function LoginPage() {
     <AuthCard>
       <div className="mb-7 text-center">
         <div className="font-heading text-xl font-bold text-navy">Pioneers for Research</div>
-        <div className="mt-1.5 text-sm text-muted">تسجيل الدخول إلى حسابك</div>
+        <div className="mt-1.5 text-sm text-muted">{t('login.title')}</div>
       </div>
 
       <div className="mb-5 flex rounded-lg bg-[#f0f3f7] p-1">
@@ -91,7 +93,7 @@ export function LoginPage() {
             role === 'student' ? 'bg-navy text-white' : 'bg-transparent text-navy'
           }`}
         >
-          طالب
+          {t('login.student')}
         </button>
         <button
           type="button"
@@ -100,21 +102,21 @@ export function LoginPage() {
             role === 'teacher' ? 'bg-navy text-white' : 'bg-transparent text-navy'
           }`}
         >
-          معلم
+          {t('login.teacher')}
         </button>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
         <input
           type="text"
-          placeholder="اسم المستخدم أو البريد الإلكتروني"
+          placeholder={t('login.identifierPh')}
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
           className={inputClass}
         />
         <input
           type="password"
-          placeholder="كلمة المرور"
+          placeholder={t('login.passwordPh')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className={inputClass}
@@ -125,34 +127,34 @@ export function LoginPage() {
           disabled={busy}
           className="rounded-md bg-navy py-3.25 text-[15px] font-semibold text-white hover:bg-navy-hover disabled:opacity-60"
         >
-          {busy ? '...' : 'تسجيل الدخول'}
+          {busy ? '...' : t('login.submit')}
         </button>
       </form>
 
       {role === 'teacher' && (
         <>
-          <div className="mt-4 text-center text-[13px] text-muted">للتجربة: khalid / demo123</div>
+          <div className="mt-4 text-center text-[13px] text-muted">{t('login.demoTeacherHint')}</div>
           <div className="mt-2.5 text-center text-[13.5px]">
-            لست معلمًا مسجلًا؟{' '}
+            {t('login.notTeacherYet')}{' '}
             <Link to="/teacher-apply" className="font-semibold text-navy no-underline">
-              قدّم طلب انضمام كمعلم
+              {t('login.applyAsTeacher')}
             </Link>
           </div>
         </>
       )}
       {role === 'student' && (
-        <div className="mt-4 text-center text-[13px] text-muted">للتجربة: noura / noura123</div>
+        <div className="mt-4 text-center text-[13px] text-muted">{t('login.demoStudentHint')}</div>
       )}
 
       <div className="mt-4 text-center text-[13.5px] text-muted">
-        ليس لديك حساب؟{' '}
+        {t('login.noAccountYet')}{' '}
         <Link to="/register" className="font-semibold text-navy no-underline">
-          إنشاء حساب
+          {t('login.createAccount')}
         </Link>
       </div>
       <div className="mt-2.5 text-center">
         <Link to="/" className="text-[13px] text-muted no-underline">
-          → رجوع للرئيسية
+          {t('login.backHome')}
         </Link>
       </div>
     </AuthCard>

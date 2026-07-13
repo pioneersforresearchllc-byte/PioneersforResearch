@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/lib/i18n'
 
 interface ArticleDetail {
   id: string
@@ -98,6 +99,7 @@ function useLikerNames(id: string | undefined, enabled: boolean) {
 export function ArticleDetailPage() {
   const { id } = useParams()
   const { session, profile } = useAuth()
+  const { t } = useLanguage()
   const queryClient = useQueryClient()
   const { data: article, isLoading } = useArticle(id)
   const { data: comments } = useComments(id)
@@ -132,9 +134,9 @@ export function ArticleDetailPage() {
   if (!article) {
     return (
       <div className="px-16 py-20 text-center">
-        <div className="mb-4 text-muted">لم يتم العثور على هذا المقال.</div>
+        <div className="mb-4 text-muted">{t('article.notFound')}</div>
         <Link to="/" className="text-navy no-underline">
-          → رجوع للرئيسية
+          {t('course.backHome')}
         </Link>
       </div>
     )
@@ -143,7 +145,7 @@ export function ArticleDetailPage() {
   return (
     <div className="px-16 py-20">
       <Link to="/#resources" className="mb-5 inline-block text-[13px] text-muted no-underline">
-        → رجوع للموارد
+        {t('article.back')}
       </Link>
       <div className="mx-auto max-w-170 overflow-hidden rounded-[10px] border border-border bg-white">
         {article.image_url && (
@@ -151,7 +153,7 @@ export function ArticleDetailPage() {
         )}
         <div className="p-7">
           <h2 className="font-heading mb-2 text-2xl">{article.title}</h2>
-          <div className="mb-4.5 text-[13px] text-accent">بقلم {article.author_name}</div>
+          <div className="mb-4.5 text-[13px] text-accent">{t('article.byAuthor', { name: article.author_name })}</div>
           <p className="mb-5.5 whitespace-pre-wrap text-[15px] leading-[2] text-muted-2">{article.content}</p>
 
           {canInteract ? (
@@ -160,27 +162,29 @@ export function ArticleDetailPage() {
                 onClick={() => void toggleLike()}
                 className="rounded-md border border-border px-4.5 py-2 text-[13.5px] text-navy hover:border-navy"
               >
-                {iLiked ? 'إلغاء الإعجاب' : 'إعجاب'} ({article.likes_count})
+                {iLiked ? t('article.unlike') : t('article.like')} ({article.likes_count})
               </button>
             </div>
           ) : (
             <div className="border-t border-border-2 pt-4.5 text-[13.5px] text-muted">
-              {article.likes_count} إعجاب —{' '}
+              {t('article.loginPromptPrefix', { likes: String(article.likes_count) })}{' '}
               <Link to="/login" className="font-semibold text-navy no-underline">
-                سجّل دخولك
+                {t('article.loginToInteract')}
               </Link>{' '}
-              للإعجاب والتعليق
+              {t('article.loginSuffix')}
             </div>
           )}
 
           {isAuthor && likerNames && likerNames.length > 0 && (
-            <div className="mt-3.5 text-[12.5px] text-faint">أعجب به: {likerNames.join('، ')}</div>
+            <div className="mt-3.5 text-[12.5px] text-faint">
+              {t('article.likedBy', { names: likerNames.join('، ') })}
+            </div>
           )}
         </div>
       </div>
 
       <div className="mx-auto mt-5 max-w-170">
-        <div className="mb-3.5 text-[15px] font-semibold">التعليقات</div>
+        <div className="mb-3.5 text-[15px] font-semibold">{t('article.commentsTitle')}</div>
         {(comments ?? []).map((c) => (
           <div key={c.id} className="mb-2.5 rounded-[10px] border border-border bg-white px-4.5 py-3.5">
             <div className="mb-1 text-[13.5px] font-semibold">{c.author_name}</div>
@@ -191,7 +195,7 @@ export function ArticleDetailPage() {
           <form onSubmit={(e) => void addComment(e)} className="mt-2 flex gap-2.5">
             <input
               type="text"
-              placeholder="أضف تعليقًا..."
+              placeholder={t('article.commentPh')}
               value={commentDraft}
               onChange={(e) => setCommentDraft(e.target.value)}
               className="flex-1 rounded-lg border border-border px-3.5 py-2.75 text-sm"
@@ -200,7 +204,7 @@ export function ArticleDetailPage() {
               type="submit"
               className="rounded-lg bg-navy px-5.5 py-2.75 text-[13.5px] text-white hover:bg-navy-hover"
             >
-              إرسال
+              {t('article.send')}
             </button>
           </form>
         )}

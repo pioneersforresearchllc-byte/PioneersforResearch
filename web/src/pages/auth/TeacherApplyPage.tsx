@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
+import { useLanguage } from '@/lib/i18n'
 
 const MAX_CV_FILE_BYTES = 10 * 1024 * 1024
 const ALLOWED_CV_TYPES = [
@@ -12,6 +13,7 @@ const ALLOWED_CV_TYPES = [
 
 export function TeacherApplyPage() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
@@ -32,11 +34,11 @@ export function TeacherApplyPage() {
       return
     }
     if (!ALLOWED_CV_TYPES.includes(file.type)) {
-      setError('صيغة الملف غير مدعومة — استخدم PDF أو Word فقط')
+      setError(t('teacherApply.fileTypeError'))
       return
     }
     if (file.size > MAX_CV_FILE_BYTES) {
-      setError('حجم الملف كبير جدًا (الحد الأقصى 10 ميجابايت)')
+      setError(t('teacherApply.fileSizeError'))
       return
     }
     setCvFile(file)
@@ -56,11 +58,11 @@ export function TeacherApplyPage() {
       !qualification.trim() ||
       !cv.trim()
     ) {
-      setError('يرجى تعبئة جميع الحقول المطلوبة')
+      setError(t('teacherApply.requiredFields'))
       return
     }
     if (password.length < 6) {
-      setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل')
+      setError(t('teacherApply.passwordLength'))
       return
     }
 
@@ -73,8 +75,8 @@ export function TeacherApplyPage() {
       if (signUpErr || !signUpData.user) {
         setError(
           signUpErr?.message === 'User already registered'
-            ? 'هذا البريد الإلكتروني مستخدم بالفعل'
-            : 'تعذر إرسال الطلب، حاول مجددًا',
+            ? t('teacherApply.emailInUse')
+            : t('teacherApply.genericError'),
         )
         return
       }
@@ -86,7 +88,7 @@ export function TeacherApplyPage() {
         const path = `${signUpData.user.id}/${Date.now()}-${cvFile.name}`
         const { error: uploadErr } = await supabase.storage.from('teacher-cv-documents').upload(path, cvFile)
         if (uploadErr) {
-          setError('تعذر رفع ملف السيرة الذاتية، حاول مجددًا')
+          setError(t('teacherApply.cvUploadError'))
           return
         }
         cvFileUrl = path
@@ -108,8 +110,8 @@ export function TeacherApplyPage() {
       if (fnErr || (fnData as { error?: string } | null)?.error) {
         setError(
           (fnData as { error?: string } | null)?.error === 'profile already exists'
-            ? 'اسم المستخدم مستخدم بالفعل'
-            : 'تعذر إرسال الطلب، حاول مجددًا',
+            ? t('teacherApply.usernameTaken')
+            : t('teacherApply.genericError'),
         )
         return
       }
@@ -123,51 +125,49 @@ export function TeacherApplyPage() {
   return (
     <AuthCard width={480}>
       <div className="mb-6 text-center">
-        <div className="font-heading text-xl font-bold text-navy">طلب انضمام كمعلم</div>
-        <div className="mt-1.5 text-sm text-muted">
-          تُراجع الإدارة كل طلب يدويًا قبل تفعيل الحساب — عبّئ بياناتك كأنك تتقدم لوظيفة
-        </div>
+        <div className="font-heading text-xl font-bold text-navy">{t('teacherApply.title')}</div>
+        <div className="mt-1.5 text-sm text-muted">{t('teacherApply.subtitle')}</div>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
         <input
           type="text"
-          placeholder="الاسم الكامل"
+          placeholder={t('teacherApply.namePh')}
           value={name}
           onChange={(e) => setName(e.target.value)}
           className={inputClass}
         />
         <input
           type="email"
-          placeholder="البريد الإلكتروني"
+          placeholder={t('teacherApply.emailPh')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className={inputClass}
         />
         <input
           type="text"
-          placeholder="اسم المستخدم"
+          placeholder={t('teacherApply.usernamePh')}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           className={inputClass}
         />
         <input
           type="password"
-          placeholder="كلمة المرور"
+          placeholder={t('teacherApply.passwordPh')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className={inputClass}
         />
         <input
           type="text"
-          placeholder="التخصص (مثال: إحصاء، كتابة أكاديمية)"
+          placeholder={t('teacherApply.specialtyPh')}
           value={specialty}
           onChange={(e) => setSpecialty(e.target.value)}
           className={inputClass}
         />
         <input
           type="text"
-          placeholder="المؤهل العلمي"
+          placeholder={t('teacherApply.qualificationPh')}
           value={qualification}
           onChange={(e) => setQualification(e.target.value)}
           className={inputClass}
@@ -175,20 +175,20 @@ export function TeacherApplyPage() {
         <input
           type="number"
           min={0}
-          placeholder="سنوات الخبرة"
+          placeholder={t('teacherApply.yearsPh')}
           value={years}
           onChange={(e) => setYears(e.target.value)}
           className={inputClass}
         />
         <textarea
-          placeholder="السيرة الذاتية: اذكر خبرتك في الإشراف والتدريب، وأبرز إنجازاتك العلمية"
+          placeholder={t('teacherApply.cvPh')}
           value={cv}
           onChange={(e) => setCv(e.target.value)}
           rows={4}
           className={`${inputClass} resize-y font-[inherit]`}
         />
         <div>
-          <label className="mb-1.5 block text-[13px] text-muted">إرفاق ملف السيرة الذاتية (اختياري — PDF أو Word، حتى 10 ميجابايت)</label>
+          <label className="mb-1.5 block text-[13px] text-muted">{t('teacherApply.attachLabel')}</label>
           <input
             type="file"
             accept="application/pdf,.pdf,.doc,.docx"
@@ -211,13 +211,13 @@ export function TeacherApplyPage() {
           disabled={busy}
           className="rounded-md bg-navy py-3.25 text-[15px] font-semibold text-white hover:bg-navy-hover disabled:opacity-60"
         >
-          {busy ? '...' : 'إرسال الطلب'}
+          {busy ? '...' : t('teacherApply.submit')}
         </button>
       </form>
 
       <div className="mt-4 text-center">
         <Link to="/login" className="text-[13px] text-muted no-underline">
-          → رجوع لتسجيل الدخول
+          {t('teacherApply.backToLogin')}
         </Link>
       </div>
     </AuthCard>

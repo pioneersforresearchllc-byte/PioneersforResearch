@@ -4,10 +4,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { enrollFree } from '@/lib/courses'
+import { useLanguage } from '@/lib/i18n'
 
-function formatSar(cents: number) {
-  if (cents === 0) return 'مجاني'
-  return `${(cents / 100).toLocaleString('ar-SA')} ريال`
+function formatSar(cents: number, t: ReturnType<typeof useLanguage>['t']) {
+  if (cents === 0) return t('course.free')
+  return `${(cents / 100).toLocaleString('ar-SA')} ${t('course.currency')}`
 }
 
 interface CourseDetail {
@@ -88,6 +89,7 @@ export function CourseDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { session, profile } = useAuth()
+  const { t } = useLanguage()
   const queryClient = useQueryClient()
   const { data: course, isLoading } = useCourseDetail(id)
   const { data: myRating } = useMyRating(id, profile?.role === 'student' ? profile.id : undefined)
@@ -124,7 +126,7 @@ export function CourseDetailPage() {
         await queryClient.invalidateQueries({ queryKey: ['course-my-enrollment', id, profile.id] })
         await queryClient.invalidateQueries({ queryKey: ['course-detail', id] })
       } catch (e) {
-        setEnrollError(e instanceof Error ? e.message : 'تعذر التسجيل، حاول مجددًا')
+        setEnrollError(e instanceof Error ? e.message : t('course.enrollError'))
       } finally {
         setEnrollBusy(false)
       }
@@ -138,9 +140,9 @@ export function CourseDetailPage() {
   if (!course) {
     return (
       <div className="px-16 py-20 text-center">
-        <div className="mb-4 text-muted">لم يتم العثور على هذا البرنامج.</div>
+        <div className="mb-4 text-muted">{t('course.notFound')}</div>
         <Link to="/" className="text-navy no-underline">
-          → رجوع للرئيسية
+          {t('course.backHome')}
         </Link>
       </div>
     )
@@ -149,7 +151,7 @@ export function CourseDetailPage() {
   return (
     <div className="px-16 py-20">
       <Link to="/#programs" className="mb-5 inline-block text-[13px] text-muted no-underline">
-        → رجوع للبرامج
+        {t('course.back')}
       </Link>
       <div className="mx-auto max-w-160 rounded-[10px] border border-border bg-white p-9">
         {course.image_url && (
@@ -170,7 +172,7 @@ export function CourseDetailPage() {
             </span>
           ))}
           <span className="text-[13px] text-muted">
-            {course.avg_rating.toFixed(1)} ({course.rating_count} تقييم)
+            {course.avg_rating.toFixed(1)} ({t('course.ratingCount', { count: String(course.rating_count) })})
           </span>
         </div>
         <p className="mb-6 text-[15.5px] leading-[2] text-muted-2">{course.description}</p>
@@ -179,18 +181,18 @@ export function CourseDetailPage() {
           <div className="flex items-center gap-3">
             {course.capacity != null && (
               <span className="text-[12.5px] text-muted">
-                {Math.max(course.capacity - course.enrolledCount, 0)} مقعد متبقٍ
+                {t('course.seatsLeft', { count: String(Math.max(course.capacity - course.enrolledCount, 0)) })}
               </span>
             )}
             {course.original_price_cents && course.original_price_cents > course.price_cents && (
               <span className="ml-2.5 text-sm text-faint line-through">
-                {formatSar(course.original_price_cents)}
+                {formatSar(course.original_price_cents, t)}
               </span>
             )}
-            <span className="text-xl font-bold text-navy">{formatSar(course.price_cents)}</span>
+            <span className="text-xl font-bold text-navy">{formatSar(course.price_cents, t)}</span>
           </div>
         </div>
-        <div className="mb-5.5 flex gap-1.5" title="قيّم البرنامج">
+        <div className="mb-5.5 flex gap-1.5">
           {[1, 2, 3, 4, 5].map((n) => (
             <span
               key={n}
@@ -208,7 +210,7 @@ export function CourseDetailPage() {
                 to="/student/courses"
                 className="block w-full rounded-md bg-success py-4 text-center text-[15px] font-semibold text-white no-underline hover:opacity-90"
               >
-                أنت مسجّل بهذا البرنامج — عرض دوراتي
+                {t('course.alreadyEnrolled')}
               </Link>
             ) : (
               <button
@@ -217,21 +219,19 @@ export function CourseDetailPage() {
                 className="w-full rounded-md bg-navy py-4 text-[15px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
               >
                 {isFull
-                  ? 'اكتملت المقاعد'
+                  ? t('course.full')
                   : course.price_cents === 0
                     ? enrollBusy
-                      ? '...جارِ التسجيل'
-                      : 'تسجيل مجاني'
-                    : `اشتراك ودفع ${formatSar(course.price_cents)}`}
+                      ? t('course.enrolling')
+                      : t('course.enrollFree')
+                    : t('course.subscribeAndPay', { price: formatSar(course.price_cents, t) })}
               </button>
             )}
           </>
         )}
         {enrollError && <div className="mt-3 text-center text-[13px] text-error">{enrollError}</div>}
         {comingSoon && (
-          <div className="mt-3 text-center text-[13px] text-muted">
-            الدفع الإلكتروني قيد التفعيل — سيتوفر قريبًا.
-          </div>
+          <div className="mt-3 text-center text-[13px] text-muted">{t('course.paymentComingSoon')}</div>
         )}
       </div>
     </div>

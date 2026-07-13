@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { fetchProfile } from '@/lib/profile'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
+import { useLanguage } from '@/lib/i18n'
 
 export function OwnerLoginPage() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -15,7 +17,7 @@ export function OwnerLoginPage() {
     e.preventDefault()
     setError('')
     if (!identifier.trim() || !password) {
-      setError('يرجى إدخال اسم المستخدم أو البريد الإلكتروني وكلمة المرور')
+      setError(t('ownerLogin.fillFields'))
       return
     }
 
@@ -25,26 +27,26 @@ export function OwnerLoginPage() {
         identifier: identifier.trim(),
       })
       if (resolveErr || !email) {
-        setError('بيانات الدخول غير صحيحة')
+        setError(t('ownerLogin.invalidCreds'))
         return
       }
 
       const { data, error: signInErr } = await supabase.auth.signInWithPassword({ email, password })
       if (signInErr || !data.user) {
-        setError('بيانات الدخول غير صحيحة')
+        setError(t('ownerLogin.invalidCreds'))
         return
       }
 
       const profile = await fetchProfile(data.user.id)
       if (!profile || profile.role !== 'owner') {
         await supabase.auth.signOut()
-        setError('بيانات الدخول غير صحيحة')
+        setError(t('ownerLogin.invalidCreds'))
         return
       }
 
       const { data: otpData, error: otpErr } = await supabase.functions.invoke('send-otp')
       if (otpErr) {
-        setError('تعذر إرسال رمز التحقق، حاول مجددًا')
+        setError(t('ownerLogin.otpSendError'))
         return
       }
 
@@ -57,21 +59,21 @@ export function OwnerLoginPage() {
   return (
     <AuthCard dark>
       <div className="mb-7 text-center">
-        <div className="font-heading text-xl font-bold text-navy">بوابة الإدارة</div>
-        <div className="mt-1.5 text-sm text-muted">دخول مخصص لفريق الإدارة فقط</div>
+        <div className="font-heading text-xl font-bold text-navy">{t('ownerLogin.title')}</div>
+        <div className="mt-1.5 text-sm text-muted">{t('ownerLogin.subtitle')}</div>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
         <input
           type="text"
-          placeholder="اسم المستخدم أو البريد الإلكتروني"
+          placeholder={t('ownerLogin.identifierPh')}
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
           className={inputClass}
         />
         <input
           type="password"
-          placeholder="كلمة المرور"
+          placeholder={t('ownerLogin.passwordPh')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className={inputClass}
@@ -82,16 +84,14 @@ export function OwnerLoginPage() {
           disabled={busy}
           className="rounded-md bg-navy py-3.25 text-[15px] font-semibold text-white hover:bg-navy-hover disabled:opacity-60"
         >
-          {busy ? '...' : 'دخول الإدارة'}
+          {busy ? '...' : t('ownerLogin.submit')}
         </button>
       </form>
 
-      <div className="mt-5 text-center text-[12.5px] text-[#a9b2bd]">
-        حسابات الإدارة تُنشأ فقط من داخل لوحة الإدارة نفسها
-      </div>
+      <div className="mt-5 text-center text-[12.5px] text-[#a9b2bd]">{t('ownerLogin.hint')}</div>
       <div className="mt-2.5 text-center">
         <Link to="/" className="text-[13px] text-muted no-underline">
-          → رجوع للرئيسية
+          {t('ownerLogin.backHome')}
         </Link>
       </div>
     </AuthCard>

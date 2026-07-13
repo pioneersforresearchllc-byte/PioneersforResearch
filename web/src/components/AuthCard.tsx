@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useLanguage } from '@/lib/i18n'
 
 interface AuthCardProps {
   width?: number
@@ -8,12 +9,22 @@ interface AuthCardProps {
 
 /** Shared centered-card shell used by every auth screen. */
 export function AuthCard({ width = 400, dark = false, children }: AuthCardProps) {
+  const { lang, dir, toggleLang, t } = useLanguage()
+
   return (
     <div
-      dir="rtl"
-      lang="ar"
-      className={`flex min-h-screen items-center justify-center py-10 ${dark ? 'bg-navy' : 'bg-bg-soft'}`}
+      dir={dir}
+      lang={lang}
+      className={`relative flex min-h-screen items-center justify-center py-10 ${dark ? 'bg-navy' : 'bg-bg-soft'}`}
     >
+      <button
+        onClick={toggleLang}
+        className={`absolute top-6 rounded-md border px-3.5 py-2 text-[13px] ltr:left-6 rtl:right-6 ${
+          dark ? 'border-white/30 text-white hover:bg-white/10' : 'border-border text-navy hover:bg-white'
+        }`}
+      >
+        {t('lang.toggle')}
+      </button>
       <div className="rounded-xl bg-white p-10" style={{ width }}>
         {children}
       </div>
