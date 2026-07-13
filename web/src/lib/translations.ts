@@ -256,6 +256,15 @@ export const translations = {
   'forgotPassword.fillField': { ar: 'يرجى إدخال البريد الإلكتروني', en: 'Please enter your email' },
   'forgotPassword.submit': { ar: 'إرسال رمز التحقق', en: 'Send Verification Code' },
   'forgotPassword.backToLogin': { ar: '→ رجوع لتسجيل الدخول', en: '→ Back to Login' },
+  'forgotPassword.emailNotFound': {
+    ar: 'لا يوجد حساب مرتبط بهذا البريد الإلكتروني',
+    en: 'No account is associated with this email',
+  },
+  'forgotPassword.genericError': { ar: 'تعذر إرسال الرمز، حاول مجددًا', en: "Couldn't send the code, try again" },
+  'forgotPassword.rateLimited': {
+    ar: 'انتظر {minutes} دقيقة قبل طلب رمز جديد',
+    en: 'Wait {minutes} minute(s) before requesting a new code',
+  },
 
   'resetPassword.title': { ar: 'إعادة تعيين كلمة المرور', en: 'Reset Password' },
   'resetPassword.subtitle': {
@@ -275,4 +284,8 @@ export const translations = {
   'resetPassword.resend': { ar: 'إعادة إرسال الرمز', en: 'Resend Code' },
   'resetPassword.backToLogin': { ar: '→ رجوع لتسجيل الدخول', en: '→ Back to Login' },
   'resetPassword.backToForgot': { ar: '→ نسيت كلمة السر؟', en: '→ Forgot password?' },
+  'resetPassword.rateLimited': {
+    ar: 'انتظر {minutes} دقيقة قبل طلب رمز جديد',
+    en: 'Wait {minutes} minute(s) before requesting a new code',
+  },
 } as const satisfies Record<string, { ar: string; en: string }>

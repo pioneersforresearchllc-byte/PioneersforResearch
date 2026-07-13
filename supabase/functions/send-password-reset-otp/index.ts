@@ -1,9 +1,9 @@
 // "Forgot password" step 1. Public (no session — the whole point is the
-// user is locked out). Always responds identically regardless of whether
-// the email is registered, rate-limited, or something failed internally —
-// this prevents an attacker from using this endpoint to enumerate which
-// emails have accounts. Real work only happens when the email matches a
-// real user and isn't rate-limited.
+// user is locked out). Explicitly reports whether the email is registered
+// so the user gets a clear message instead of being sent to an "enter your
+// code" screen for an email that never received one — a deliberate
+// trade-off of email-enumeration hardening for a less confusing flow on
+// this small platform.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 
@@ -94,15 +94,14 @@ Deno.serve(async (req) => {
     return json({ error: 'invalid json body' }, 400)
   }
   const email = (body.email || '').trim()
-  const genericResponse = { sent: true }
-  if (!email) return json(genericResponse)
+  if (!email) return json({ error: 'missing email' }, 400)
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
 
   const userId = await findUserIdByEmail(admin, email)
-  if (!userId) return json(genericResponse)
+  if (!userId) return json({ error: 'email_not_found' }, 404)
 
   const { data: recent } = await admin
     .from('password_reset_otps')
@@ -111,8 +110,9 @@ Deno.serve(async (req) => {
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle()
-  if (recent && Date.now() - new Date(recent.created_at).getTime() < RESEND_COOLDOWN_MS) {
-    return json(genericResponse)
+  if (recent) {
+    const waitMs = RESEND_COOLDOWN_MS - (Date.now() - new Date(recent.created_at).getTime())
+    if (waitMs > 0) return json({ error: 'rate_limited', retryAfterSeconds: Math.ceil(waitMs / 1000) }, 429)
   }
 
   const code = String(Math.floor(100000 + Math.random() * 900000))
@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
 
   await admin.from('password_reset_otps').insert({ user_id: userId, code_hash: codeHash, expires_at: expiresAt })
-  await sendResetEmail(email, code)
+  const emailed = await sendResetEmail(email, code)
 
-  return json(genericResponse)
+  return json({ sent: true, emailed })
 })

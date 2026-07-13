@@ -57,7 +57,12 @@ export function ResetPasswordPage() {
 
   const resend = async () => {
     setError('')
-    await supabase.functions.invoke('send-password-reset-otp', { body: { email } })
+    const { data } = await supabase.functions.invoke('send-password-reset-otp', { body: { email } })
+    const result = data as { error?: string; retryAfterSeconds?: number } | null
+    if (result?.error === 'rate_limited') {
+      const minutes = Math.max(1, Math.ceil((result.retryAfterSeconds ?? 300) / 60))
+      setError(t('resetPassword.rateLimited', { minutes: String(minutes) }))
+    }
   }
 
   return (

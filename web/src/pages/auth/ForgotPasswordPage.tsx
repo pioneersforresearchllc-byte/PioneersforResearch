@@ -20,10 +20,23 @@ export function ForgotPasswordPage() {
     }
     setBusy(true)
     try {
-      await supabase.functions.invoke('send-password-reset-otp', { body: { email: email.trim() } })
-      // Always proceed regardless of whether the email is registered — the
-      // response is intentionally generic so this page can't be used to
-      // check which emails have accounts.
+      const { data } = await supabase.functions.invoke('send-password-reset-otp', {
+        body: { email: email.trim() },
+      })
+      const result = data as { sent?: boolean; error?: string; retryAfterSeconds?: number } | null
+      if (result?.error === 'email_not_found') {
+        setError(t('forgotPassword.emailNotFound'))
+        return
+      }
+      if (result?.error === 'rate_limited') {
+        const minutes = Math.max(1, Math.ceil((result.retryAfterSeconds ?? 300) / 60))
+        setError(t('forgotPassword.rateLimited', { minutes: String(minutes) }))
+        return
+      }
+      if (!result?.sent) {
+        setError(t('forgotPassword.genericError'))
+        return
+      }
       navigate('/reset-password', { state: { email: email.trim() } })
     } finally {
       setBusy(false)
