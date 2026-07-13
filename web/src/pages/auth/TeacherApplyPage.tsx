@@ -26,6 +26,7 @@ export function TeacherApplyPage() {
   const [cvFile, setCvFile] = useState<File | null>(null)
   const [honeypot, setHoneypot] = useState('')
   const [error, setError] = useState('')
+  const [showForgotLink, setShowForgotLink] = useState(false)
   const [busy, setBusy] = useState(false)
 
   const handleCvFile = (file: File | null) => {
@@ -48,6 +49,7 @@ export function TeacherApplyPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
+    setShowForgotLink(false)
     if (honeypot) return
 
     if (
@@ -90,7 +92,8 @@ export function TeacherApplyPage() {
           password,
         })
         if (signInErr || !signInData.user) {
-          setError(t('teacherApply.emailInUse'))
+          setError(t('teacherApply.emailInUseWrongPassword'))
+          setShowForgotLink(true)
           return
         }
         const existingProfile = await fetchProfile(signInData.user.id)
@@ -230,6 +233,13 @@ export function TeacherApplyPage() {
           className="absolute left-[-9999px] h-px w-px opacity-0"
         />
         <FieldError>{error}</FieldError>
+        {showForgotLink && (
+          <div className="-mt-2 text-[13px]">
+            <Link to="/forgot-password" className="font-semibold text-navy no-underline">
+              {t('teacherApply.forgotPasswordLink')}
+            </Link>
+          </div>
+        )}
         <button
           type="submit"
           disabled={busy}

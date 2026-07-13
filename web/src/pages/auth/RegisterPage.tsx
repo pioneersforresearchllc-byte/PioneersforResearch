@@ -14,11 +14,13 @@ export function RegisterPage() {
   const [password, setPassword] = useState('')
   const [honeypot, setHoneypot] = useState('')
   const [error, setError] = useState('')
+  const [showForgotLink, setShowForgotLink] = useState(false)
   const [busy, setBusy] = useState(false)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
+    setShowForgotLink(false)
 
     if (honeypot) return // silently drop — bot filled the hidden field
     if (!name.trim() || !email.trim() || !username.trim() || !password) {
@@ -54,7 +56,8 @@ export function RegisterPage() {
           password,
         })
         if (signInErr || !signInData.user) {
-          setError(t('register.emailInUse'))
+          setError(t('register.emailInUseWrongPassword'))
+          setShowForgotLink(true)
           return
         }
         const existingProfile = await fetchProfile(signInData.user.id)
@@ -141,6 +144,13 @@ export function RegisterPage() {
           className="absolute left-[-9999px] h-px w-px opacity-0"
         />
         <FieldError>{error}</FieldError>
+        {showForgotLink && (
+          <div className="-mt-2 text-[13px]">
+            <Link to="/forgot-password" className="font-semibold text-navy no-underline">
+              {t('register.forgotPasswordLink')}
+            </Link>
+          </div>
+        )}
         <button
           type="submit"
           disabled={busy}

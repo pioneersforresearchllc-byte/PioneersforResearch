@@ -133,6 +133,11 @@ export const translations = {
   'register.passwordPh': { ar: 'كلمة المرور', en: 'Password' },
   'register.submit': { ar: 'إنشاء الحساب', en: 'Create Account' },
   'register.emailInUse': { ar: 'هذا البريد الإلكتروني مستخدم بالفعل', en: 'This email is already in use' },
+  'register.emailInUseWrongPassword': {
+    ar: 'هذا البريد بدأ التسجيل سابقًا بكلمة مرور مختلفة',
+    en: 'Registration was already started for this email with a different password',
+  },
+  'register.forgotPasswordLink': { ar: 'استخدم "نسيت كلمة السر" لتعيين كلمة مرور جديدة ثم أكمل التسجيل', en: 'Use "Forgot password" to set a new password, then complete registration' },
   'register.genericError': { ar: 'تعذر إنشاء الحساب، حاول مجددًا', en: "Couldn't create the account, try again" },
   'register.usernameTaken': { ar: 'اسم المستخدم مستخدم بالفعل', en: 'This username is already taken' },
   'register.completeError': {
@@ -174,6 +179,11 @@ export const translations = {
     en: 'Password must be at least 6 characters',
   },
   'teacherApply.emailInUse': { ar: 'هذا البريد الإلكتروني مستخدم بالفعل', en: 'This email is already in use' },
+  'teacherApply.emailInUseWrongPassword': {
+    ar: 'هذا البريد بدأ التسجيل سابقًا بكلمة مرور مختلفة',
+    en: 'Registration was already started for this email with a different password',
+  },
+  'teacherApply.forgotPasswordLink': { ar: 'استخدم "نسيت كلمة السر" لتعيين كلمة مرور جديدة ثم أكمل التسجيل', en: 'Use "Forgot password" to set a new password, then complete registration' },
   'teacherApply.genericError': { ar: 'تعذر إرسال الطلب، حاول مجددًا', en: "Couldn't submit the application, try again" },
   'teacherApply.usernameTaken': { ar: 'اسم المستخدم مستخدم بالفعل', en: 'This username is already taken' },
   'teacherApply.cvUploadError': {
