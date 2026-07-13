@@ -24,7 +24,7 @@ export function OwnerOverviewPage() {
     <div>
       <div className="mb-5 font-heading text-xl font-bold text-navy">نظرة عامة</div>
       {isLoading && <div className="text-muted">جارِ التحميل...</div>}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {cards.map((c) => (
           <div key={c.label} className="rounded-xl border border-border bg-white p-5 text-center">
             <div className="font-heading text-[26px] font-bold text-navy">{c.value}</div>

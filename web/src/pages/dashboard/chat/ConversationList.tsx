@@ -43,7 +43,9 @@ export function ConversationList({ conversations, activeId, onSelect, onStartNew
   }, [conversations, search])
 
   return (
-    <div className="flex w-[300px] shrink-0 flex-col border-l border-border">
+    <div
+      className={`${activeId ? 'hidden' : 'flex'} w-full shrink-0 flex-col border-l border-border md:flex md:w-[300px]`}
+    >
       <div className="flex items-center gap-2 border-b border-border p-3.5">
         <input
           value={search}

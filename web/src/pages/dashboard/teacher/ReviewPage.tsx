@@ -79,7 +79,7 @@ function AssignmentPanel({ assignment, onClose }: { assignment: AssignmentForRev
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div
-        className="flex max-h-[85vh] w-[560px] flex-col overflow-y-auto rounded-xl bg-white p-6"
+        className="flex max-h-[85vh] w-full max-w-[560px] flex-col overflow-y-auto rounded-xl bg-white p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-1 font-heading text-lg font-bold text-navy">{assignment.title}</div>

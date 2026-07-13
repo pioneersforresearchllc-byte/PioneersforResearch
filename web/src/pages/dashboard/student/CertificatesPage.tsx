@@ -17,7 +17,7 @@ export function StudentCertificatesPage() {
       {isLoading && <div className="text-muted">جارِ التحميل...</div>}
       {data && data.length === 0 && <div className="text-muted">لا توجد شهادات صادرة بعد.</div>}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {(data ?? []).map((c) => (
           <div key={c.id} className="rounded-xl border border-border bg-white p-4">
             {c.image_url && <img src={c.image_url} className="mb-3 block w-full rounded-lg" alt={c.template_title} />}

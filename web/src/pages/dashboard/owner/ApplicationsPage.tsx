@@ -35,7 +35,7 @@ export function OwnerApplicationsPage() {
               <div className="text-[15.5px] font-semibold text-navy">{t.name}</div>
               <span className="text-[12px] text-faint">@{t.username}</span>
             </div>
-            <div className="mb-1.5 flex gap-4 text-[13px] text-muted">
+            <div className="mb-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-muted">
               {t.specialty && <span>التخصص: {t.specialty}</span>}
               {t.qualification && <span>المؤهل: {t.qualification}</span>}
               {t.years_experience != null && <span>الخبرة: {t.years_experience} سنة</span>}

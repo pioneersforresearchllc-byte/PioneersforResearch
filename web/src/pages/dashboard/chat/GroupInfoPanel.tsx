@@ -83,7 +83,7 @@ export function GroupInfoPanel({ conversation, myUserId, myRole, onClose, onChan
   }
 
   return (
-    <div className="flex w-[300px] shrink-0 flex-col border-r border-border bg-white">
+    <div className="flex w-full shrink-0 flex-col border-r border-border bg-white md:w-[300px]">
       <div className="flex items-center justify-between border-b border-border p-3.5">
         <div className="font-heading text-[15px] font-bold text-navy">معلومات القروب</div>
         <button onClick={onClose} className="p-1 text-muted hover:text-navy">

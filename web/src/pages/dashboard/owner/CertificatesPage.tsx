@@ -45,7 +45,7 @@ function TemplateEditor({ template, onClose, onSaved }: { template: CertificateT
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div className="w-[560px] rounded-xl bg-white p-6" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-[560px] rounded-xl bg-white p-6" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 font-heading text-lg font-bold text-navy">تحديد موضع الاسم واسم البرنامج</div>
         <div className="mb-3 text-[12.5px] text-muted">اسحب النقطة الذهبية (الاسم) والنقطة الرمادية (اسم البرنامج) لموضعهما على الشهادة.</div>
         <div
@@ -115,7 +115,7 @@ function CourseCertPanel({ courseId, courseTitle, onClose }: { courseId: string;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div className="w-[440px] rounded-xl bg-white p-6" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-[440px] rounded-xl bg-white p-6" onClick={(e) => e.stopPropagation()}>
         <div className="mb-1 font-heading text-lg font-bold text-navy">شهادات: {courseTitle}</div>
         <div className="mb-4 text-[12.5px] text-muted">اختر القوالب اللي تُصدر لهذا البرنامج</div>
         <div className="mb-4 flex flex-col gap-1.5">
@@ -204,7 +204,7 @@ export function OwnerCertificatesPage() {
             onChange={(e) => e.target.files?.[0] && void uploadNew(e.target.files[0])}
           />
         </div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
           {(templatesQuery.data ?? []).map((t) => (
             <div key={t.id} className="rounded-xl border border-border bg-white p-3">
               <img src={t.image_url} className="mb-2.5 block aspect-[1.4] w-full rounded-md object-cover" alt="" />

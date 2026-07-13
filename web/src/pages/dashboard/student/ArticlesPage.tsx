@@ -12,7 +12,7 @@ export function StudentArticlesPage() {
       {isLoading && <div className="text-muted">جارِ التحميل...</div>}
       {data && data.length === 0 && <div className="text-muted">لا توجد مقالات منشورة بعد.</div>}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {(data ?? []).map((a) => (
           <Link
             key={a.id}

@@ -24,7 +24,7 @@ export function TeacherOverviewPage() {
       <div className="mb-1.5 font-heading text-xl font-bold text-navy">أهلًا {profile?.name}</div>
       <div className="mb-6 text-[13.5px] text-muted">نظرة سريعة على برامجك</div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-border bg-white p-5 text-center">
           <div className="font-heading text-[26px] font-bold text-navy">{coursesQuery.data?.length ?? 0}</div>
           <div className="mt-1.5 text-[12.5px] text-muted">برامج مكلّف فيها</div>

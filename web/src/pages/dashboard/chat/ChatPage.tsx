@@ -108,13 +108,19 @@ export function ChatPage() {
       />
 
       {!activeConversation && (
-        <div className="flex flex-1 items-center justify-center text-[14px] text-muted">اختر محادثة أو ابدأ محادثة جديدة</div>
+        <div className="hidden flex-1 items-center justify-center text-[14px] text-muted md:flex">اختر محادثة أو ابدأ محادثة جديدة</div>
       )}
 
       {activeConversation && (
         <div className="flex flex-1 flex-col">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => setActiveId(null)}
+                className="shrink-0 rounded-md p-1 text-muted hover:text-navy md:hidden"
+              >
+                →
+              </button>
               {activeConversation.type === 'group' ? (
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#eef1f5] text-navy">
                   <UsersIcon />
@@ -145,7 +151,7 @@ export function ChatPage() {
           </div>
 
           <div className="flex flex-1 overflow-hidden">
-            <div className="flex flex-1 flex-col">
+            <div className={`${showGroupInfo ? 'hidden md:flex' : 'flex'} flex-1 flex-col`}>
               <MessageThread
                 messages={messages}
                 myUserId={myUserId}
