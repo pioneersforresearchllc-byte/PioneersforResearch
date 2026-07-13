@@ -18,7 +18,7 @@ function firstFromJsonDict(raw: string | undefined): string {
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const ANON_KEY = firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) || Deno.env.get('SUPABASE_ANON_KEY')!
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')!
-const GEMINI_MODEL = 'gemini-1.5-flash'
+const GEMINI_MODEL = 'gemini-2.5-flash'
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',

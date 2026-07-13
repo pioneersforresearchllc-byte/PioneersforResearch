@@ -22,9 +22,9 @@ const ANON_KEY = firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) ||
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')!
 const AI_BOT_USERNAME = 'ai-assistant'
 // gemini-2.0-flash returned a hard 0-quota error on this project's free
-// tier; gemini-1.5-flash has long-standing free-tier availability. Change
-// here if you want a different model.
-const GEMINI_MODEL = 'gemini-1.5-flash'
+// tier; gemini-1.5-flash doesn't exist on this key's v1beta at all. Confirmed
+// via ListModels that gemini-2.5-flash is available and supports generateContent.
+const GEMINI_MODEL = 'gemini-2.5-flash'
 
 const SYSTEM_PROMPT =
   'أنت المساعد الذكي لمنصة "Pioneers for Research" التدريبية على البحث العلمي. ' +
@@ -117,10 +117,7 @@ Deno.serve(async (req) => {
 
   if (!aiRes.ok) {
     const errText = await aiRes.text()
-    // TEMP diagnostics — list what models this key can actually use.
-    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`)
-    const listText = await listRes.text()
-    return json({ error: `ai request failed: ${errText}`, availableModels: listText }, 502)
+    return json({ error: `ai request failed: ${errText}` }, 502)
   }
 
   const aiData = (await aiRes.json()) as {
