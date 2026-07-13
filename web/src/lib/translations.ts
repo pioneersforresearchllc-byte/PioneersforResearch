@@ -77,10 +77,11 @@ export const translations = {
   'course.enrolling': { ar: '...جارِ التسجيل', en: 'Enrolling...' },
   'course.enrollFree': { ar: 'تسجيل مجاني', en: 'Free Enrollment' },
   'course.subscribeAndPay': { ar: 'اشتراك ودفع {price}', en: 'Subscribe & Pay {price}' },
-  'course.paymentComingSoon': {
-    ar: 'الدفع الإلكتروني قيد التفعيل — سيتوفر قريبًا.',
-    en: 'Online payment is being activated — coming soon.',
-  },
+  'course.redirectingToPayment': { ar: '...جارِ التحويل لصفحة الدفع', en: 'Redirecting to payment...' },
+  'course.paymentProcessing': { ar: 'تم الدفع، جارِ تفعيل تسجيلك...', en: 'Payment received, activating your enrollment...' },
+  'course.paymentSuccess': { ar: '✓ تم الدفع وتفعيل تسجيلك بنجاح', en: '✓ Payment received, you are enrolled' },
+  'course.paymentCancelled': { ar: 'تم إلغاء عملية الدفع.', en: 'Payment was cancelled.' },
+  'course.dismiss': { ar: 'إخفاء', en: 'Dismiss' },
   'course.enrollError': { ar: 'تعذر التسجيل، حاول مجددًا', en: "Couldn't enroll, try again" },
 
   'article.back': { ar: '→ رجوع للموارد', en: '→ Back to Resources' },

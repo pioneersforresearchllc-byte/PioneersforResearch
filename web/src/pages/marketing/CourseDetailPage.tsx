@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
@@ -92,15 +92,32 @@ function useMyEnrollment(courseId: string | undefined, studentId: string | undef
 export function CourseDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { session, profile } = useAuth()
   const { t, lang } = useLanguage()
   const queryClient = useQueryClient()
   const { data: course, isLoading } = useCourseDetail(id)
   const { data: myRating } = useMyRating(id, profile?.role === 'student' ? profile.id : undefined)
   const { data: alreadyEnrolled } = useMyEnrollment(id, profile?.role === 'student' ? profile.id : undefined)
-  const [comingSoon, setComingSoon] = useState(false)
   const [enrollBusy, setEnrollBusy] = useState(false)
   const [enrollError, setEnrollError] = useState('')
+  const paymentStatus = searchParams.get('payment')
+  const studentId = profile?.role === 'student' ? profile.id : undefined
+
+  // Stripe redirects back here right after checkout, but the actual
+  // enrollment is created asynchronously by the webhook — poll briefly
+  // instead of making the user manually refresh.
+  useEffect(() => {
+    if (paymentStatus !== 'success' || !id || !studentId || alreadyEnrolled) return
+    const interval = setInterval(() => {
+      void queryClient.invalidateQueries({ queryKey: ['course-my-enrollment', id, studentId] })
+    }, 2000)
+    const timeout = setTimeout(() => clearInterval(interval), 20000)
+    return () => {
+      clearInterval(interval)
+      clearTimeout(timeout)
+    }
+  }, [paymentStatus, id, studentId, alreadyEnrolled, queryClient])
 
   const rate = async (stars: number) => {
     if (!session || profile?.role !== 'student') {
@@ -137,7 +154,22 @@ export function CourseDetailPage() {
       return
     }
 
-    setComingSoon(true)
+    setEnrollBusy(true)
+    setEnrollError('')
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { courseId: course.id },
+      })
+      const result = data as { url?: string; error?: string } | null
+      if (error || !result?.url) {
+        setEnrollError(result?.error || t('course.enrollError'))
+        return
+      }
+      window.location.href = result.url
+    } catch (e) {
+      setEnrollError(e instanceof Error ? e.message : t('course.enrollError'))
+      setEnrollBusy(false)
+    }
   }
 
   if (isLoading) return <div className="px-4 py-12 text-center text-muted md:px-16 md:py-20">...</div>
@@ -228,18 +260,34 @@ export function CourseDetailPage() {
               >
                 {isFull
                   ? t('course.full')
-                  : course.price_cents === 0
-                    ? enrollBusy
+                  : enrollBusy
+                    ? course.price_cents === 0
                       ? t('course.enrolling')
-                      : t('course.enrollFree')
-                    : t('course.subscribeAndPay', { price: formatSar(course.price_cents, t) })}
+                      : t('course.redirectingToPayment')
+                    : course.price_cents === 0
+                      ? t('course.enrollFree')
+                      : t('course.subscribeAndPay', { price: formatSar(course.price_cents, t) })}
               </button>
             )}
           </>
         )}
         {enrollError && <div className="mt-3 text-center text-[13px] text-error">{enrollError}</div>}
-        {comingSoon && (
-          <div className="mt-3 text-center text-[13px] text-muted">{t('course.paymentComingSoon')}</div>
+        {paymentStatus === 'success' && !alreadyEnrolled && (
+          <div className="mt-3 text-center text-[13px] text-muted">{t('course.paymentProcessing')}</div>
+        )}
+        {paymentStatus === 'success' && alreadyEnrolled && (
+          <div className="mt-3 text-center text-[13px] text-success">{t('course.paymentSuccess')}</div>
+        )}
+        {paymentStatus === 'cancelled' && (
+          <div className="mt-3 flex items-center justify-center gap-2 text-center text-[13px] text-muted">
+            {t('course.paymentCancelled')}
+            <button
+              onClick={() => setSearchParams({})}
+              className="font-semibold text-navy underline underline-offset-2"
+            >
+              {t('course.dismiss')}
+            </button>
+          </div>
         )}
       </div>
     </div>
