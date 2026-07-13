@@ -3,6 +3,13 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 
+const MAX_CV_FILE_BYTES = 10 * 1024 * 1024
+const ALLOWED_CV_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+]
+
 export function TeacherApplyPage() {
   const navigate = useNavigate()
   const [name, setName] = useState('')
@@ -13,9 +20,27 @@ export function TeacherApplyPage() {
   const [qualification, setQualification] = useState('')
   const [years, setYears] = useState('')
   const [cv, setCv] = useState('')
+  const [cvFile, setCvFile] = useState<File | null>(null)
   const [honeypot, setHoneypot] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+
+  const handleCvFile = (file: File | null) => {
+    setError('')
+    if (!file) {
+      setCvFile(null)
+      return
+    }
+    if (!ALLOWED_CV_TYPES.includes(file.type)) {
+      setError('صيغة الملف غير مدعومة — استخدم PDF أو Word فقط')
+      return
+    }
+    if (file.size > MAX_CV_FILE_BYTES) {
+      setError('حجم الملف كبير جدًا (الحد الأقصى 10 ميجابايت)')
+      return
+    }
+    setCvFile(file)
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -54,6 +79,19 @@ export function TeacherApplyPage() {
         return
       }
 
+      // Private bucket — path is scoped to the applicant's own user id, and
+      // only they or a verified owner can read it back (see storage RLS).
+      let cvFileUrl: string | null = null
+      if (cvFile) {
+        const path = `${signUpData.user.id}/${Date.now()}-${cvFile.name}`
+        const { error: uploadErr } = await supabase.storage.from('teacher-cv-documents').upload(path, cvFile)
+        if (uploadErr) {
+          setError('تعذر رفع ملف السيرة الذاتية، حاول مجددًا')
+          return
+        }
+        cvFileUrl = path
+      }
+
       const { data: fnData, error: fnErr } = await supabase.functions.invoke('create-profile', {
         body: {
           user_id: signUpData.user.id,
@@ -64,6 +102,7 @@ export function TeacherApplyPage() {
           qualification: qualification.trim(),
           years_experience: Number(years) || 0,
           cv_text: cv.trim(),
+          cv_file_url: cvFileUrl,
         },
       })
       if (fnErr || (fnData as { error?: string } | null)?.error) {
@@ -148,6 +187,15 @@ export function TeacherApplyPage() {
           rows={4}
           className={`${inputClass} resize-y font-[inherit]`}
         />
+        <div>
+          <label className="mb-1.5 block text-[13px] text-muted">إرفاق ملف السيرة الذاتية (اختياري — PDF أو Word، حتى 10 ميجابايت)</label>
+          <input
+            type="file"
+            accept="application/pdf,.pdf,.doc,.docx"
+            onChange={(e) => handleCvFile(e.target.files?.[0] ?? null)}
+          />
+          {cvFile && <div className="mt-1 text-[12.5px] text-navy">{cvFile.name}</div>}
+        </div>
         <input
           type="text"
           name="website"

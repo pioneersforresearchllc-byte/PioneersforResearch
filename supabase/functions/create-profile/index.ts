@@ -42,6 +42,7 @@ interface TeacherPayload {
   qualification: string
   years_experience: number
   cv_text: string
+  cv_file_url?: string
 }
 
 type Payload = StudentPayload | TeacherPayload
@@ -112,6 +113,7 @@ Deno.serve(async (req) => {
           qualification: payload.qualification?.trim() || null,
           years_experience: Number.isFinite(payload.years_experience) ? payload.years_experience : null,
           cv_text: payload.cv_text?.trim() || null,
+          cv_file_url: payload.cv_file_url?.trim() || null,
         }
 
   const { data, error } = await admin.from('profiles').insert(row).select('*').single()

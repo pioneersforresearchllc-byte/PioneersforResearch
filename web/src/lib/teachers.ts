@@ -8,7 +8,15 @@ export interface TeacherApplication {
   qualification: string | null
   years_experience: number | null
   cv_text: string | null
+  cv_file_url: string | null
   created_at: string
+}
+
+// teacher-cv-documents is a private bucket — cv_file_url on the row is just
+// the storage path, resolved to a short-lived signed URL on demand.
+export async function signCvFile(path: string): Promise<string | null> {
+  const { data } = await supabase.storage.from('teacher-cv-documents').createSignedUrl(path, 60 * 10)
+  return data?.signedUrl ?? null
 }
 
 export interface TeacherRow {
@@ -25,7 +33,7 @@ export interface TeacherRow {
 export async function listPendingTeachers(): Promise<TeacherApplication[]> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, name, username, specialty, qualification, years_experience, cv_text, created_at')
+    .select('id, name, username, specialty, qualification, years_experience, cv_text, cv_file_url, created_at')
     .eq('role', 'teacher')
     .eq('status', 'pending')
     .order('created_at')

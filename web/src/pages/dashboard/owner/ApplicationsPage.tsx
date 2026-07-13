@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { approveTeacher, listPendingTeachers, rejectTeacher } from '@/lib/teachers'
+import { approveTeacher, listPendingTeachers, rejectTeacher, signCvFile } from '@/lib/teachers'
 
 export function OwnerApplicationsPage() {
   const queryClient = useQueryClient()
@@ -15,6 +15,10 @@ export function OwnerApplicationsPage() {
     if (!confirm('رفض هذا الطلب؟')) return
     await rejectTeacher(id)
     refresh()
+  }
+  const openCv = async (path: string) => {
+    const url = await signCvFile(path)
+    if (url) window.open(url, '_blank')
   }
 
   return (
@@ -40,6 +44,14 @@ export function OwnerApplicationsPage() {
               <div className="mb-3 whitespace-pre-wrap rounded-md bg-bg-soft p-3 text-[13px] leading-7 text-muted-2">
                 {t.cv_text}
               </div>
+            )}
+            {t.cv_file_url && (
+              <button
+                onClick={() => void openCv(t.cv_file_url!)}
+                className="mb-3 inline-block text-[12.5px] font-semibold text-navy underline"
+              >
+                📎 تحميل ملف السيرة الذاتية
+              </button>
             )}
             <div className="flex gap-2.5">
               <button
