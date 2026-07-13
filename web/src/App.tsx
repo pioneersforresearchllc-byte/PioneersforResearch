@@ -25,6 +25,8 @@ import { TeacherReviewPage } from '@/pages/dashboard/teacher/ReviewPage'
 import { StudentAssignmentsPage } from '@/pages/dashboard/student/AssignmentsPage'
 import { OwnerCertificatesPage } from '@/pages/dashboard/owner/CertificatesPage'
 import { StudentCertificatesPage } from '@/pages/dashboard/student/CertificatesPage'
+import { TeacherArticlesPage } from '@/pages/dashboard/teacher/ArticlesPage'
+import { StudentArticlesPage } from '@/pages/dashboard/student/ArticlesPage'
 
 const studentTabs: DashboardTab[] = [
   { key: 'overview', label: 'نظرة عامة', to: '/student' },
@@ -100,8 +102,8 @@ export default function App() {
           <Route path="/student/grades" element={<Placeholder title="تقدمي ودرجاتي" />} />
           <Route path="/student/certificates" element={<StudentCertificatesPage />} />
           <Route path="/student/feedback" element={<Placeholder title="ملاحظات المعلم" />} />
-          <Route path="/student/articles" element={<Placeholder title="المقالات" />} />
-          <Route path="/student/articles/:id" element={<Placeholder title="المقال" />} />
+          <Route path="/student/articles" element={<StudentArticlesPage />} />
+          <Route path="/student/articles/:id" element={<ArticleDetailPage />} />
           <Route path="/student/chat" element={<ChatPage />} />
           <Route path="/student/account" element={<Placeholder title="حسابي" />} />
         </Route>
@@ -114,7 +116,7 @@ export default function App() {
           <Route path="/teacher/courses" element={<TeacherCoursesPage />} />
           <Route path="/teacher/courses/:id" element={<TeacherCourseDetailPage />} />
           <Route path="/teacher/review" element={<TeacherReviewPage />} />
-          <Route path="/teacher/articles" element={<Placeholder title="مقالاتي" />} />
+          <Route path="/teacher/articles" element={<TeacherArticlesPage />} />
           <Route path="/teacher/chat" element={<ChatPage />} />
           <Route path="/teacher/account" element={<Placeholder title="حسابي" />} />
         </Route>
