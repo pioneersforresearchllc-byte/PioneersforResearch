@@ -12,6 +12,7 @@ const TEAM = [
 ]
 
 function formatSar(cents: number) {
+  if (cents === 0) return 'مجاني'
   return `${(cents / 100).toLocaleString('ar-SA')} ريال`
 }
 

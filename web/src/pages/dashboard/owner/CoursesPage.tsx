@@ -15,6 +15,7 @@ import {
 } from '@/lib/courses'
 
 function formatSar(cents: number) {
+  if (cents === 0) return 'مجاني'
   return `${(cents / 100).toLocaleString('ar-SA')} ريال`
 }
 
@@ -26,6 +27,7 @@ const emptyForm: CourseFormValues = {
   original_price_cents: null,
   image_url: null,
   completed: false,
+  capacity: null,
 }
 
 function CourseEditor({
@@ -49,6 +51,7 @@ function CourseEditor({
           original_price_cents: course.original_price_cents,
           image_url: course.image_url,
           completed: course.completed,
+          capacity: course.capacity,
         }
       : emptyForm,
   )
@@ -148,9 +151,10 @@ function CourseEditor({
             <input
               type="number"
               value={form.price_cents / 100}
+              disabled={form.price_cents === 0 && form.original_price_cents === null}
               onChange={(e) => set('price_cents', Math.round(Number(e.target.value) * 100))}
               placeholder="السعر (ريال)"
-              className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
+              className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px] disabled:bg-bg-soft"
             />
             <input
               type="number"
@@ -162,6 +166,22 @@ function CourseEditor({
               className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
             />
           </div>
+          <label className="flex items-center gap-2 text-[13.5px] text-navy">
+            <input
+              type="checkbox"
+              checked={form.price_cents === 0}
+              onChange={(e) => set('price_cents', e.target.checked ? 0 : form.original_price_cents || 100)}
+            />
+            برنامج مجاني (بدون دفع — تسجيل مباشر)
+          </label>
+          <input
+            type="number"
+            min={0}
+            value={form.capacity ?? ''}
+            onChange={(e) => set('capacity', e.target.value ? Math.max(0, Math.round(Number(e.target.value))) : null)}
+            placeholder="الحد الأقصى للمقاعد (اتركه فارغًا لعدد غير محدود)"
+            className="rounded-md border border-border px-3.5 py-2.5 text-[14px]"
+          />
           <div className="flex items-center gap-3">
             {form.image_url && <img src={form.image_url} className="h-14 w-24 rounded object-cover" alt="" />}
             <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && void handleImage(e.target.files[0])} />
@@ -318,7 +338,8 @@ export function OwnerCoursesPage() {
               {c.teacherIds.map((id) => teacherNameById.get(id)).filter(Boolean).join('، ') || 'بلا معلم مكلّف'}
             </div>
             <div className="mb-3 text-[12px] text-faint">
-              {c.enrolledCount} مسجّل · {c.sessions.length} حصة
+              {c.enrolledCount}
+              {c.capacity != null ? `/${c.capacity}` : ''} مسجّل · {c.sessions.length} حصة
             </div>
             <div className="flex gap-2">
               <button

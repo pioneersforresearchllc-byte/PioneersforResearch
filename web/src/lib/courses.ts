@@ -9,6 +9,7 @@ export interface Course {
   original_price_cents: number | null
   image_url: string | null
   completed: boolean
+  capacity: number | null
   created_at: string
 }
 
@@ -72,6 +73,15 @@ export interface CourseFormValues {
   original_price_cents: number | null
   image_url: string | null
   completed: boolean
+  capacity: number | null
+}
+
+// Free courses (price_cents = 0) skip payment entirely — RLS
+// (enrollments_insert_free) re-checks price and remaining capacity
+// server-side, so this can't be used to bypass payment on a paid course.
+export async function enrollFree(courseId: string, studentId: string) {
+  const { error } = await supabase.from('enrollments').insert({ course_id: courseId, student_id: studentId })
+  if (error) throw error
 }
 
 export async function createCourse(values: CourseFormValues, teacherIds: string[]): Promise<string> {
