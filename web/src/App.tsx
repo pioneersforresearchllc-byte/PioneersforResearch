@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import { MarketingLayout } from '@/layouts/MarketingLayout'
 import { DashboardShell, type DashboardTab } from '@/layouts/DashboardShell'
 import { RequireRole } from '@/routes/RequireRole'
@@ -91,67 +92,70 @@ function OwnerDashboard() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route element={<MarketingLayout />}>
-        <Route path="/" element={<MarketingHome />} />
-        <Route path="/course/:id" element={<CourseDetailPage />} />
-        <Route path="/article/:id" element={<ArticleDetailPage />} />
-      </Route>
-
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/register-otp" element={<RegisterOtpPage />} />
-      <Route path="/teacher-apply" element={<TeacherApplyPage />} />
-      <Route path="/teacher-pending" element={<TeacherPendingPage />} />
-      <Route path="/owner-login" element={<OwnerLoginPage />} />
-      <Route path="/owner-otp" element={<OwnerOtpPage />} />
-
-      <Route element={<RequireRole role="student" />}>
-        <Route element={<StudentDashboard />}>
-          <Route path="/student" element={<StudentOverviewPage />} />
-          <Route path="/student/courses" element={<StudentCoursesPage />} />
-          <Route path="/student/courses/:id" element={<StudentCourseDetailPage />} />
-          <Route path="/student/assignments" element={<StudentAssignmentsPage />} />
-          <Route path="/student/grades" element={<StudentGradesPage />} />
-          <Route path="/student/certificates" element={<StudentCertificatesPage />} />
-          <Route path="/student/feedback" element={<StudentFeedbackPage />} />
-          <Route path="/student/articles" element={<StudentArticlesPage />} />
-          <Route path="/student/articles/:id" element={<ArticleDetailPage />} />
-          <Route path="/student/chat" element={<ChatPage />} />
-          <Route path="/student/account" element={<AccountPage />} />
+    <>
+      <Routes>
+        <Route element={<MarketingLayout />}>
+          <Route path="/" element={<MarketingHome />} />
+          <Route path="/course/:id" element={<CourseDetailPage />} />
+          <Route path="/article/:id" element={<ArticleDetailPage />} />
         </Route>
-      </Route>
 
-      <Route element={<RequireRole role="teacher" />}>
-        <Route element={<TeacherDashboard />}>
-          <Route path="/teacher" element={<TeacherOverviewPage />} />
-          <Route path="/teacher/students" element={<TeacherStudentsPage />} />
-          <Route path="/teacher/courses" element={<TeacherCoursesPage />} />
-          <Route path="/teacher/courses/:id" element={<TeacherCourseDetailPage />} />
-          <Route path="/teacher/review" element={<TeacherReviewPage />} />
-          <Route path="/teacher/articles" element={<TeacherArticlesPage />} />
-          <Route path="/teacher/chat" element={<ChatPage />} />
-          <Route path="/teacher/account" element={<AccountPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/register-otp" element={<RegisterOtpPage />} />
+        <Route path="/teacher-apply" element={<TeacherApplyPage />} />
+        <Route path="/teacher-pending" element={<TeacherPendingPage />} />
+        <Route path="/owner-login" element={<OwnerLoginPage />} />
+        <Route path="/owner-otp" element={<OwnerOtpPage />} />
+
+        <Route element={<RequireRole role="student" />}>
+          <Route element={<StudentDashboard />}>
+            <Route path="/student" element={<StudentOverviewPage />} />
+            <Route path="/student/courses" element={<StudentCoursesPage />} />
+            <Route path="/student/courses/:id" element={<StudentCourseDetailPage />} />
+            <Route path="/student/assignments" element={<StudentAssignmentsPage />} />
+            <Route path="/student/grades" element={<StudentGradesPage />} />
+            <Route path="/student/certificates" element={<StudentCertificatesPage />} />
+            <Route path="/student/feedback" element={<StudentFeedbackPage />} />
+            <Route path="/student/articles" element={<StudentArticlesPage />} />
+            <Route path="/student/articles/:id" element={<ArticleDetailPage />} />
+            <Route path="/student/chat" element={<ChatPage />} />
+            <Route path="/student/account" element={<AccountPage />} />
+          </Route>
         </Route>
-      </Route>
 
-      <Route element={<RequireRole role="owner" />}>
-        <Route element={<OwnerDashboard />}>
-          <Route path="/owner" element={<OwnerOverviewPage />} />
-          <Route path="/owner/applications" element={<OwnerApplicationsPage />} />
-          <Route path="/owner/teachers" element={<OwnerTeachersPage />} />
-          <Route path="/owner/courses" element={<OwnerCoursesPage />} />
-          <Route path="/owner/certificates" element={<OwnerCertificatesPage />} />
-          <Route path="/owner/admins" element={<OwnerAdminsPage />} />
-          <Route path="/owner/messages" element={<ChatPage />} />
-          <Route path="/owner/contact" element={<OwnerContactPage />} />
-          <Route path="/owner/account" element={<AccountPage />} />
+        <Route element={<RequireRole role="teacher" />}>
+          <Route element={<TeacherDashboard />}>
+            <Route path="/teacher" element={<TeacherOverviewPage />} />
+            <Route path="/teacher/students" element={<TeacherStudentsPage />} />
+            <Route path="/teacher/courses" element={<TeacherCoursesPage />} />
+            <Route path="/teacher/courses/:id" element={<TeacherCourseDetailPage />} />
+            <Route path="/teacher/review" element={<TeacherReviewPage />} />
+            <Route path="/teacher/articles" element={<TeacherArticlesPage />} />
+            <Route path="/teacher/chat" element={<ChatPage />} />
+            <Route path="/teacher/account" element={<AccountPage />} />
+          </Route>
         </Route>
-      </Route>
 
-      <Route path="*" element={<Placeholder title="الصفحة غير موجودة" />} />
-    </Routes>
+        <Route element={<RequireRole role="owner" />}>
+          <Route element={<OwnerDashboard />}>
+            <Route path="/owner" element={<OwnerOverviewPage />} />
+            <Route path="/owner/applications" element={<OwnerApplicationsPage />} />
+            <Route path="/owner/teachers" element={<OwnerTeachersPage />} />
+            <Route path="/owner/courses" element={<OwnerCoursesPage />} />
+            <Route path="/owner/certificates" element={<OwnerCertificatesPage />} />
+            <Route path="/owner/admins" element={<OwnerAdminsPage />} />
+            <Route path="/owner/messages" element={<ChatPage />} />
+            <Route path="/owner/contact" element={<OwnerContactPage />} />
+            <Route path="/owner/account" element={<AccountPage />} />
+          </Route>
+        </Route>
+
+        <Route path="*" element={<Placeholder title="الصفحة غير موجودة" />} />
+      </Routes>
+      <SpeedInsights />
+    </>
   )
 }
