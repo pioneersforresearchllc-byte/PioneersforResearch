@@ -36,6 +36,8 @@ interface CourseCard {
   id: string
   title: string
   description: string
+  title_en: string | null
+  description_en: string | null
   duration_label: string
   price_cents: number
   original_price_cents: number | null
@@ -49,7 +51,7 @@ function useCourses() {
     queryFn: async (): Promise<CourseCard[]> => {
       const { data: courses, error } = await supabase
         .from('courses')
-        .select('id, title, description, duration_label, price_cents, original_price_cents')
+        .select('id, title, description, title_en, description_en, duration_label, price_cents, original_price_cents')
         .order('created_at', { ascending: false })
       if (error) throw error
       if (!courses?.length) return []
@@ -76,6 +78,8 @@ interface ArticlePreview {
   id: string
   title: string
   content: string
+  title_en: string | null
+  content_en: string | null
   image_url: string | null
   likes_count: number
   comments_count: number
@@ -88,7 +92,9 @@ function useArticlePreviews() {
     queryFn: async (): Promise<ArticlePreview[]> => {
       const { data, error } = await supabase
         .from('articles')
-        .select('id, title, content, image_url, likes_count, author:profiles!articles_author_id_fkey(name), article_comments(count)')
+        .select(
+          'id, title, content, title_en, content_en, image_url, likes_count, author:profiles!articles_author_id_fkey(name), article_comments(count)',
+        )
         .order('created_at', { ascending: false })
         .limit(3)
       if (error) throw error
@@ -96,6 +102,8 @@ function useArticlePreviews() {
         id: a.id,
         title: a.title,
         content: a.content,
+        title_en: a.title_en,
+        content_en: a.content_en,
         image_url: a.image_url,
         likes_count: a.likes_count,
         author_name: (a.author as unknown as { name: string } | null)?.name ?? '',
@@ -107,7 +115,7 @@ function useArticlePreviews() {
 
 export function MarketingHome() {
   const { session, profile } = useAuth()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const TEAM = useTeam(t)
   const { data: courses } = useCourses()
   const { data: articles } = useArticlePreviews()
@@ -220,8 +228,10 @@ export function MarketingHome() {
             <div className="grid grid-cols-3 gap-6.5">
               {courses.map((c) => (
                 <div key={c.id} className="rounded-[10px] border border-border bg-white p-7">
-                  <h3 className="mb-3 text-lg text-navy">{c.title}</h3>
-                  <p className="mb-4 text-[14.5px] leading-[1.9] text-muted">{c.description}</p>
+                  <h3 className="mb-3 text-lg text-navy">{lang === 'en' ? c.title_en || c.title : c.title}</h3>
+                  <p className="mb-4 text-[14.5px] leading-[1.9] text-muted">
+                    {lang === 'en' ? c.description_en || c.description : c.description}
+                  </p>
                   <div className="mb-3 flex items-center gap-2">
                     <Stars avg={c.avg_rating} />
                     <span className="text-[12.5px] text-muted">
@@ -270,8 +280,12 @@ export function MarketingHome() {
                 <div className="mb-2.5 text-[12.5px] font-semibold text-accent">
                   {t('home.byAuthor', { name: a.author_name })}
                 </div>
-                <h3 className="mb-2.5 text-[16.5px] leading-[1.6] text-navy">{a.title}</h3>
-                <p className="mb-4 flex-1 text-[13.5px] leading-[1.8] text-muted">{a.content.slice(0, 140)}</p>
+                <h3 className="mb-2.5 text-[16.5px] leading-[1.6] text-navy">
+                  {lang === 'en' ? a.title_en || a.title : a.title}
+                </h3>
+                <p className="mb-4 flex-1 text-[13.5px] leading-[1.8] text-muted">
+                  {(lang === 'en' ? a.content_en || a.content : a.content).slice(0, 140)}
+                </p>
                 <div className="flex items-center justify-between">
                   <Link
                     to={`/article/${a.id}`}

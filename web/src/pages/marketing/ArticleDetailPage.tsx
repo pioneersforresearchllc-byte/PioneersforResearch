@@ -9,6 +9,8 @@ interface ArticleDetail {
   id: string
   title: string
   content: string
+  title_en: string | null
+  content_en: string | null
   image_url: string | null
   likes_count: number
   author_id: string
@@ -28,7 +30,9 @@ function useArticle(id: string | undefined) {
     queryFn: async (): Promise<ArticleDetail | null> => {
       const { data, error } = await supabase
         .from('articles')
-        .select('id, title, content, image_url, likes_count, author_id, author:profiles!articles_author_id_fkey(name)')
+        .select(
+          'id, title, content, title_en, content_en, image_url, likes_count, author_id, author:profiles!articles_author_id_fkey(name)',
+        )
         .eq('id', id!)
         .maybeSingle()
       if (error) throw error
@@ -37,6 +41,8 @@ function useArticle(id: string | undefined) {
         id: data.id,
         title: data.title,
         content: data.content,
+        title_en: data.title_en,
+        content_en: data.content_en,
         image_url: data.image_url,
         likes_count: data.likes_count,
         author_id: data.author_id,
@@ -99,7 +105,7 @@ function useLikerNames(id: string | undefined, enabled: boolean) {
 export function ArticleDetailPage() {
   const { id } = useParams()
   const { session, profile } = useAuth()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const queryClient = useQueryClient()
   const { data: article, isLoading } = useArticle(id)
   const { data: comments } = useComments(id)
@@ -152,9 +158,11 @@ export function ArticleDetailPage() {
           <img src={article.image_url} className="block aspect-[1.8] w-full object-cover" alt="" />
         )}
         <div className="p-7">
-          <h2 className="font-heading mb-2 text-2xl">{article.title}</h2>
+          <h2 className="font-heading mb-2 text-2xl">{lang === 'en' ? article.title_en || article.title : article.title}</h2>
           <div className="mb-4.5 text-[13px] text-accent">{t('article.byAuthor', { name: article.author_name })}</div>
-          <p className="mb-5.5 whitespace-pre-wrap text-[15px] leading-[2] text-muted-2">{article.content}</p>
+          <p className="mb-5.5 whitespace-pre-wrap text-[15px] leading-[2] text-muted-2">
+            {lang === 'en' ? article.content_en || article.content : article.content}
+          </p>
 
           {canInteract ? (
             <div className="flex gap-2.5 border-t border-border-2 pt-4.5">

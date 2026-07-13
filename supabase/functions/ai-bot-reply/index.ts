@@ -1,8 +1,8 @@
 // Called by the client right after it sends a message into a conversation
-// that includes the AI assistant. Fetches recent history, asks Claude for a
-// reply, and inserts it as a message from the bot's own account (needs the
-// service role since the caller isn't the bot — messages_insert requires
-// sender_id = auth.uid()).
+// that includes the AI assistant. Fetches recent history, asks Gemini
+// (free tier) for a reply, and inserts it as a message from the bot's own
+// account (needs the service role since the caller isn't the bot —
+// messages_insert requires sender_id = auth.uid()).
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 function firstFromJsonDict(raw: string | undefined): string {
@@ -19,9 +19,10 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY =
   firstFromJsonDict(Deno.env.get('SUPABASE_SECRET_KEYS')) || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANON_KEY = firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) || Deno.env.get('SUPABASE_ANON_KEY')!
-const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')!
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')!
 const AI_BOT_USERNAME = 'ai-assistant'
-const CLAUDE_MODEL = 'claude-sonnet-5'
+// Free-tier-eligible Gemini model. Change here if you want a different one.
+const GEMINI_MODEL = 'gemini-2.0-flash'
 
 const SYSTEM_PROMPT =
   'أنت المساعد الذكي لمنصة "Pioneers for Research" التدريبية على البحث العلمي. ' +
@@ -92,37 +93,36 @@ Deno.serve(async (req) => {
     .order('created_at', { ascending: false })
     .limit(12)
 
-  const messages = (history ?? [])
+  const contents = (history ?? [])
     .filter((m) => !m.deleted && m.text)
     .reverse()
-    .map((m) => ({ role: m.sender_id === bot.id ? 'assistant' : 'user', content: m.text as string }))
+    .map((m) => ({ role: m.sender_id === bot.id ? 'model' : 'user', parts: [{ text: m.text as string }] }))
 
-  if (messages.length === 0) return json({ skipped: true, reason: 'no text to respond to' })
+  if (contents.length === 0) return json({ skipped: true, reason: 'no text to respond to' })
 
-  const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
+  const aiRes = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents,
+        generationConfig: { maxOutputTokens: 700 },
+      }),
     },
-    body: JSON.stringify({
-      model: CLAUDE_MODEL,
-      max_tokens: 600,
-      system: SYSTEM_PROMPT,
-      messages,
-    }),
-  })
+  )
 
   if (!aiRes.ok) {
     const errText = await aiRes.text()
     return json({ error: `ai request failed: ${errText}` }, 502)
   }
 
-  const aiData = (await aiRes.json()) as { content?: { type: string; text?: string }[] }
-  const replyText = (aiData.content ?? [])
-    .filter((b) => b.type === 'text')
-    .map((b) => b.text ?? '')
+  const aiData = (await aiRes.json()) as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[]
+  }
+  const replyText = (aiData.candidates?.[0]?.content?.parts ?? [])
+    .map((p) => p.text ?? '')
     .join('\n')
     .trim()
   if (!replyText) return json({ error: 'empty ai response' }, 502)

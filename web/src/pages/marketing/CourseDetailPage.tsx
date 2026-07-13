@@ -15,6 +15,8 @@ interface CourseDetail {
   id: string
   title: string
   description: string
+  title_en: string | null
+  description_en: string | null
   duration_label: string
   price_cents: number
   original_price_cents: number | null
@@ -32,7 +34,9 @@ function useCourseDetail(id: string | undefined) {
     queryFn: async (): Promise<CourseDetail | null> => {
       const { data: course, error } = await supabase
         .from('courses')
-        .select('id, title, description, duration_label, price_cents, original_price_cents, image_url, capacity')
+        .select(
+          'id, title, description, title_en, description_en, duration_label, price_cents, original_price_cents, image_url, capacity',
+        )
         .eq('id', id!)
         .maybeSingle()
       if (error) throw error
@@ -89,7 +93,7 @@ export function CourseDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { session, profile } = useAuth()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const queryClient = useQueryClient()
   const { data: course, isLoading } = useCourseDetail(id)
   const { data: myRating } = useMyRating(id, profile?.role === 'student' ? profile.id : undefined)
@@ -161,7 +165,9 @@ export function CourseDetailPage() {
             alt=""
           />
         )}
-        <h2 className="font-heading mb-3.5 text-[26px] font-bold text-navy">{course.title}</h2>
+        <h2 className="font-heading mb-3.5 text-[26px] font-bold text-navy">
+          {lang === 'en' ? course.title_en || course.title : course.title}
+        </h2>
         <div className="mb-4.5 flex items-center gap-2">
           {[1, 2, 3, 4, 5].map((n) => (
             <span
@@ -175,7 +181,9 @@ export function CourseDetailPage() {
             {course.avg_rating.toFixed(1)} ({t('course.ratingCount', { count: String(course.rating_count) })})
           </span>
         </div>
-        <p className="mb-6 text-[15.5px] leading-[2] text-muted-2">{course.description}</p>
+        <p className="mb-6 text-[15.5px] leading-[2] text-muted-2">
+          {lang === 'en' ? course.description_en || course.description : course.description}
+        </p>
         <div className="mb-5.5 flex items-center justify-between border-y border-border-2 py-4.5">
           <div className="text-sm font-semibold text-accent">{course.duration_label}</div>
           <div className="flex items-center gap-3">

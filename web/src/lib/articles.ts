@@ -1,10 +1,13 @@
 import { supabase } from '@/lib/supabase'
+import { translateTexts } from '@/lib/translate'
 
 export interface Article {
   id: string
   author_id: string
   title: string
   content: string
+  title_en: string | null
+  content_en: string | null
   image_url: string | null
   likes_count: number
   created_at: string
@@ -46,14 +49,28 @@ export async function uploadArticleImage(file: File): Promise<string> {
   return data.publicUrl
 }
 
+// Fire-and-forget — called right after create/update so English content
+// appears within a few seconds without blocking the save.
+async function translateArticle(id: string, title: string, content: string) {
+  const translations = await translateTexts([title, content])
+  if (!translations) return
+  await supabase.from('articles').update({ title_en: translations[0], content_en: translations[1] }).eq('id', id)
+}
+
 export async function createArticle(authorId: string, title: string, content: string, imageUrl: string | null) {
-  const { error } = await supabase.from('articles').insert({ author_id: authorId, title, content, image_url: imageUrl })
+  const { data, error } = await supabase
+    .from('articles')
+    .insert({ author_id: authorId, title, content, image_url: imageUrl })
+    .select('id')
+    .single()
   if (error) throw error
+  void translateArticle(data.id, title, content)
 }
 
 export async function updateArticle(id: string, title: string, content: string, imageUrl: string | null) {
   const { error } = await supabase.from('articles').update({ title, content, image_url: imageUrl }).eq('id', id)
   if (error) throw error
+  void translateArticle(id, title, content)
 }
 
 export async function deleteArticle(id: string) {

@@ -1,9 +1,12 @@
 import { supabase } from '@/lib/supabase'
+import { translateTexts } from '@/lib/translate'
 
 export interface Course {
   id: string
   title: string
   description: string
+  title_en: string | null
+  description_en: string | null
   duration_label: string
   price_cents: number
   original_price_cents: number | null
@@ -11,6 +14,14 @@ export interface Course {
   completed: boolean
   capacity: number | null
   created_at: string
+}
+
+// Fire-and-forget — called right after create/update so English content
+// appears within a few seconds without blocking the save.
+async function translateCourse(id: string, title: string, description: string) {
+  const translations = await translateTexts([title, description])
+  if (!translations) return
+  await supabase.from('courses').update({ title_en: translations[0], description_en: translations[1] }).eq('id', id)
 }
 
 export interface CourseSession {
@@ -93,12 +104,14 @@ export async function createCourse(values: CourseFormValues, teacherIds: string[
       .insert(teacherIds.map((teacher_id) => ({ course_id: data.id, teacher_id })))
     if (tErr) throw tErr
   }
+  void translateCourse(data.id, values.title, values.description)
   return data.id
 }
 
 export async function updateCourse(id: string, values: CourseFormValues, teacherIds: string[]) {
   const { error } = await supabase.from('courses').update(values).eq('id', id)
   if (error) throw error
+  void translateCourse(id, values.title, values.description)
 
   const { data: existing } = await supabase.from('course_teachers').select('teacher_id').eq('course_id', id)
   const existingIds = new Set((existing ?? []).map((t) => t.teacher_id))
