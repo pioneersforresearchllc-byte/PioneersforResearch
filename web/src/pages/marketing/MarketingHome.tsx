@@ -149,18 +149,18 @@ export function MarketingHome() {
   return (
     <div>
       {/* HERO */}
-      <div className="relative overflow-hidden px-16 pb-17.5 pt-22.5">
-        <div className="absolute -left-10 top-10 h-0.5 w-85 rotate-[-18deg] bg-navy opacity-15" />
-        <div className="absolute left-67.5 top-3.5 h-2.5 w-2.5 rounded-full bg-gold" />
+      <div className="relative overflow-hidden px-4 pb-12 pt-14 md:px-16 md:pb-17.5 md:pt-22.5">
+        <div className="absolute -left-10 top-10 hidden h-0.5 w-85 rotate-[-18deg] bg-navy opacity-15 md:block" />
+        <div className="absolute left-67.5 top-3.5 hidden h-2.5 w-2.5 rounded-full bg-gold md:block" />
         <div className="relative max-w-165">
           <div className="mb-4 text-[13px] font-semibold tracking-[2px] text-accent">
             TRAIN · RESEARCH · PUBLISH
           </div>
-          <h1 className="font-heading mb-5.5 text-[46px] font-bold leading-[1.4] text-navy">
+          <h1 className="font-heading mb-5.5 text-[28px] font-bold leading-[1.4] text-navy md:text-[46px]">
             {t('home.hero.title')}
           </h1>
-          <p className="mb-8.5 text-lg leading-[1.9] text-muted">{t('home.hero.subtitle')}</p>
-          <div className="flex gap-4">
+          <p className="mb-8.5 text-base leading-[1.9] text-muted md:text-lg">{t('home.hero.subtitle')}</p>
+          <div className="flex flex-wrap gap-4">
             <Link
               to={session ? (profile?.role === 'student' ? '/student' : '/register') : '/register'}
               className="rounded-md bg-navy px-7.5 py-3.5 text-[15px] text-white no-underline hover:bg-navy-hover"
@@ -180,33 +180,33 @@ export function MarketingHome() {
       </div>
 
       {/* STATS */}
-      <div className="grid grid-cols-4 gap-px border-y border-border bg-border">
-        <div className="bg-white px-7 py-8.5 text-center">
-          <div className="font-heading text-[34px] font-bold text-navy">{courses?.length ?? 0}</div>
+      <div className="grid grid-cols-2 gap-px border-y border-border bg-border md:grid-cols-4">
+        <div className="bg-white px-4 py-6 text-center md:px-7 md:py-8.5">
+          <div className="font-heading text-[26px] font-bold text-navy md:text-[34px]">{courses?.length ?? 0}</div>
           <div className="mt-1.5 text-[13.5px] text-muted">{t('home.stats.programs')}</div>
         </div>
-        <div className="bg-white px-7 py-8.5 text-center">
-          <div className="font-heading text-[34px] font-bold text-navy">4</div>
+        <div className="bg-white px-4 py-6 text-center md:px-7 md:py-8.5">
+          <div className="font-heading text-[26px] font-bold text-navy md:text-[34px]">4</div>
           <div className="mt-1.5 text-[13.5px] text-muted">{t('home.stats.stages')}</div>
         </div>
-        <div className="bg-white px-7 py-8.5 text-center">
-          <div className="font-heading text-[34px] font-bold text-navy">1:1</div>
+        <div className="bg-white px-4 py-6 text-center md:px-7 md:py-8.5">
+          <div className="font-heading text-[26px] font-bold text-navy md:text-[34px]">1:1</div>
           <div className="mt-1.5 text-[13.5px] text-muted">{t('home.stats.oneToOne')}</div>
         </div>
-        <div className="bg-white px-7 py-8.5 text-center">
-          <div className="font-heading text-[34px] font-bold text-gold">✓</div>
+        <div className="bg-white px-4 py-6 text-center md:px-7 md:py-8.5">
+          <div className="font-heading text-[26px] font-bold text-gold md:text-[34px]">✓</div>
           <div className="mt-1.5 text-[13.5px] text-muted">{t('home.stats.certificate')}</div>
         </div>
       </div>
 
       {/* ABOUT */}
-      <div id="about" className="grid grid-cols-2 items-center gap-15 px-16 py-20">
+      <div id="about" className="grid grid-cols-1 items-center gap-8 px-4 py-12 md:grid-cols-2 md:gap-15 md:px-16 md:py-20">
         <div>
           <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-accent">{t('home.about.eyebrow')}</div>
-          <h2 className="font-heading mb-5 text-[30px] font-bold">{t('home.about.title')}</h2>
+          <h2 className="font-heading mb-5 text-2xl font-bold md:text-[30px]">{t('home.about.title')}</h2>
           <p className="text-[16.5px] leading-[2] text-muted">{t('home.about.body')}</p>
         </div>
-        <div className="rounded-[10px] border border-border bg-bg-soft p-9">
+        <div className="rounded-[10px] border border-border bg-bg-soft p-6 md:p-9">
           <div className="font-heading mb-4.5 text-lg font-semibold">{t('home.about.teamTitle')}</div>
           {TEAM.map((member) => (
             <div key={member.name} className="flex justify-between border-b border-border py-3">
@@ -219,13 +219,13 @@ export function MarketingHome() {
 
       {/* PROGRAMS */}
       {!isTeacherSession && (
-        <div id="programs" className="bg-bg-soft px-16 py-20">
+        <div id="programs" className="bg-bg-soft px-4 py-12 md:px-16 md:py-20">
           <div className="mb-12.5 text-center">
             <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-accent">{t('home.programs.eyebrow')}</div>
-            <h2 className="font-heading text-[30px] font-bold">{t('home.programs.title')}</h2>
+            <h2 className="font-heading text-2xl font-bold md:text-[30px]">{t('home.programs.title')}</h2>
           </div>
           {courses && courses.length > 0 ? (
-            <div className="grid grid-cols-3 gap-6.5">
+            <div className="grid grid-cols-1 gap-6.5 sm:grid-cols-2 lg:grid-cols-3">
               {courses.map((c) => (
                 <div key={c.id} className="rounded-[10px] border border-border bg-white p-7">
                   <h3 className="mb-3 text-lg text-navy">{lang === 'en' ? c.title_en || c.title : c.title}</h3>
@@ -265,13 +265,13 @@ export function MarketingHome() {
       )}
 
       {/* RESOURCES */}
-      <div id="resources" className="px-16 py-20">
+      <div id="resources" className="px-4 py-12 md:px-16 md:py-20">
         <div className="mb-12.5 text-center">
           <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-accent">{t('home.resources.eyebrow')}</div>
-          <h2 className="font-heading text-[30px] font-bold">{t('home.resources.title')}</h2>
+          <h2 className="font-heading text-2xl font-bold md:text-[30px]">{t('home.resources.title')}</h2>
         </div>
         {articles && articles.length > 0 ? (
-          <div className="grid grid-cols-3 gap-6.5">
+          <div className="grid grid-cols-1 gap-6.5 sm:grid-cols-2 lg:grid-cols-3">
             {articles.map((a) => (
               <div key={a.id} className="flex flex-col rounded-[10px] border border-border p-6.5">
                 {a.image_url && (
@@ -311,11 +311,11 @@ export function MarketingHome() {
       </div>
 
       {/* CONTACT */}
-      <div id="contact" className="bg-navy px-16 py-20 text-white">
+      <div id="contact" className="bg-navy px-4 py-12 text-white md:px-16 md:py-20">
         <div className="mx-auto max-w-130">
           <div className="mb-9 text-center">
             <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-gold">{t('home.contact.eyebrow')}</div>
-            <h2 className="font-heading text-[28px] font-bold">{t('home.contact.title')}</h2>
+            <h2 className="font-heading text-2xl font-bold md:text-[28px]">{t('home.contact.title')}</h2>
           </div>
           {contactSubmitted ? (
             <div className="rounded-lg border border-white/20 bg-white/8 p-6 text-center text-[15px]">

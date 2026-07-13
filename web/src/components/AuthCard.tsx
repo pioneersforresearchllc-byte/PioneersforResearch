@@ -15,17 +15,17 @@ export function AuthCard({ width = 400, dark = false, children }: AuthCardProps)
     <div
       dir={dir}
       lang={lang}
-      className={`relative flex min-h-screen items-center justify-center py-10 ${dark ? 'bg-navy' : 'bg-bg-soft'}`}
+      className={`relative flex min-h-screen items-center justify-center px-4 py-10 ${dark ? 'bg-navy' : 'bg-bg-soft'}`}
     >
       <button
         onClick={toggleLang}
-        className={`absolute top-6 rounded-md border px-3.5 py-2 text-[13px] ltr:left-6 rtl:right-6 ${
+        className={`absolute top-4 rounded-md border px-3.5 py-2 text-[13px] ltr:left-4 rtl:right-4 md:top-6 md:ltr:left-6 md:rtl:right-6 ${
           dark ? 'border-white/30 text-white hover:bg-white/10' : 'border-border text-navy hover:bg-white'
         }`}
       >
         {t('lang.toggle')}
       </button>
-      <div className="rounded-xl bg-white p-10" style={{ width }}>
+      <div className="w-full rounded-xl bg-white p-6 md:p-10" style={{ maxWidth: width }}>
         {children}
       </div>
     </div>

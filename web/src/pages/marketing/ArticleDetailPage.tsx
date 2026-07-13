@@ -136,10 +136,10 @@ export function ArticleDetailPage() {
     queryClient.invalidateQueries({ queryKey: ['article-comments', id] })
   }
 
-  if (isLoading) return <div className="px-16 py-20 text-center text-muted">...</div>
+  if (isLoading) return <div className="px-4 py-12 text-center text-muted md:px-16 md:py-20">...</div>
   if (!article) {
     return (
-      <div className="px-16 py-20 text-center">
+      <div className="px-4 py-12 text-center md:px-16 md:py-20">
         <div className="mb-4 text-muted">{t('article.notFound')}</div>
         <Link to="/" className="text-navy no-underline">
           {t('course.backHome')}
@@ -149,7 +149,7 @@ export function ArticleDetailPage() {
   }
 
   return (
-    <div className="px-16 py-20">
+    <div className="px-4 py-12 md:px-16 md:py-20">
       <Link to="/#resources" className="mb-5 inline-block text-[13px] text-muted no-underline">
         {t('article.back')}
       </Link>
@@ -157,7 +157,7 @@ export function ArticleDetailPage() {
         {article.image_url && (
           <img src={article.image_url} className="block aspect-[1.8] w-full object-cover" alt="" />
         )}
-        <div className="p-7">
+        <div className="p-5 md:p-7">
           <h2 className="font-heading mb-2 text-2xl">{lang === 'en' ? article.title_en || article.title : article.title}</h2>
           <div className="mb-4.5 text-[13px] text-accent">{t('article.byAuthor', { name: article.author_name })}</div>
           <p className="mb-5.5 whitespace-pre-wrap text-[15px] leading-[2] text-muted-2">

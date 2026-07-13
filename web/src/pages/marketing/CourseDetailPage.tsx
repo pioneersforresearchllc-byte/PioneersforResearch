@@ -140,10 +140,10 @@ export function CourseDetailPage() {
     setComingSoon(true)
   }
 
-  if (isLoading) return <div className="px-16 py-20 text-center text-muted">...</div>
+  if (isLoading) return <div className="px-4 py-12 text-center text-muted md:px-16 md:py-20">...</div>
   if (!course) {
     return (
-      <div className="px-16 py-20 text-center">
+      <div className="px-4 py-12 text-center md:px-16 md:py-20">
         <div className="mb-4 text-muted">{t('course.notFound')}</div>
         <Link to="/" className="text-navy no-underline">
           {t('course.backHome')}
@@ -153,11 +153,11 @@ export function CourseDetailPage() {
   }
 
   return (
-    <div className="px-16 py-20">
+    <div className="px-4 py-12 md:px-16 md:py-20">
       <Link to="/#programs" className="mb-5 inline-block text-[13px] text-muted no-underline">
         {t('course.back')}
       </Link>
-      <div className="mx-auto max-w-160 rounded-[10px] border border-border bg-white p-9">
+      <div className="mx-auto max-w-160 rounded-[10px] border border-border bg-white p-5 md:p-9">
         {course.image_url && (
           <img
             src={course.image_url}
@@ -184,9 +184,9 @@ export function CourseDetailPage() {
         <p className="mb-6 text-[15.5px] leading-[2] text-muted-2">
           {lang === 'en' ? course.description_en || course.description : course.description}
         </p>
-        <div className="mb-5.5 flex items-center justify-between border-y border-border-2 py-4.5">
+        <div className="mb-5.5 flex flex-wrap items-center justify-between gap-2 border-y border-border-2 py-4.5">
           <div className="text-sm font-semibold text-accent">{course.duration_label}</div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {course.capacity != null && (
               <span className="text-[12.5px] text-muted">
                 {t('course.seatsLeft', { count: String(Math.max(course.capacity - course.enrolledCount, 0)) })}
