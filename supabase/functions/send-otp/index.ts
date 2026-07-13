@@ -1,13 +1,15 @@
 // Step 2 of owner login. Called by an already-password-authenticated
 // session (Authorization header carries that user's JWT). Generates a real
-// 6-digit code, stores only its hash + a 10-minute expiry, and emails it
-// via Resend. Sandboxed by default: with no RESEND_API_KEY set, the email
-// send is skipped and the code is returned directly in the response (only
-// to this same authenticated owner — never logged or exposed elsewhere) so
-// the flow is fully testable before real credentials exist. Set
-// RESEND_API_KEY (and optionally RESEND_FROM) as a function secret to
-// switch to real delivery — no code change needed.
+// 6-digit code, stores only its hash + a 10-minute expiry, and emails it via
+// SMTP (e.g. the owner's own Gmail account). Sandboxed by default: with no
+// SMTP_USER/SMTP_PASS set, the email send is skipped and the code is
+// returned directly in the response (only to this same authenticated owner
+// — never logged or exposed elsewhere) so the flow is fully testable before
+// real credentials exist. Set SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS (and
+// optionally SMTP_FROM) as function secrets to switch to real delivery —
+// no code change needed.
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 
 // This project migrated to Supabase's new JWT Signing Keys, which
 // deprecates the auto-injected SUPABASE_SERVICE_ROLE_KEY / SUPABASE_ANON_KEY
@@ -28,8 +30,16 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY =
   firstFromJsonDict(Deno.env.get('SUPABASE_SECRET_KEYS')) || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANON_KEY = firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) || Deno.env.get('SUPABASE_ANON_KEY')!
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-const RESEND_FROM = Deno.env.get('RESEND_FROM') || 'Pioneers for Research <onboarding@resend.dev>'
+// Defaults target Gmail's SMTP server; override SMTP_HOST/SMTP_PORT to use
+// a different provider. SMTP_USER must be the full mailbox address;
+// SMTP_PASS must be a Gmail "App Password" (16 chars, from Google Account →
+// Security → 2-Step Verification → App passwords) — a regular Gmail
+// password is rejected by Google for SMTP auth.
+const SMTP_HOST = Deno.env.get('SMTP_HOST') || 'smtp.gmail.com'
+const SMTP_PORT = Number(Deno.env.get('SMTP_PORT') || '465')
+const SMTP_USER = Deno.env.get('SMTP_USER')
+const SMTP_PASS = Deno.env.get('SMTP_PASS')
+const SMTP_FROM = Deno.env.get('SMTP_FROM') || SMTP_USER || ''
 
 // Browser calls to Edge Functions are cross-origin (the site runs on
 // Vercel, the function on supabase.co), so without these headers the
@@ -54,21 +64,29 @@ async function sha256Hex(input: string) {
 }
 
 async function sendOtpEmail(to: string, code: string) {
-  if (!RESEND_API_KEY) return false
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
+  if (!SMTP_USER || !SMTP_PASS) return false
+  const client = new SMTPClient({
+    connection: {
+      hostname: SMTP_HOST,
+      port: SMTP_PORT,
+      tls: SMTP_PORT === 465,
+      auth: { username: SMTP_USER, password: SMTP_PASS },
     },
-    body: JSON.stringify({
-      from: RESEND_FROM,
+  })
+  try {
+    await client.send({
+      from: SMTP_FROM,
       to,
       subject: 'رمز الدخول إلى بوابة الإدارة',
       html: `<div dir="rtl" style="font-family:sans-serif"><p>رمز الدخول الخاص بك هو:</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p>صالح لمدة 10 دقائق.</p></div>`,
-    }),
-  })
-  return res.ok
+    })
+    return true
+  } catch (err) {
+    console.error('smtp send failed', err)
+    return false
+  } finally {
+    await client.close()
+  }
 }
 
 Deno.serve(async (req) => {

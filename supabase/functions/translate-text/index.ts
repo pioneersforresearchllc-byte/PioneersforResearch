@@ -18,10 +18,12 @@ function firstFromJsonDict(raw: string | undefined): string {
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const ANON_KEY = firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) || Deno.env.get('SUPABASE_ANON_KEY')!
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')!
-// Confirmed working for this API key via the same candidate-list approach
-// used in ai-bot-reply (gemini-2.5-flash returned "no longer available to
-// new users"; gemini-flash-lite-latest actually responds).
-const GEMINI_MODEL = 'gemini-flash-lite-latest'
+// gemini-flash-latest returned a non-200 error for this API key (same as in
+// ai-bot-reply). gemini-flash-lite-latest responds 200 but hallucinates
+// unrelated text instead of translating — too weak for reliable
+// instruction-following on a structured task. Try stronger/untested models
+// first and only fall back to the lite model as a last resort.
+const GEMINI_MODEL_CANDIDATES = ['gemini-pro-latest', 'gemini-2.0-flash-001', 'gemini-flash-lite-latest']
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -61,35 +63,40 @@ Deno.serve(async (req) => {
     'Reply with ONLY a JSON array of strings, same order, same count, no other text.\n\n' +
     texts.map((t, i) => `${i + 1}. ${t}`).join('\n')
 
-  const aiRes = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 2000 },
-      }),
-    },
-  )
-
-  if (!aiRes.ok) {
-    const errText = await aiRes.text()
-    return json({ error: `translation request failed: ${errText}` }, 502)
+  let translations: unknown = null
+  let workingModel = ''
+  let lastErr = ''
+  for (const model of GEMINI_MODEL_CANDIDATES) {
+    const aiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 2000 },
+        }),
+      },
+    )
+    if (!aiRes.ok) {
+      lastErr = await aiRes.text()
+      continue
+    }
+    const aiData = (await aiRes.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] }
+    const raw = (aiData.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? '').join('')
+    try {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed) && parsed.length === texts.length) {
+        translations = parsed
+        workingModel = model
+        break
+      }
+      lastErr = 'translation response shape mismatch'
+    } catch {
+      lastErr = 'could not parse translation response'
+    }
   }
+  if (!translations) return json({ error: `all candidate models failed: ${lastErr}` }, 502)
 
-  const aiData = (await aiRes.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] }
-  const raw = (aiData.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? '').join('')
-
-  let translations: unknown
-  try {
-    translations = JSON.parse(raw)
-  } catch {
-    return json({ error: 'could not parse translation response' }, 502)
-  }
-  if (!Array.isArray(translations) || translations.length !== texts.length) {
-    return json({ error: 'translation response shape mismatch' }, 502)
-  }
-
-  return json({ translations })
+  return json({ translations, model: workingModel })
 })
