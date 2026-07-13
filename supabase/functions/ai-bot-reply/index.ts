@@ -33,11 +33,66 @@ const GEMINI_MODEL_CANDIDATES = [
   'gemini-pro-latest',
 ]
 
-const SYSTEM_PROMPT =
-  'أنت المساعد الذكي لمنصة "Pioneers for Research" التدريبية على البحث العلمي. ' +
-  'ترد على أسئلة الطلاب والمعلمين بخصوص المنصة (الدورات، الواجبات، الشهادات، المقالات، الحساب) وبخصوص البحث العلمي عمومًا. ' +
-  'ردودك مختصرة، واضحة، ومفيدة، بالعربية الفصحى المبسّطة إلا إذا كتب المستخدم بالإنجليزية. ' +
-  'لو سؤال يحتاج تدخل بشري (دفع، مشكلة تقنية بالحساب، شكوى)، وجّه المستخدم لمراسلة الإدارة مباشرة.'
+// Static, ID-less routes only — the bot has no reliable way to know real
+// course/article UUIDs, so it's only ever pointed at these fixed pages.
+const PUBLIC_PAGES = [
+  ['/', 'الرئيسية'],
+  ['/#programs', 'البرامج التدريبية'],
+  ['/#resources', 'المقالات والموارد'],
+  ['/#about', 'من نحن'],
+  ['/#contact', 'تواصل معنا'],
+  ['/register', 'إنشاء حساب طالب'],
+  ['/teacher-apply', 'التقديم كمعلم'],
+  ['/login', 'تسجيل الدخول'],
+  ['/forgot-password', 'نسيت كلمة السر'],
+] as const
+
+const STUDENT_PAGES = [
+  ['/student', 'نظرة عامة'],
+  ['/student/courses', 'دوراتي'],
+  ['/student/assignments', 'واجباتي'],
+  ['/student/grades', 'تقدمي ودرجاتي'],
+  ['/student/certificates', 'شهاداتي'],
+  ['/student/feedback', 'ملاحظات المعلم'],
+  ['/student/articles', 'المقالات'],
+  ['/student/chat', 'الرسائل'],
+  ['/student/account', 'حسابي'],
+] as const
+
+const TEACHER_PAGES = [
+  ['/teacher', 'نظرة عامة'],
+  ['/teacher/students', 'الطلاب'],
+  ['/teacher/courses', 'الدورات والبرامج'],
+  ['/teacher/review', 'مراجعة الواجبات'],
+  ['/teacher/articles', 'مقالاتي'],
+  ['/teacher/chat', 'الرسائل'],
+  ['/teacher/account', 'حسابي'],
+] as const
+
+function pagesList(pages: readonly (readonly [string, string])[]) {
+  return pages.map(([path, label]) => `${path} — ${label}`).join('\n')
+}
+
+function buildSystemPrompt(role: string | null) {
+  const roleLines =
+    role === 'student'
+      ? `المستخدم الحالي طالب مسجل. صفحات لوحته:\n${pagesList(STUDENT_PAGES)}`
+      : role === 'teacher'
+        ? `المستخدم الحالي معلم مسجل. صفحات لوحته:\n${pagesList(TEACHER_PAGES)}`
+        : 'المستخدم الحالي زائر غير مسجل دخول أو دوره غير معروف.'
+
+  return (
+    'أنت المساعد الذكي لمنصة "Pioneers for Research" التدريبية على البحث العلمي. ' +
+    'ترد على أسئلة الطلاب والمعلمين بخصوص المنصة (الدورات، الواجبات، الشهادات، المقالات، الحساب) وبخصوص البحث العلمي عمومًا. ' +
+    'ردودك مختصرة، واضحة، ومفيدة، بالعربية الفصحى المبسّطة إلا إذا كتب المستخدم بالإنجليزية.\n\n' +
+    `صفحات الموقع العامة المتاحة:\n${pagesList(PUBLIC_PAGES)}\n\n${roleLines}\n\n` +
+    'عندما يكون مناسبًا، اقترح للمستخدم الصفحة المناسبة من القوائم أعلاه فقط (لا تخترع مسارات أخرى)، ' +
+    'مكتوبة بصيغة رابط ماركداون بالضبط هكذا: [نص الزر](/المسار) — مثال: [إنشاء حساب طالب](/register). ' +
+    'ضع الرابط في نهاية ردك، ولا تضع أكثر من رابطين لكل رد إلا إذا طلب المستخدم عدة أشياء. ' +
+    'لا تخترع معلومات عن دورات أو مقالات بعينها لا تعرف تفاصيلها الحقيقية — وجّه المستخدم لصفحة البرامج بدلاً من تخمين السعر أو المحتوى. ' +
+    'لو سؤال يحتاج تدخل بشري (دفع، مشكلة تقنية بالحساب، شكوى)، وجّه المستخدم لمراسلة الإدارة مباشرة.'
+  )
+}
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -87,6 +142,8 @@ Deno.serve(async (req) => {
   const { data: bot } = await admin.from('profiles').select('id').eq('username', AI_BOT_USERNAME).maybeSingle()
   if (!bot) return json({ error: 'ai bot not configured' }, 404)
 
+  const { data: callerProfile } = await admin.from('profiles').select('role').eq('id', user.id).maybeSingle()
+
   const { data: isBotMember } = await admin
     .from('conversation_members')
     .select('user_id')
@@ -119,7 +176,7 @@ Deno.serve(async (req) => {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          systemInstruction: { parts: [{ text: buildSystemPrompt(callerProfile?.role ?? null) }] },
           contents,
           generationConfig: { maxOutputTokens: 700 },
         }),

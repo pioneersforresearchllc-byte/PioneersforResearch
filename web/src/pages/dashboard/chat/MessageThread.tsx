@@ -1,8 +1,24 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { Message } from '@/types/chat'
 import { Avatar } from '@/pages/dashboard/chat/Avatar'
 import { FileIcon, MoreIcon, ReplyIcon } from '@/pages/dashboard/chat/Icons'
 import { canDeleteMessage, canEditMessage, deleteMessage, editMessage, signChatAttachment } from '@/lib/chat'
+
+// The AI bot suggests pages using markdown-link syntax, e.g.
+// "...[إنشاء حساب طالب](/register)". Pull those out so they render as
+// tappable chips instead of raw bracket syntax, and show the remaining
+// text normally.
+const PAGE_LINK_RE = /\[([^\]]+)\]\((\/[^\s)]*)\)/g
+
+function extractPageLinks(text: string): { cleanText: string; links: { label: string; href: string }[] } {
+  const links: { label: string; href: string }[] = []
+  const cleanText = text.replace(PAGE_LINK_RE, (_match, label: string, href: string) => {
+    links.push({ label, href })
+    return ''
+  })
+  return { cleanText: cleanText.trim(), links }
+}
 
 function useSignedUrl(path: string | null) {
   const [url, setUrl] = useState<string | null>(null)
@@ -173,7 +189,32 @@ function MessageBubble({ m, isMine, showSender, myUserId, onReply, onChanged }: 
             </div>
           ) : (
             <>
-              {m.text && <div className="whitespace-pre-wrap break-words">{m.text}</div>}
+              {m.text &&
+                (() => {
+                  const { cleanText, links } = extractPageLinks(m.text)
+                  return (
+                    <>
+                      {cleanText && <div className="whitespace-pre-wrap break-words">{cleanText}</div>}
+                      {links.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {links.map((link, i) => (
+                            <Link
+                              key={i}
+                              to={link.href}
+                              className={`rounded-full border px-3 py-1.5 text-[12.5px] font-medium no-underline ${
+                                isMine
+                                  ? 'border-white/40 bg-white/10 text-white hover:bg-white/20'
+                                  : 'border-navy/25 bg-white text-navy hover:bg-bg-soft'
+                              }`}
+                            >
+                              {link.label} ←
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )
+                })()}
               <Attachment m={m} />
             </>
           )}
