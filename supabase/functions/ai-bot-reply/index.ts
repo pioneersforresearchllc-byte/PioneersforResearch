@@ -21,8 +21,10 @@ const SERVICE_ROLE_KEY =
 const ANON_KEY = firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) || Deno.env.get('SUPABASE_ANON_KEY')!
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')!
 const AI_BOT_USERNAME = 'ai-assistant'
-// Free-tier-eligible Gemini model. Change here if you want a different one.
-const GEMINI_MODEL = 'gemini-2.0-flash'
+// gemini-2.0-flash returned a hard 0-quota error on this project's free
+// tier; gemini-1.5-flash has long-standing free-tier availability. Change
+// here if you want a different model.
+const GEMINI_MODEL = 'gemini-1.5-flash'
 
 const SYSTEM_PROMPT =
   'أنت المساعد الذكي لمنصة "Pioneers for Research" التدريبية على البحث العلمي. ' +
