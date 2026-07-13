@@ -139,6 +139,7 @@ export const translations = {
   },
   'register.forgotPasswordLink': { ar: 'استخدم "نسيت كلمة السر" لتعيين كلمة مرور جديدة ثم أكمل التسجيل', en: 'Use "Forgot password" to set a new password, then complete registration' },
   'register.genericError': { ar: 'تعذر إنشاء الحساب، حاول مجددًا', en: "Couldn't create the account, try again" },
+  'register.invalidEmail': { ar: 'هذا البريد الإلكتروني غير صالح', en: 'This email address is not valid' },
   'register.usernameTaken': { ar: 'اسم المستخدم مستخدم بالفعل', en: 'This username is already taken' },
   'register.completeError': {
     ar: 'تعذر إكمال إنشاء الحساب، حاول مجددًا',
@@ -185,6 +186,7 @@ export const translations = {
   },
   'teacherApply.forgotPasswordLink': { ar: 'استخدم "نسيت كلمة السر" لتعيين كلمة مرور جديدة ثم أكمل التسجيل', en: 'Use "Forgot password" to set a new password, then complete registration' },
   'teacherApply.genericError': { ar: 'تعذر إرسال الطلب، حاول مجددًا', en: "Couldn't submit the application, try again" },
+  'teacherApply.invalidEmail': { ar: 'هذا البريد الإلكتروني غير صالح', en: 'This email address is not valid' },
   'teacherApply.usernameTaken': { ar: 'اسم المستخدم مستخدم بالفعل', en: 'This username is already taken' },
   'teacherApply.cvUploadError': {
     ar: 'تعذر رفع ملف السيرة الذاتية، حاول مجددًا',

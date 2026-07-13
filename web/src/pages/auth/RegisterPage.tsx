@@ -79,18 +79,40 @@ export function RegisterPage() {
         return
       }
 
+      const profilePayload = { user_id: userId, role: 'student' as const, name: name.trim(), username: username.trim() }
+
       const { data: otpData, error: otpErr } = await supabase.functions.invoke('send-signup-otp')
+      const otpResult = otpData as { error?: string; autoVerified?: boolean; devCode?: string } | null
+      if (otpErr || otpResult?.error === 'invalid_email') {
+        setError(t('register.invalidEmail'))
+        return
+      }
       if (otpErr) {
         setError(t('register.completeError'))
+        return
+      }
+
+      // Our own email quota was exhausted — the server already verified
+      // the domain and auto-approved this signup, so skip straight to
+      // creating the profile instead of asking for a code we never sent.
+      if (otpResult?.autoVerified) {
+        const { data: profileData, error: profileErr } = await supabase.functions.invoke('create-profile', {
+          body: profilePayload,
+        })
+        if (profileErr || (profileData as { error?: string } | null)?.error) {
+          setError(t('register.completeError'))
+          return
+        }
+        navigate('/student')
         return
       }
 
       navigate('/register-otp', {
         state: {
           email: email.trim(),
-          profilePayload: { user_id: userId, role: 'student', name: name.trim(), username: username.trim() },
+          profilePayload,
           successRoute: '/student',
-          devCode: (otpData as { devCode?: string })?.devCode ?? null,
+          devCode: otpResult?.devCode ?? null,
         },
       })
     } finally {

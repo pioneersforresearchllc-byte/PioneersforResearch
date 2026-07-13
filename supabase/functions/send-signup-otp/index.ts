@@ -48,8 +48,8 @@ async function sha256Hex(input: string) {
     .join('')
 }
 
-async function sendOtpEmail(to: string, code: string) {
-  if (!SMTP_USER || !SMTP_PASS) return false
+async function sendOtpEmail(to: string, code: string): Promise<'sent' | 'not_configured' | 'failed'> {
+  if (!SMTP_USER || !SMTP_PASS) return 'not_configured'
   const client = new SMTPClient({
     connection: {
       hostname: SMTP_HOST,
@@ -69,12 +69,37 @@ async function sendOtpEmail(to: string, code: string) {
       content: `رمز تأكيد إنشاء حسابك في منصة Pioneers for Research هو: ${code}\nصالح لمدة 10 دقائق. إذا لم تطلب هذا الرمز، تجاهل هذه الرسالة.`,
       html: `<div dir="rtl" style="font-family:sans-serif"><p>رمز تأكيد إنشاء حسابك في منصة Pioneers for Research هو:</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p>صالح لمدة 10 دقائق. إذا لم تطلب هذا الرمز، تجاهل هذه الرسالة.</p></div>`,
     })
-    return true
+    return 'sent'
   } catch (err) {
+    // Real delivery failure — most likely Gmail's daily/weekly personal
+    // sending limit was hit, not a bad address. Caller falls back to a
+    // lighter domain check instead of hard-blocking registration.
     console.error('smtp send failed', err)
-    return false
+    return 'failed'
   } finally {
-    await client.close()
+    try {
+      await client.close()
+    } catch {
+      // already closed/never opened — ignore
+    }
+  }
+}
+
+// Used only when real SMTP delivery fails (see above) — confirms the
+// email's domain can receive mail at all (e.g. gmail.com resolves, a typo'd
+// or fake domain doesn't), without actually sending anything. This can't
+// confirm the specific mailbox exists — true per-mailbox verification would
+// require an SMTP RCPT TO probe, which Gmail deliberately ignores — but it
+// stops obviously fake addresses while letting real users through when our
+// own send quota is the blocker, not their email.
+async function domainHasMx(email: string): Promise<boolean> {
+  const domain = email.split('@')[1]
+  if (!domain) return false
+  try {
+    const records = await Deno.resolveDns(domain, 'MX')
+    return records.length > 0
+  } catch {
+    return false
   }
 }
 
@@ -119,16 +144,34 @@ Deno.serve(async (req) => {
   const codeHash = await sha256Hex(code)
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
 
+  const emailResult = await sendOtpEmail(user.email, code)
+
+  if (emailResult === 'failed') {
+    const validDomain = await domainHasMx(user.email)
+    if (!validDomain) return json({ error: 'invalid_email' }, 400)
+
+    // Can't deliver the code ourselves — auto-verify instead of permanently
+    // blocking a real user because our own sending quota ran out.
+    const { error: insertErr } = await admin.from('signup_otps').insert({
+      user_id: user.id,
+      code_hash: codeHash,
+      expires_at: expiresAt,
+      consumed: true,
+      verified_at: new Date().toISOString(),
+    })
+    if (insertErr) return json({ error: insertErr.message }, 500)
+
+    return json({ sent: true, emailed: false, autoVerified: true })
+  }
+
   const { error: insertErr } = await admin
     .from('signup_otps')
     .insert({ user_id: user.id, code_hash: codeHash, expires_at: expiresAt })
   if (insertErr) return json({ error: insertErr.message }, 500)
 
-  const emailed = await sendOtpEmail(user.email, code)
-
   return json({
     sent: true,
-    emailed,
-    ...(emailed ? {} : { devCode: code }),
+    emailed: emailResult === 'sent',
+    ...(emailResult === 'not_configured' ? { devCode: code } : {}),
   })
 })

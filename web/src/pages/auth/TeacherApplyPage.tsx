@@ -120,28 +120,47 @@ export function TeacherApplyPage() {
         cvFileUrl = path
       }
 
+      const profilePayload = {
+        user_id: userId,
+        role: 'teacher' as const,
+        name: name.trim(),
+        username: username.trim(),
+        specialty: specialty.trim(),
+        qualification: qualification.trim(),
+        years_experience: Number(years) || 0,
+        cv_text: cv.trim(),
+        cv_file_url: cvFileUrl,
+      }
+
       const { data: otpData, error: otpErr } = await supabase.functions.invoke('send-signup-otp')
+      const otpResult = otpData as { error?: string; autoVerified?: boolean; devCode?: string } | null
+      if (otpErr || otpResult?.error === 'invalid_email') {
+        setError(t('teacherApply.invalidEmail'))
+        return
+      }
       if (otpErr) {
         setError(t('teacherApply.genericError'))
+        return
+      }
+
+      if (otpResult?.autoVerified) {
+        const { data: profileData, error: profileErr } = await supabase.functions.invoke('create-profile', {
+          body: profilePayload,
+        })
+        if (profileErr || (profileData as { error?: string } | null)?.error) {
+          setError(t('teacherApply.genericError'))
+          return
+        }
+        navigate('/teacher-pending')
         return
       }
 
       navigate('/register-otp', {
         state: {
           email: email.trim(),
-          profilePayload: {
-            user_id: userId,
-            role: 'teacher',
-            name: name.trim(),
-            username: username.trim(),
-            specialty: specialty.trim(),
-            qualification: qualification.trim(),
-            years_experience: Number(years) || 0,
-            cv_text: cv.trim(),
-            cv_file_url: cvFileUrl,
-          },
+          profilePayload,
           successRoute: '/teacher-pending',
-          devCode: (otpData as { devCode?: string })?.devCode ?? null,
+          devCode: otpResult?.devCode ?? null,
         },
       })
     } finally {
