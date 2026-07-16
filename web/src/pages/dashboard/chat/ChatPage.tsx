@@ -129,6 +129,7 @@ export function ChatPage() {
                 <Avatar
                   name={activeConversation.otherMember?.name ?? '?'}
                   avatarUrl={activeConversation.otherMember?.avatar_url ?? null}
+                  userId={activeConversation.otherMember?.id}
                 />
               )}
               <div>

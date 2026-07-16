@@ -16,14 +16,6 @@ export function LoginPage() {
   const [busy, setBusy] = useState(false)
   const passwordResetDone = !!(location.state as { passwordResetDone?: boolean } | null)?.passwordResetDone
 
-  const fillDemo = (nextRole: 'student' | 'teacher') => {
-    setRole(nextRole)
-    if (nextRole === 'teacher') {
-      setIdentifier('khalid@example.com')
-      setPassword('demo123')
-    }
-  }
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
@@ -96,7 +88,7 @@ export function LoginPage() {
       <div className="mb-5 flex rounded-lg bg-[#f0f3f7] p-1">
         <button
           type="button"
-          onClick={() => fillDemo('student')}
+          onClick={() => setRole('student')}
           className={`flex-1 rounded-md border-none py-2.25 text-[13.5px] font-semibold ${
             role === 'student' ? 'bg-navy text-white' : 'bg-transparent text-navy'
           }`}
@@ -105,7 +97,7 @@ export function LoginPage() {
         </button>
         <button
           type="button"
-          onClick={() => fillDemo('teacher')}
+          onClick={() => setRole('teacher')}
           className={`flex-1 rounded-md border-none py-2.25 text-[13.5px] font-semibold ${
             role === 'teacher' ? 'bg-navy text-white' : 'bg-transparent text-navy'
           }`}
@@ -145,18 +137,12 @@ export function LoginPage() {
       </form>
 
       {role === 'teacher' && (
-        <>
-          <div className="mt-4 text-center text-[13px] text-muted">{t('login.demoTeacherHint')}</div>
-          <div className="mt-2.5 text-center text-[13.5px]">
-            {t('login.notTeacherYet')}{' '}
-            <Link to="/teacher-apply" className="font-semibold text-navy no-underline">
-              {t('login.applyAsTeacher')}
-            </Link>
-          </div>
-        </>
-      )}
-      {role === 'student' && (
-        <div className="mt-4 text-center text-[13px] text-muted">{t('login.demoStudentHint')}</div>
+        <div className="mt-4 text-center text-[13.5px]">
+          {t('login.notTeacherYet')}{' '}
+          <Link to="/teacher-apply" className="font-semibold text-navy no-underline">
+            {t('login.applyAsTeacher')}
+          </Link>
+        </div>
       )}
 
       <div className="mt-4 text-center text-[13.5px] text-muted">

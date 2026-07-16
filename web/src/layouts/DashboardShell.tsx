@@ -1,41 +1,50 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/lib/i18n'
+import type { translations } from '@/lib/translations'
 
 export interface DashboardTab {
   key: string
-  label: string
+  labelKey: keyof typeof translations
   to: string
 }
 
 interface DashboardShellProps {
-  subtitle: string
+  subtitleKey: keyof typeof translations
   userName: string
   tabs: DashboardTab[]
 }
 
-export function DashboardShell({ subtitle, userName, tabs }: DashboardShellProps) {
+export function DashboardShell({ subtitleKey, userName, tabs }: DashboardShellProps) {
   const { signOut } = useAuth()
+  const { t, dir, lang, toggleLang } = useLanguage()
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div dir={dir} lang={lang} className="flex min-h-screen flex-col">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border px-4 py-3.5 md:px-8 md:py-4">
         <div className="font-heading text-base font-bold text-navy md:text-lg">
           Pioneers for Research{' '}
-          <span className="block text-[12.5px] font-normal text-muted md:inline md:text-[13px]">— {subtitle}</span>
+          <span className="block text-[12.5px] font-normal text-muted md:inline md:text-[13px]">— {t(subtitleKey)}</span>
         </div>
         <div className="flex items-center gap-2.5 md:gap-4.5">
           <span className="hidden text-sm text-navy sm:inline">{userName}</span>
+          <button
+            onClick={toggleLang}
+            className="shrink-0 whitespace-nowrap rounded-md border border-border px-3 py-1.75 text-[12.5px] text-navy hover:border-navy md:px-4 md:py-2 md:text-[13.5px]"
+          >
+            {t('lang.toggle')}
+          </button>
           <Link
             to="/"
             className="shrink-0 whitespace-nowrap rounded-md border border-border px-3 py-1.75 text-[12.5px] text-muted no-underline hover:border-navy hover:text-navy md:px-4 md:py-2 md:text-[13.5px]"
           >
-            → الرئيسية
+            {t('shell.home')}
           </Link>
           <button
             onClick={() => void signOut()}
             className="shrink-0 whitespace-nowrap rounded-md border border-border px-3 py-1.75 text-[12.5px] text-muted hover:border-navy hover:text-navy md:px-4.5 md:py-2 md:text-[13.5px]"
           >
-            تسجيل الخروج
+            {t('shell.signOut')}
           </button>
         </div>
       </div>
@@ -52,7 +61,7 @@ export function DashboardShell({ subtitle, userName, tabs }: DashboardShellProps
                 }`
               }
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </NavLink>
           ))}
         </div>
@@ -68,7 +77,7 @@ export function DashboardShell({ subtitle, userName, tabs }: DashboardShellProps
                 }`
               }
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </NavLink>
           ))}
         </div>

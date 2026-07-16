@@ -32,6 +32,7 @@ import { TeacherArticlesPage } from '@/pages/dashboard/teacher/ArticlesPage'
 import { StudentArticlesPage } from '@/pages/dashboard/student/ArticlesPage'
 import { OwnerOverviewPage } from '@/pages/dashboard/owner/OverviewPage'
 import { OwnerAdminsPage } from '@/pages/dashboard/owner/AdminsPage'
+import { OwnerAccountsPage } from '@/pages/dashboard/owner/AccountsPage'
 import { OwnerContactPage } from '@/pages/dashboard/owner/ContactPage'
 import { StudentGradesPage } from '@/pages/dashboard/student/GradesPage'
 import { StudentFeedbackPage } from '@/pages/dashboard/student/FeedbackPage'
@@ -41,52 +42,53 @@ import { TeacherOverviewPage } from '@/pages/dashboard/teacher/OverviewPage'
 import { TeacherStudentsPage } from '@/pages/dashboard/teacher/StudentsPage'
 
 const studentTabs: DashboardTab[] = [
-  { key: 'overview', label: 'نظرة عامة', to: '/student' },
-  { key: 'courses', label: 'دوراتي', to: '/student/courses' },
-  { key: 'assignments', label: 'واجباتي', to: '/student/assignments' },
-  { key: 'grades', label: 'تقدمي ودرجاتي', to: '/student/grades' },
-  { key: 'certificates', label: 'شهاداتي', to: '/student/certificates' },
-  { key: 'feedback', label: 'ملاحظات المعلم', to: '/student/feedback' },
-  { key: 'articles', label: 'المقالات', to: '/student/articles' },
-  { key: 'chat', label: 'الرسائل', to: '/student/chat' },
-  { key: 'account', label: 'حسابي', to: '/student/account' },
+  { key: 'overview', labelKey: 'tab.overview', to: '/student' },
+  { key: 'courses', labelKey: 'tab.myCourses', to: '/student/courses' },
+  { key: 'assignments', labelKey: 'tab.assignments', to: '/student/assignments' },
+  { key: 'grades', labelKey: 'tab.grades', to: '/student/grades' },
+  { key: 'certificates', labelKey: 'tab.certificates', to: '/student/certificates' },
+  { key: 'feedback', labelKey: 'tab.feedback', to: '/student/feedback' },
+  { key: 'articles', labelKey: 'tab.articles', to: '/student/articles' },
+  { key: 'chat', labelKey: 'tab.messages', to: '/student/chat' },
+  { key: 'account', labelKey: 'tab.myAccount', to: '/student/account' },
 ]
 
 const teacherTabs: DashboardTab[] = [
-  { key: 'overview', label: 'نظرة عامة', to: '/teacher' },
-  { key: 'students', label: 'الطلاب', to: '/teacher/students' },
-  { key: 'courses', label: 'الدورات والبرامج', to: '/teacher/courses' },
-  { key: 'review', label: 'مراجعة الواجبات', to: '/teacher/review' },
-  { key: 'articles', label: 'مقالاتي', to: '/teacher/articles' },
-  { key: 'chat', label: 'الرسائل', to: '/teacher/chat' },
-  { key: 'account', label: 'حسابي', to: '/teacher/account' },
+  { key: 'overview', labelKey: 'tab.overview', to: '/teacher' },
+  { key: 'students', labelKey: 'tab.students', to: '/teacher/students' },
+  { key: 'courses', labelKey: 'tab.coursesPrograms', to: '/teacher/courses' },
+  { key: 'review', labelKey: 'tab.reviewAssignments', to: '/teacher/review' },
+  { key: 'articles', labelKey: 'tab.myArticles', to: '/teacher/articles' },
+  { key: 'chat', labelKey: 'tab.messages', to: '/teacher/chat' },
+  { key: 'account', labelKey: 'tab.myAccount', to: '/teacher/account' },
 ]
 
 const ownerTabs: DashboardTab[] = [
-  { key: 'overview', label: 'نظرة عامة', to: '/owner' },
-  { key: 'applications', label: 'طلبات المعلمين', to: '/owner/applications' },
-  { key: 'teachers', label: 'المعلمون', to: '/owner/teachers' },
-  { key: 'courses', label: 'البرامج', to: '/owner/courses' },
-  { key: 'certificates', label: 'الشهادات', to: '/owner/certificates' },
-  { key: 'admins', label: 'أعضاء الإدارة', to: '/owner/admins' },
-  { key: 'messages', label: 'الرسائل', to: '/owner/messages' },
-  { key: 'contact', label: 'رسائل التواصل', to: '/owner/contact' },
-  { key: 'account', label: 'حسابي', to: '/owner/account' },
+  { key: 'overview', labelKey: 'tab.overview', to: '/owner' },
+  { key: 'applications', labelKey: 'tab.teacherApplications', to: '/owner/applications' },
+  { key: 'teachers', labelKey: 'tab.teachers', to: '/owner/teachers' },
+  { key: 'courses', labelKey: 'tab.programs', to: '/owner/courses' },
+  { key: 'certificates', labelKey: 'tab.certificates', to: '/owner/certificates' },
+  { key: 'admins', labelKey: 'tab.admins', to: '/owner/admins' },
+  { key: 'accounts', labelKey: 'tab.accounts', to: '/owner/accounts' },
+  { key: 'messages', labelKey: 'tab.messages', to: '/owner/messages' },
+  { key: 'contact', labelKey: 'tab.contactMessages', to: '/owner/contact' },
+  { key: 'account', labelKey: 'tab.myAccount', to: '/owner/account' },
 ]
 
 function StudentDashboard() {
   const { profile } = useAuth()
-  return <DashboardShell subtitle="منصة الطالب" userName={profile?.name ?? ''} tabs={studentTabs} />
+  return <DashboardShell subtitleKey="shell.studentSubtitle" userName={profile?.name ?? ''} tabs={studentTabs} />
 }
 
 function TeacherDashboard() {
   const { profile } = useAuth()
-  return <DashboardShell subtitle="لوحة المعلم" userName={profile?.name ?? ''} tabs={teacherTabs} />
+  return <DashboardShell subtitleKey="shell.teacherSubtitle" userName={profile?.name ?? ''} tabs={teacherTabs} />
 }
 
 function OwnerDashboard() {
   const { profile } = useAuth()
-  return <DashboardShell subtitle="لوحة الإدارة" userName={profile?.name ?? ''} tabs={ownerTabs} />
+  return <DashboardShell subtitleKey="shell.ownerSubtitle" userName={profile?.name ?? ''} tabs={ownerTabs} />
 }
 
 export default function App() {
@@ -146,6 +148,7 @@ export default function App() {
             <Route path="/owner/courses" element={<OwnerCoursesPage />} />
             <Route path="/owner/certificates" element={<OwnerCertificatesPage />} />
             <Route path="/owner/admins" element={<OwnerAdminsPage />} />
+            <Route path="/owner/accounts" element={<OwnerAccountsPage />} />
             <Route path="/owner/messages" element={<ChatPage />} />
             <Route path="/owner/contact" element={<OwnerContactPage />} />
             <Route path="/owner/account" element={<AccountPage />} />

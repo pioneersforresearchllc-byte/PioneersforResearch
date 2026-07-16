@@ -6,6 +6,7 @@ import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from '@/context/AuthContext'
 import { LanguageProvider } from '@/lib/i18n'
+import { ProfileViewerProvider } from '@/components/ProfileViewer'
 
 const queryClient = new QueryClient()
 
@@ -15,7 +16,9 @@ createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <LanguageProvider>
           <AuthProvider>
-            <App />
+            <ProfileViewerProvider>
+              <App />
+            </ProfileViewerProvider>
           </AuthProvider>
         </LanguageProvider>
       </BrowserRouter>

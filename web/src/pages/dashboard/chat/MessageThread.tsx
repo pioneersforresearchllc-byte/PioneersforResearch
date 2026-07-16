@@ -103,7 +103,9 @@ function MessageBubble({ m, isMine, showSender, myUserId, onReply, onChanged }: 
 
   return (
     <div className={`group flex ${isMine ? 'justify-end' : 'justify-start'} items-end gap-2 px-2 py-0.5`}>
-      {!isMine && showSender && <Avatar name={m.sender?.name ?? '?'} avatarUrl={m.sender?.avatar_url ?? null} size={28} />}
+      {!isMine && showSender && (
+        <Avatar name={m.sender?.name ?? '?'} avatarUrl={m.sender?.avatar_url ?? null} size={28} userId={m.sender?.id} />
+      )}
       {!isMine && !showSender && <div className="w-7 shrink-0" />}
 
       <div className="relative max-w-[65%]">

@@ -78,15 +78,13 @@ async function sendOtpEmail(to: string, code: string): Promise<{ ok: boolean; re
     },
   })
   try {
+    // Plain-text ONLY — a single text/plain part avoids the malformed
+    // multipart/alternative rendering some clients showed as raw MIME.
     await client.send({
       from: SMTP_FROM,
       to,
       subject: 'رمز الدخول إلى بوابة الإدارة',
-      // denomailer needs a plain-text `content` alongside `html` to build a
-      // correct multipart/alternative message — omitting it produced a
-      // malformed MIME structure that showed up as raw source in Gmail.
-      content: `رمز الدخول الخاص بك هو: ${code}\nصالح لمدة 10 دقائق.`,
-      html: `<div dir="rtl" style="font-family:sans-serif"><p>رمز الدخول الخاص بك هو:</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p>صالح لمدة 10 دقائق.</p></div>`,
+      content: `رمز الدخول الخاص بك هو: ${code}\n\nصالح لمدة 10 دقائق.`,
     })
     return { ok: true, reason: '' }
   } catch (err) {

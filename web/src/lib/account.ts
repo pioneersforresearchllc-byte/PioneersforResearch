@@ -23,6 +23,56 @@ export async function changePassword(newPassword: string) {
   if (error) throw error
 }
 
+export async function updateProfileDetails(
+  userId: string,
+  fields: { name?: string; bio?: string | null; profile_public?: boolean },
+) {
+  const { error } = await supabase.from('profiles').update(fields).eq('id', userId)
+  if (error) throw error
+}
+
+export interface PublicProfile {
+  id: string
+  name: string
+  username: string
+  role: string
+  avatar_url: string | null
+  bio: string | null
+  profile_public: boolean
+  specialty: string | null
+  qualification: string | null
+  years_experience: number | null
+  certificates: { id: string; course_title: string; image_url: string | null }[]
+}
+
+// Loads the profile card a viewer sees when they tap someone's avatar. Only
+// returns the rich card when that user allows it (profile_public); otherwise
+// returns just the basic identity so the caller can show a "private" state.
+export async function fetchPublicProfile(userId: string): Promise<PublicProfile | null> {
+  const { data: p, error } = await supabase
+    .from('profiles')
+    .select('id, name, username, role, avatar_url, bio, profile_public, specialty, qualification, years_experience')
+    .eq('id', userId)
+    .maybeSingle()
+  if (error || !p) return null
+
+  let certificates: PublicProfile['certificates'] = []
+  if (p.profile_public) {
+    const { data: certs } = await supabase
+      .from('certificate_issuances')
+      .select('id, image_url, course:courses(title)')
+      .eq('student_id', userId)
+      .order('issued_at', { ascending: false })
+    certificates = (certs ?? []).map((c) => ({
+      id: c.id,
+      image_url: c.image_url,
+      course_title: (c.course as unknown as { title: string } | null)?.title ?? '',
+    }))
+  }
+
+  return { ...(p as Omit<PublicProfile, 'certificates'>), certificates }
+}
+
 export interface GradedItem {
   id: string
   assignmentTitle: string

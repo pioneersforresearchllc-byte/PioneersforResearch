@@ -16,6 +16,34 @@ export async function getOverviewStats(): Promise<OwnerOverviewStats> {
   return data as OwnerOverviewStats
 }
 
+export interface AccountRow {
+  id: string
+  name: string
+  username: string
+  role: 'student' | 'teacher' | 'owner'
+  status: 'active' | 'pending' | 'rejected'
+  is_temp_admin: boolean
+  email: string | null
+  last_sign_in_at: string | null
+}
+
+export async function listAllAccounts(): Promise<AccountRow[]> {
+  const { data, error } = await supabase.functions.invoke('admin-accounts', { body: { action: 'list' } })
+  if (error) throw error
+  const result = data as { accounts?: AccountRow[]; error?: string }
+  if (result.error) throw new Error(result.error)
+  return result.accounts ?? []
+}
+
+export async function adminSetPassword(userId: string, newPassword: string): Promise<void> {
+  const { data, error } = await supabase.functions.invoke('admin-accounts', {
+    body: { action: 'set_password', userId, newPassword },
+  })
+  if (error) throw error
+  const result = data as { updated?: boolean; error?: string }
+  if (result.error || !result.updated) throw new Error(result.error || 'failed')
+}
+
 export interface AdminRow {
   id: string
   name: string

@@ -8,6 +8,8 @@ export interface Profile {
   name: string
   username: string
   avatar_url: string | null
+  bio: string | null
+  profile_public: boolean
   specialty: string | null
   qualification: string | null
   years_experience: number | null

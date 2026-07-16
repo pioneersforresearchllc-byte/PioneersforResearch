@@ -64,12 +64,13 @@ async function sendResetEmail(to: string, code: string) {
     },
   })
   try {
+    // Plain-text ONLY — a single text/plain part avoids the malformed
+    // multipart/alternative rendering some clients showed as raw MIME.
     await client.send({
       from: SMTP_FROM,
       to,
       subject: 'رمز إعادة تعيين كلمة المرور',
-      content: `رمز إعادة تعيين كلمة المرور الخاص بك هو: ${code}\nصالح لمدة 10 دقائق. إذا لم تطلب هذا الرمز، تجاهل هذه الرسالة.`,
-      html: `<div dir="rtl" style="font-family:sans-serif"><p>رمز إعادة تعيين كلمة المرور الخاص بك هو:</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p>صالح لمدة 10 دقائق. إذا لم تطلب هذا الرمز، تجاهل هذه الرسالة.</p></div>`,
+      content: `رمز إعادة تعيين كلمة المرور الخاص بك هو: ${code}\n\nصالح لمدة 10 دقائق. إذا لم تطلب هذا الرمز، تجاهل هذه الرسالة.`,
     })
     return true
   } catch {
