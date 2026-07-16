@@ -94,17 +94,24 @@ Deno.serve(async (req) => {
     .maybeSingle()
   if (existing) return json({ error: 'profile already exists' }, 409)
 
-  // Require a verified signup_otps row before allowing the profile to be
-  // created — this is the actual bot gate, enforced server-side so it
-  // can't be skipped by calling this function directly without going
-  // through send-signup-otp / verify-signup-otp first.
-  const { data: verifiedOtp } = await admin
-    .from('signup_otps')
-    .select('id')
-    .eq('user_id', payload.user_id)
-    .eq('consumed', true)
-    .maybeSingle()
-  if (!verifiedOtp) return json({ error: 'email not verified' }, 403)
+  // A user who signed in through an OAuth provider (Google) already has a
+  // provider-verified email, so they don't go through our signup_otps flow.
+  // Everyone else must have a verified OTP — the actual bot gate, enforced
+  // here so it can't be skipped by calling this function directly.
+  const identities = authUser.user.identities ?? []
+  const isOAuthUser =
+    identities.some((i) => i.provider && i.provider !== 'email') ||
+    (authUser.user.app_metadata?.provider && authUser.user.app_metadata.provider !== 'email')
+
+  if (!isOAuthUser) {
+    const { data: verifiedOtp } = await admin
+      .from('signup_otps')
+      .select('id')
+      .eq('user_id', payload.user_id)
+      .eq('consumed', true)
+      .maybeSingle()
+    if (!verifiedOtp) return json({ error: 'email not verified' }, 403)
+  }
 
   const row =
     payload.role === 'student'

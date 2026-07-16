@@ -379,4 +379,23 @@ export const translations = {
   'shell.ownerSubtitle': { ar: 'لوحة الإدارة', en: 'Admin Dashboard' },
   'shell.home': { ar: '→ الرئيسية', en: '→ Home' },
   'shell.signOut': { ar: 'تسجيل الخروج', en: 'Sign Out' },
+
+  'auth.continueWithGoogle': { ar: 'المتابعة بحساب Google', en: 'Continue with Google' },
+  'auth.or': { ar: 'أو', en: 'or' },
+
+  'completeProfile.title': { ar: 'أكمل ملفك', en: 'Complete your profile' },
+  'completeProfile.subtitle': {
+    ar: 'اختر اسم مستخدم لإكمال إنشاء حسابك كطالب',
+    en: 'Pick a username to finish setting up your student account',
+  },
+  'completeProfile.namePh': { ar: 'الاسم الكامل', en: 'Full name' },
+  'completeProfile.usernamePh': { ar: 'اسم المستخدم', en: 'Username' },
+  'completeProfile.fillFields': { ar: 'يرجى تعبئة جميع الحقول', en: 'Please fill in all fields' },
+  'completeProfile.usernameTaken': { ar: 'اسم المستخدم مستخدم بالفعل', en: 'This username is already taken' },
+  'completeProfile.genericError': { ar: 'تعذر إكمال إنشاء الحساب، حاول مجددًا', en: "Couldn't finish creating the account, try again" },
+  'completeProfile.submit': { ar: 'إنشاء الحساب', en: 'Create Account' },
+  'completeProfile.teacherNote': {
+    ar: 'للتسجيل كمعلم، استخدم صفحة "التقديم كمعلم" بدل حساب Google.',
+    en: 'To register as a teacher, use the "Apply as teacher" page instead of Google.',
+  },
 } as const satisfies Record<string, { ar: string; en: string }>

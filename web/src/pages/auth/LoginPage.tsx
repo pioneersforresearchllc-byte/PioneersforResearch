@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { fetchProfile } from '@/lib/profile'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
+import { GoogleButton } from '@/components/GoogleButton'
 import { useLanguage } from '@/lib/i18n'
 
 export function LoginPage() {
@@ -84,6 +85,15 @@ export function LoginPage() {
           {t('login.passwordResetDone')}
         </div>
       )}
+
+      <div className="mb-4">
+        <GoogleButton />
+      </div>
+      <div className="mb-4 flex items-center gap-3 text-[12px] text-faint">
+        <div className="h-px flex-1 bg-border" />
+        {t('auth.or')}
+        <div className="h-px flex-1 bg-border" />
+      </div>
 
       <div className="mb-5 flex rounded-lg bg-[#f0f3f7] p-1">
         <button

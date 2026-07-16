@@ -7,6 +7,8 @@ import { useAuth } from '@/context/AuthContext'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
+import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage'
+import { CompleteProfilePage } from '@/pages/auth/CompleteProfilePage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { RegisterOtpPage } from '@/pages/auth/RegisterOtpPage'
 import { TeacherApplyPage } from '@/pages/auth/TeacherApplyPage'
@@ -104,6 +106,8 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
+        <Route path="/complete-profile" element={<CompleteProfilePage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/register-otp" element={<RegisterOtpPage />} />
         <Route path="/teacher-apply" element={<TeacherApplyPage />} />
