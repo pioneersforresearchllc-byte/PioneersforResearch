@@ -1,5 +1,4 @@
 import { Route, Routes } from 'react-router-dom'
-import { SpeedInsights } from '@vercel/speed-insights/react'
 import { MarketingLayout } from '@/layouts/MarketingLayout'
 import { DashboardShell, type DashboardTab } from '@/layouts/DashboardShell'
 import { RequireRole } from '@/routes/RequireRole'
@@ -155,7 +154,6 @@ export default function App() {
 
         <Route path="*" element={<Placeholder title="الصفحة غير موجودة" />} />
       </Routes>
-      <SpeedInsights />
     </>
   )
 }
