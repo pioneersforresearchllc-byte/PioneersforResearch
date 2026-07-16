@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { fetchProfile } from '@/lib/profile'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 
@@ -71,41 +70,37 @@ export function TeacherApplyPage() {
 
     setBusy(true)
     try {
-      const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+      let signUpData: Awaited<ReturnType<typeof supabase.auth.signUp>>['data']
+      let signUpErr: Awaited<ReturnType<typeof supabase.auth.signUp>>['error']
+      ;({ data: signUpData, error: signUpErr } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-      })
+      }))
 
-      let userId: string
-
-      if (signUpErr || !signUpData.user) {
-        if (signUpErr?.message !== 'User already registered') {
-          setError(t('teacherApply.genericError'))
-          return
-        }
-        // Could be someone who applied earlier but abandoned the email
-        // verification step. signInWithPassword only succeeds if they
-        // actually know this account's password, so this can't be used to
-        // probe whether a stranger's email is registered.
-        const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
+      if (signUpErr?.message === 'User already registered') {
+        // Real account, or an application abandoned before OTP (ghost auth
+        // user). Clear the abandoned one; only a real profile blocks reuse.
+        const { data: resetData } = await supabase.functions.invoke('reset-unverified-signup', {
+          body: { email: email.trim() },
         })
-        if (signInErr || !signInData.user) {
-          setError(t('teacherApply.emailInUseWrongPassword'))
+        const reset = resetData as { cleared?: boolean; hasProfile?: boolean } | null
+        if (reset?.hasProfile) {
+          setError(t('teacherApply.emailInUse'))
           setShowForgotLink(true)
           return
         }
-        const existingProfile = await fetchProfile(signInData.user.id)
-        if (existingProfile) {
-          await supabase.auth.signOut()
-          setError(t('teacherApply.emailInUse'))
-          return
-        }
-        userId = signInData.user.id
-      } else {
-        userId = signUpData.user.id
+        ;({ data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+        }))
       }
+
+      if (signUpErr || !signUpData.user) {
+        setError(t('teacherApply.genericError'))
+        return
+      }
+
+      const userId = signUpData.user.id
 
       // Private bucket — path is scoped to the applicant's own user id, and
       // only they or a verified owner can read it back (see storage RLS).

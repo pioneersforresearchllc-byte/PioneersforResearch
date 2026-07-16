@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { fetchProfile } from '@/lib/profile'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { GoogleButton } from '@/components/GoogleButton'
 import { useLanguage } from '@/lib/i18n'
@@ -35,44 +34,41 @@ export function RegisterPage() {
 
     setBusy(true)
     try {
-      const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+      let signUpData: Awaited<ReturnType<typeof supabase.auth.signUp>>['data']
+      let signUpErr: Awaited<ReturnType<typeof supabase.auth.signUp>>['error']
+      ;({ data: signUpData, error: signUpErr } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-      })
+      }))
 
-      let userId: string
-      let hasSession: boolean
-
-      if (signUpErr || !signUpData.user) {
-        if (signUpErr?.message !== 'User already registered') {
-          setError(t('register.genericError'))
-          return
-        }
-        // Could be someone who signed up earlier but abandoned the email
-        // verification step. signInWithPassword only succeeds if they
-        // actually know this account's password, so this can't be used to
-        // probe whether a stranger's email is registered.
-        const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
+      if (signUpErr?.message === 'User already registered') {
+        // Could be a real account, or a signup someone abandoned before
+        // entering the OTP (which leaves a ghost auth user). Ask the server
+        // to clear the abandoned one; only a real account (with a profile)
+        // blocks reuse.
+        const { data: resetData } = await supabase.functions.invoke('reset-unverified-signup', {
+          body: { email: email.trim() },
         })
-        if (signInErr || !signInData.user) {
-          setError(t('register.emailInUseWrongPassword'))
+        const reset = resetData as { cleared?: boolean; hasProfile?: boolean } | null
+        if (reset?.hasProfile) {
+          setError(t('register.emailInUse'))
           setShowForgotLink(true)
           return
         }
-        const existingProfile = await fetchProfile(signInData.user.id)
-        if (existingProfile) {
-          await supabase.auth.signOut()
-          setError(t('register.emailInUse'))
-          return
-        }
-        userId = signInData.user.id
-        hasSession = true
-      } else {
-        userId = signUpData.user.id
-        hasSession = !!signUpData.session
+        // Abandoned attempt cleared — sign up fresh with the new password.
+        ;({ data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+        }))
       }
+
+      if (signUpErr || !signUpData.user) {
+        setError(t('register.genericError'))
+        return
+      }
+
+      const userId = signUpData.user.id
+      const hasSession = !!signUpData.session
 
       if (!hasSession) {
         setError('') // no error — success path with no immediate session
