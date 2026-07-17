@@ -505,6 +505,15 @@ export const translations = {
   },
   'tab.assignedRequests': { ar: 'الخدمات المكلّف بها', en: 'Assigned Services' },
 
+  'homeContent.title': { ar: 'محتوى الصفحة الرئيسية', en: 'Homepage Content' },
+  'homeContent.subtitle': {
+    ar: 'عدّل نصوص الصفحة الرئيسية باللغتين. اترك الحقل فارغًا للرجوع للنص الافتراضي.',
+    en: 'Edit the homepage text in both languages. Leave a field empty to fall back to the default text.',
+  },
+  'homeContent.save': { ar: 'حفظ', en: 'Save' },
+  'homeContent.saved': { ar: 'تم الحفظ', en: 'Saved' },
+  'tab.homeContent': { ar: 'محتوى الرئيسية', en: 'Homepage' },
+
   'myRequests.title': { ar: 'طلباتي', en: 'My Requests' },
   'myRequests.empty': { ar: 'لم ترسل أي طلب خدمة بعد.', en: "You haven't submitted any service request yet." },
   'myRequests.status.pending': { ar: 'قيد المراجعة', en: 'Under review' },

@@ -38,6 +38,7 @@ import { OwnerAdminsPage } from '@/pages/dashboard/owner/AdminsPage'
 import { OwnerAccountsPage } from '@/pages/dashboard/owner/AccountsPage'
 import { OwnerServicesPage } from '@/pages/dashboard/owner/ServicesPage'
 import { OwnerServiceRequestsPage } from '@/pages/dashboard/owner/ServiceRequestsPage'
+import { OwnerHomeContentPage } from '@/pages/dashboard/owner/HomeContentPage'
 import { OwnerContactPage } from '@/pages/dashboard/owner/ContactPage'
 import { StudentGradesPage } from '@/pages/dashboard/student/GradesPage'
 import { StudentFeedbackPage } from '@/pages/dashboard/student/FeedbackPage'
@@ -85,6 +86,7 @@ const ownerTabs: DashboardTab[] = [
   { key: 'accounts', labelKey: 'tab.accounts', to: '/owner/accounts' },
   { key: 'messages', labelKey: 'tab.messages', to: '/owner/messages' },
   { key: 'contact', labelKey: 'tab.contactMessages', to: '/owner/contact' },
+  { key: 'home-content', labelKey: 'tab.homeContent', to: '/owner/home-content' },
   { key: 'account', labelKey: 'tab.myAccount', to: '/owner/account' },
 ]
 
@@ -172,6 +174,7 @@ export default function App() {
             <Route path="/owner/accounts" element={<OwnerAccountsPage />} />
             <Route path="/owner/messages" element={<ChatPage />} />
             <Route path="/owner/contact" element={<OwnerContactPage />} />
+            <Route path="/owner/home-content" element={<OwnerHomeContentPage />} />
             <Route path="/owner/account" element={<AccountPage />} />
           </Route>
         </Route>

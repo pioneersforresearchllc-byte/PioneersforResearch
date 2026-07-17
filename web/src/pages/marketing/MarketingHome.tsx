@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
+import { useContentText } from '@/lib/content'
 import { listServices, type Service } from '@/lib/services'
 
 function useTeam(t: (key: 'team.sara.role' | 'team.khalid.role' | 'team.mona.role' | 'team.faisal.role') => string) {
@@ -188,6 +189,7 @@ function OfferingSection({
 // own page, where the visitor picks a package and fills the request brief.
 function ServicesSection() {
   const { t, lang } = useLanguage()
+  const ct = useContentText()
   const { data: services } = useQuery({ queryKey: ['marketing-services'], queryFn: listServices })
 
   const fromPrice = (s: Service) => {
@@ -198,7 +200,7 @@ function ServicesSection() {
   return (
     <div id="services" className="px-4 py-12 md:px-16 md:py-20">
       <div className="mb-12.5 text-center">
-        <h2 className="font-heading text-2xl font-bold md:text-[30px]">{t('home.services.title')}</h2>
+        <h2 className="font-heading text-2xl font-bold md:text-[30px]">{ct('home.services.title')}</h2>
       </div>
       {services && services.length > 0 ? (
         <div className="grid grid-cols-1 gap-6.5 sm:grid-cols-2 lg:grid-cols-3">
@@ -238,6 +240,7 @@ function ServicesSection() {
 export function MarketingHome() {
   const { session, profile } = useAuth()
   const { t, lang } = useLanguage()
+  const ct = useContentText()
   const TEAM = useTeam(t)
   const { data: courses } = useCourses()
   const { data: articles } = useArticlePreviews()
@@ -279,22 +282,22 @@ export function MarketingHome() {
             TRAIN · RESEARCH · PUBLISH
           </div>
           <h1 className="font-heading mb-5.5 text-[28px] font-bold leading-[1.4] text-navy md:text-[46px]">
-            {t('home.hero.title')}
+            {ct('home.hero.title')}
           </h1>
-          <p className="mb-8.5 text-base leading-[1.9] text-muted md:text-lg">{t('home.hero.subtitle')}</p>
+          <p className="mb-8.5 text-base leading-[1.9] text-muted md:text-lg">{ct('home.hero.subtitle')}</p>
           <div className="flex flex-wrap gap-4">
             <Link
               to={session ? (profile?.role === 'student' ? '/student' : '/register') : '/register'}
               className="rounded-md bg-navy px-7.5 py-3.5 text-[15px] text-white no-underline hover:bg-navy-hover"
             >
-              {t('home.hero.createAccount')}
+              {ct('home.hero.createAccount')}
             </Link>
             {!isTeacherSession && (
               <a
                 href="#courses"
                 className="rounded-md border border-navy px-7.5 py-3.5 text-[15px] text-navy no-underline hover:bg-bg-soft"
               >
-                {t('home.hero.browsePrograms')}
+                {ct('home.hero.browsePrograms')}
               </a>
             )}
           </div>
@@ -305,31 +308,31 @@ export function MarketingHome() {
       <div className="grid grid-cols-2 gap-px border-y border-border bg-border md:grid-cols-4">
         <div className="bg-white px-4 py-6 text-center md:px-7 md:py-8.5">
           <div className="font-heading text-[26px] font-bold text-navy md:text-[34px]">{courses?.length ?? 0}</div>
-          <div className="mt-1.5 text-[13.5px] text-muted">{t('home.stats.programs')}</div>
+          <div className="mt-1.5 text-[13.5px] text-muted">{ct('home.stats.programs')}</div>
         </div>
         <div className="bg-white px-4 py-6 text-center md:px-7 md:py-8.5">
           <div className="font-heading text-[26px] font-bold text-navy md:text-[34px]">4</div>
-          <div className="mt-1.5 text-[13.5px] text-muted">{t('home.stats.stages')}</div>
+          <div className="mt-1.5 text-[13.5px] text-muted">{ct('home.stats.stages')}</div>
         </div>
         <div className="bg-white px-4 py-6 text-center md:px-7 md:py-8.5">
           <div className="font-heading text-[26px] font-bold text-navy md:text-[34px]">1:1</div>
-          <div className="mt-1.5 text-[13.5px] text-muted">{t('home.stats.oneToOne')}</div>
+          <div className="mt-1.5 text-[13.5px] text-muted">{ct('home.stats.oneToOne')}</div>
         </div>
         <div className="bg-white px-4 py-6 text-center md:px-7 md:py-8.5">
           <div className="font-heading text-[26px] font-bold text-gold md:text-[34px]">✓</div>
-          <div className="mt-1.5 text-[13.5px] text-muted">{t('home.stats.certificate')}</div>
+          <div className="mt-1.5 text-[13.5px] text-muted">{ct('home.stats.certificate')}</div>
         </div>
       </div>
 
       {/* ABOUT */}
       <div id="about" className="grid grid-cols-1 items-center gap-8 px-4 py-12 md:grid-cols-2 md:gap-15 md:px-16 md:py-20">
         <div>
-          <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-accent">{t('home.about.eyebrow')}</div>
-          <h2 className="font-heading mb-5 text-2xl font-bold md:text-[30px]">{t('home.about.title')}</h2>
-          <p className="text-[16.5px] leading-[2] text-muted">{t('home.about.body')}</p>
+          <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-accent">{ct('home.about.eyebrow')}</div>
+          <h2 className="font-heading mb-5 text-2xl font-bold md:text-[30px]">{ct('home.about.title')}</h2>
+          <p className="text-[16.5px] leading-[2] text-muted">{ct('home.about.body')}</p>
         </div>
         <div className="rounded-[10px] border border-border bg-bg-soft p-6 md:p-9">
-          <div className="font-heading mb-4.5 text-lg font-semibold">{t('home.about.teamTitle')}</div>
+          <div className="font-heading mb-4.5 text-lg font-semibold">{ct('home.about.teamTitle')}</div>
           {TEAM.map((member) => (
             <div key={member.name} className="flex justify-between border-b border-border py-3">
               <span className="text-[15px] font-medium">{member.name}</span>
@@ -344,8 +347,8 @@ export function MarketingHome() {
         <OfferingSection
           id="courses"
           soft
-          eyebrow={t('home.courses.eyebrow')}
-          title={t('home.courses.title')}
+          eyebrow={ct('home.courses.eyebrow')}
+          title={ct('home.courses.title')}
           empty={t('home.courses.empty')}
           ctaLabel={t('home.courses.subscribe')}
           items={(courses ?? []).filter((c) => c.kind === 'course')}
@@ -358,8 +361,8 @@ export function MarketingHome() {
       {/* RESOURCES */}
       <div id="resources" className="px-4 py-12 md:px-16 md:py-20">
         <div className="mb-12.5 text-center">
-          <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-accent">{t('home.resources.eyebrow')}</div>
-          <h2 className="font-heading text-2xl font-bold md:text-[30px]">{t('home.resources.title')}</h2>
+          <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-accent">{ct('home.resources.eyebrow')}</div>
+          <h2 className="font-heading text-2xl font-bold md:text-[30px]">{ct('home.resources.title')}</h2>
         </div>
         {articles && articles.length > 0 ? (
           <div className="grid grid-cols-1 gap-6.5 sm:grid-cols-2 lg:grid-cols-3">
@@ -405,8 +408,8 @@ export function MarketingHome() {
       <div id="contact" className="bg-navy px-4 py-12 text-white md:px-16 md:py-20">
         <div className="mx-auto max-w-130">
           <div className="mb-9 text-center">
-            <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-gold">{t('home.contact.eyebrow')}</div>
-            <h2 className="font-heading text-2xl font-bold md:text-[28px]">{t('home.contact.title')}</h2>
+            <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-gold">{ct('home.contact.eyebrow')}</div>
+            <h2 className="font-heading text-2xl font-bold md:text-[28px]">{ct('home.contact.title')}</h2>
           </div>
           {contactSubmitted ? (
             <div className="rounded-lg border border-white/20 bg-white/8 p-6 text-center text-[15px]">
