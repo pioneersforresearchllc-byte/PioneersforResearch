@@ -101,9 +101,12 @@ export async function submitServiceRequest(input: ServiceRequestInput) {
   if (error) throw error
 }
 
+export type RequestStatus = 'pending' | 'awaiting_payment' | 'paid' | 'in_progress' | 'done' | 'cancelled'
+
 export interface ServiceRequestRow extends ServiceRequestInput {
   id: string
-  status: 'pending' | 'in_progress' | 'done' | 'cancelled'
+  status: RequestStatus
+  final_price_cents: number | null
   created_at: string
   serviceTitle: string
   packageTitle: string | null
@@ -122,9 +125,46 @@ export async function listServiceRequests(): Promise<ServiceRequestRow[]> {
   }))
 }
 
-export async function updateRequestStatus(id: string, status: ServiceRequestRow['status']) {
+export async function updateRequestStatus(id: string, status: RequestStatus) {
   const { error } = await supabase.from('service_requests').update({ status }).eq('id', id)
   if (error) throw error
+}
+
+/**
+ * Owner prices the request and asks the customer to pay. The price is set
+ * here rather than taken from the package because the brief often changes
+ * the real scope.
+ */
+export async function setRequestPrice(id: string, finalPriceCents: number) {
+  const { error } = await supabase
+    .from('service_requests')
+    .update({ final_price_cents: finalPriceCents, status: 'awaiting_payment' })
+    .eq('id', id)
+  if (error) throw error
+}
+
+/** The signed-in user's own requests (RLS scopes this to user_id = auth.uid()). */
+export async function listMyServiceRequests(userId: string): Promise<ServiceRequestRow[]> {
+  const { data, error } = await supabase
+    .from('service_requests')
+    .select('*, service:services(title), package:service_packages(title)')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []).map((r) => ({
+    ...(r as unknown as ServiceRequestRow),
+    serviceTitle: (r.service as unknown as { title: string } | null)?.title ?? '',
+    packageTitle: (r.package as unknown as { title: string } | null)?.title ?? null,
+  }))
+}
+
+/** Starts Stripe Checkout for a priced request; returns the hosted page URL. */
+export async function startServiceCheckout(requestId: string): Promise<string> {
+  const { data, error } = await supabase.functions.invoke('create-service-checkout', { body: { requestId } })
+  if (error) throw error
+  const result = data as { url?: string; error?: string }
+  if (result.error || !result.url) throw new Error(result.error || 'checkout failed')
+  return result.url
 }
 
 // ── Owner package/price control ──────────────────────────────────────────

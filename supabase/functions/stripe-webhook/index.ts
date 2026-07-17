@@ -52,6 +52,7 @@ Deno.serve(async (req) => {
     const session = event.data.object as Stripe.Checkout.Session
     const courseId = session.metadata?.course_id
     const studentId = session.metadata?.student_id
+    const serviceRequestId = session.metadata?.service_request_id
 
     if (courseId && studentId) {
       await admin.from('payments').update({ status: 'completed' }).eq('provider_ref', session.id)
@@ -62,6 +63,18 @@ Deno.serve(async (req) => {
       if (enrollErr && enrollErr.code !== '23505') {
         console.error('enrollment insert failed', enrollErr)
       }
+    } else if (serviceRequestId) {
+      // Service request payment — this is the only place the request is
+      // marked paid, for the same reason enrollment is: a client-side
+      // "success" redirect proves nothing.
+      await admin.from('payments').update({ status: 'completed' }).eq('provider_ref', session.id)
+
+      const { error: statusErr } = await admin
+        .from('service_requests')
+        .update({ status: 'paid' })
+        .eq('id', serviceRequestId)
+        .eq('status', 'awaiting_payment')
+      if (statusErr) console.error('service request status update failed', statusErr)
     }
   } else if (event.type === 'checkout.session.expired') {
     const session = event.data.object as Stripe.Checkout.Session

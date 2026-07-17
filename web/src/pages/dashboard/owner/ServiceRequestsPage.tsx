@@ -1,19 +1,70 @@
+import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import {
   listServiceRequests,
+  setRequestPrice,
   signRequestFile,
   updateRequestStatus,
+  type RequestStatus,
   type ServiceRequestRow,
 } from '@/lib/services'
 
-const STATUSES: ServiceRequestRow['status'][] = ['pending', 'in_progress', 'done', 'cancelled']
+const STATUSES: RequestStatus[] = ['pending', 'awaiting_payment', 'paid', 'in_progress', 'done', 'cancelled']
 
-const STATUS_STYLES: Record<ServiceRequestRow['status'], string> = {
+const STATUS_STYLES: Record<RequestStatus, string> = {
   pending: 'bg-gold/15 text-gold',
+  awaiting_payment: 'bg-gold/15 text-gold',
+  paid: 'bg-success/10 text-success',
   in_progress: 'bg-accent/10 text-accent',
   done: 'bg-success/10 text-success',
   cancelled: 'bg-bg-soft text-muted',
+}
+
+/**
+ * Sets the final price and moves the request to awaiting_payment, which is
+ * what surfaces the "pay now" button on the customer's side.
+ */
+function PriceControl({ request, onSaved }: { request: ServiceRequestRow; onSaved: () => void }) {
+  const { t } = useLanguage()
+  const [priceRiyal, setPriceRiyal] = useState(
+    request.final_price_cents != null ? String(request.final_price_cents / 100) : '',
+  )
+  const [busy, setBusy] = useState(false)
+
+  const send = async () => {
+    const riyal = Number(priceRiyal)
+    if (!priceRiyal.trim() || Number.isNaN(riyal) || riyal <= 0) return
+    setBusy(true)
+    try {
+      await setRequestPrice(request.id, Math.round(riyal * 100))
+      onSaved()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="mb-3 flex flex-wrap items-end gap-2 rounded-lg bg-bg-soft p-3">
+      <div>
+        <label className="mb-1 block text-[11.5px] font-semibold text-muted">{t('adminRequests.finalPrice')}</label>
+        <input
+          type="number"
+          min={1}
+          value={priceRiyal}
+          onChange={(e) => setPriceRiyal(e.target.value)}
+          className="w-32 rounded-md border border-border px-2.5 py-1.5 text-[13px]"
+        />
+      </div>
+      <button
+        onClick={() => void send()}
+        disabled={busy}
+        className="rounded-md bg-navy px-4 py-1.75 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+      >
+        {t('adminRequests.requestPayment')}
+      </button>
+    </div>
+  )
 }
 
 function Field({ label, value }: { label: string; value: string | number | null }) {
@@ -31,9 +82,11 @@ export function OwnerServiceRequestsPage() {
   const queryClient = useQueryClient()
   const { data: requests, isLoading } = useQuery({ queryKey: ['service-requests'], queryFn: listServiceRequests })
 
-  const setStatus = async (id: string, status: ServiceRequestRow['status']) => {
+  const refresh = () => void queryClient.invalidateQueries({ queryKey: ['service-requests'] })
+
+  const setStatus = async (id: string, status: RequestStatus) => {
     await updateRequestStatus(id, status)
-    void queryClient.invalidateQueries({ queryKey: ['service-requests'] })
+    refresh()
   }
 
   const openFile = async (path: string) => {
@@ -41,14 +94,18 @@ export function OwnerServiceRequestsPage() {
     if (url) window.open(url, '_blank')
   }
 
-  const statusLabel = (s: ServiceRequestRow['status']) =>
+  const statusLabel = (s: RequestStatus) =>
     s === 'pending'
       ? t('adminRequests.status.pending')
-      : s === 'in_progress'
-        ? t('adminRequests.status.in_progress')
-        : s === 'done'
-          ? t('adminRequests.status.done')
-          : t('adminRequests.status.cancelled')
+      : s === 'awaiting_payment'
+        ? t('adminRequests.status.awaiting_payment')
+        : s === 'paid'
+          ? t('adminRequests.status.paid')
+          : s === 'in_progress'
+            ? t('adminRequests.status.in_progress')
+            : s === 'done'
+              ? t('adminRequests.status.done')
+              : t('adminRequests.status.cancelled')
 
   return (
     <div>
@@ -120,6 +177,8 @@ export function OwnerServiceRequestsPage() {
                 </a>
               )}
             </div>
+
+            <PriceControl request={r} onSaved={refresh} />
 
             <div className="flex flex-wrap gap-1.5">
               {STATUSES.map((s) => (

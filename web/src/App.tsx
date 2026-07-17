@@ -42,6 +42,7 @@ import { OwnerContactPage } from '@/pages/dashboard/owner/ContactPage'
 import { StudentGradesPage } from '@/pages/dashboard/student/GradesPage'
 import { StudentFeedbackPage } from '@/pages/dashboard/student/FeedbackPage'
 import { AccountPage } from '@/pages/dashboard/shared/AccountPage'
+import { MyRequestsPage, MyRequestsRedirect } from '@/pages/dashboard/shared/MyRequestsPage'
 import { StudentOverviewPage } from '@/pages/dashboard/student/OverviewPage'
 import { TeacherOverviewPage } from '@/pages/dashboard/teacher/OverviewPage'
 import { TeacherStudentsPage } from '@/pages/dashboard/teacher/StudentsPage'
@@ -54,6 +55,7 @@ const studentTabs: DashboardTab[] = [
   { key: 'certificates', labelKey: 'tab.certificates', to: '/student/certificates' },
   { key: 'feedback', labelKey: 'tab.feedback', to: '/student/feedback' },
   { key: 'articles', labelKey: 'tab.articles', to: '/student/articles' },
+  { key: 'requests', labelKey: 'tab.myRequests', to: '/student/requests' },
   { key: 'chat', labelKey: 'tab.messages', to: '/student/chat' },
   { key: 'account', labelKey: 'tab.myAccount', to: '/student/account' },
 ]
@@ -64,6 +66,7 @@ const teacherTabs: DashboardTab[] = [
   { key: 'courses', labelKey: 'tab.coursesPrograms', to: '/teacher/courses' },
   { key: 'review', labelKey: 'tab.reviewAssignments', to: '/teacher/review' },
   { key: 'articles', labelKey: 'tab.myArticles', to: '/teacher/articles' },
+  { key: 'requests', labelKey: 'tab.myRequests', to: '/teacher/requests' },
   { key: 'chat', labelKey: 'tab.messages', to: '/teacher/chat' },
   { key: 'account', labelKey: 'tab.myAccount', to: '/teacher/account' },
 ]
@@ -113,6 +116,7 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
+        <Route path="/my-requests" element={<MyRequestsRedirect />} />
         <Route path="/complete-profile" element={<CompleteProfilePage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/register-otp" element={<RegisterOtpPage />} />
@@ -132,6 +136,7 @@ export default function App() {
             <Route path="/student/feedback" element={<StudentFeedbackPage />} />
             <Route path="/student/articles" element={<StudentArticlesPage />} />
             <Route path="/student/articles/:id" element={<ArticleDetailPage />} />
+            <Route path="/student/requests" element={<MyRequestsPage />} />
             <Route path="/student/chat" element={<ChatPage />} />
             <Route path="/student/account" element={<AccountPage />} />
           </Route>
@@ -145,6 +150,7 @@ export default function App() {
             <Route path="/teacher/courses/:id" element={<TeacherCourseDetailPage />} />
             <Route path="/teacher/review" element={<TeacherReviewPage />} />
             <Route path="/teacher/articles" element={<TeacherArticlesPage />} />
+            <Route path="/teacher/requests" element={<MyRequestsPage />} />
             <Route path="/teacher/chat" element={<ChatPage />} />
             <Route path="/teacher/account" element={<AccountPage />} />
           </Route>
