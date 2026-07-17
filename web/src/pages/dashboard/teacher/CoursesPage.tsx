@@ -13,10 +13,10 @@ export function TeacherCoursesPage() {
 
   return (
     <div>
-      <div className="mb-5 font-heading text-xl font-bold text-navy">الدورات والبرامج</div>
+      <div className="mb-5 font-heading text-xl font-bold text-navy">الدورات</div>
 
       {isLoading && <div className="text-muted">جارِ التحميل...</div>}
-      {data && data.length === 0 && <div className="text-muted">لسه ما انكلّفت بأي برنامج.</div>}
+      {data && data.length === 0 && <div className="text-muted">لسه ما انكلّفت بأي دورة.</div>}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {(data ?? []).map((c) => (

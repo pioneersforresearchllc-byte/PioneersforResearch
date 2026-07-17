@@ -16,7 +16,7 @@ export function StudentCourseDetailPage() {
   if (!data) {
     return (
       <div>
-        <div className="mb-3 text-muted">أنت غير مسجّل بهذا البرنامج.</div>
+        <div className="mb-3 text-muted">أنت غير مسجّل بهذه الدورة.</div>
         <Link to="/student/courses" className="text-navy no-underline">
           → رجوع لدوراتي
         </Link>

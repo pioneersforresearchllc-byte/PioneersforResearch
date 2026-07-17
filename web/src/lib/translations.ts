@@ -369,7 +369,7 @@ export const translations = {
   'tab.messages': { ar: 'الرسائل', en: 'Messages' },
   'tab.myAccount': { ar: 'حسابي', en: 'My Account' },
   'tab.students': { ar: 'الطلاب', en: 'Students' },
-  'tab.coursesPrograms': { ar: 'الدورات والبرامج', en: 'Courses & Programs' },
+  'tab.coursesPrograms': { ar: 'الدورات', en: 'Courses' },
   'tab.reviewAssignments': { ar: 'مراجعة الواجبات', en: 'Review Assignments' },
   'tab.myArticles': { ar: 'مقالاتي', en: 'My Articles' },
   'tab.teacherApplications': { ar: 'طلبات المعلمين', en: 'Teacher Applications' },

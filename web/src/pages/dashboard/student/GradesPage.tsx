@@ -21,7 +21,7 @@ export function StudentGradesPage() {
       <div className="mb-5 font-heading text-xl font-bold text-navy">تقدمي ودرجاتي</div>
 
       <div className="mb-6">
-        <div className="mb-2.5 text-[15px] font-semibold text-navy">تقدمي بالبرامج</div>
+        <div className="mb-2.5 text-[15px] font-semibold text-navy">تقدمي بالدورات</div>
         {coursesQuery.data && coursesQuery.data.length === 0 && (
           <div className="text-[13.5px] text-muted">لا توجد برامج مسجّل فيها.</div>
         )}

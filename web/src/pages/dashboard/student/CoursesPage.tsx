@@ -18,9 +18,9 @@ export function StudentCoursesPage() {
       {isLoading && <div className="text-muted">جارِ التحميل...</div>}
       {data && data.length === 0 && (
         <div className="text-muted">
-          لسه ما اشتركت بأي برنامج —{' '}
-          <Link to="/#programs" className="font-semibold text-navy">
-            استعرض البرامج
+          لسه ما اشتركت بأي دورة —{' '}
+          <Link to="/#courses" className="font-semibold text-navy">
+            استعرض الدورات
           </Link>
         </div>
       )}

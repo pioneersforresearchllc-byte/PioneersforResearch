@@ -12,7 +12,7 @@ export function OwnerOverviewPage() {
     ? [
         { label: 'طلبات معلمين معلّقة', value: data.pending_teacher_count },
         { label: 'معلمون نشطون', value: data.approved_teacher_count },
-        { label: 'الدورات والبرامج', value: data.courses_count },
+        { label: 'الدورات', value: data.courses_count },
         { label: 'الطلاب', value: data.students_count },
         { label: 'الإيرادات', value: formatSar(data.total_revenue_cents) },
         { label: 'عدد مرات تسجيل الدخول', value: data.login_count },

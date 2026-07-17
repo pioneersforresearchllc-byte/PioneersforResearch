@@ -86,7 +86,7 @@ function NewAssignmentModal({
 
           <label className="flex items-center gap-2 text-[13.5px] text-navy">
             <input type="checkbox" checked={targetAll} onChange={(e) => setTargetAll(e.target.checked)} />
-            لكل الطلاب المسجّلين بالبرنامج
+            لكل الطلاب المسجّلين بالدورة
           </label>
 
           {!targetAll && (
@@ -147,9 +147,9 @@ export function TeacherCourseDetailPage() {
   if (!data) {
     return (
       <div>
-        <div className="mb-3 text-muted">أنت غير مكلّف بهذا البرنامج.</div>
+        <div className="mb-3 text-muted">أنت غير مكلّف بهذه الدورة.</div>
         <Link to="/teacher/courses" className="text-navy no-underline">
-          → رجوع للدورات والبرامج
+          → رجوع للدورات
         </Link>
       </div>
     )
@@ -158,7 +158,7 @@ export function TeacherCourseDetailPage() {
   return (
     <div>
       <Link to="/teacher/courses" className="mb-4 inline-block text-[13px] text-muted no-underline">
-        → رجوع للدورات والبرامج
+        → رجوع للدورات
       </Link>
       <div className="mb-1.5 font-heading text-xl font-bold text-navy">{data.course.title}</div>
       <p className="mb-6 max-w-160 text-[14.5px] leading-8 text-muted-2">{data.course.description}</p>

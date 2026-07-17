@@ -46,8 +46,8 @@ function TemplateEditor({ template, onClose, onSaved }: { template: CertificateT
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="w-full max-w-[560px] rounded-xl bg-white p-6" onClick={(e) => e.stopPropagation()}>
-        <div className="mb-3 font-heading text-lg font-bold text-navy">تحديد موضع الاسم واسم البرنامج</div>
-        <div className="mb-3 text-[12.5px] text-muted">اسحب النقطة الذهبية (الاسم) والنقطة الرمادية (اسم البرنامج) لموضعهما على الشهادة.</div>
+        <div className="mb-3 font-heading text-lg font-bold text-navy">تحديد موضع الاسم واسم الدورة</div>
+        <div className="mb-3 text-[12.5px] text-muted">اسحب النقطة الذهبية (الاسم) والنقطة الرمادية (اسم الدورة) لموضعهما على الشهادة.</div>
         <div
           ref={imgRef}
           className="relative w-full select-none overflow-hidden rounded-lg border border-border"
@@ -66,7 +66,7 @@ function TemplateEditor({ template, onClose, onSaved }: { template: CertificateT
             onMouseDown={() => setDragging('course')}
             className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full border-2 border-white bg-muted shadow"
             style={{ left: `${pos.course_x}%`, top: `${pos.course_y}%` }}
-            title="موضع اسم البرنامج"
+            title="موضع اسم الدورة"
           />
         </div>
         <div className="mt-4 flex gap-2.5">
@@ -117,7 +117,7 @@ function CourseCertPanel({ courseId, courseTitle, onClose }: { courseId: string;
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="w-full max-w-[440px] rounded-xl bg-white p-6" onClick={(e) => e.stopPropagation()}>
         <div className="mb-1 font-heading text-lg font-bold text-navy">شهادات: {courseTitle}</div>
-        <div className="mb-4 text-[12.5px] text-muted">اختر القوالب اللي تُصدر لهذا البرنامج</div>
+        <div className="mb-4 text-[12.5px] text-muted">اختر القوالب اللي تُصدر لهذه الدورة</div>
         <div className="mb-4 flex flex-col gap-1.5">
           {(templatesQuery.data ?? []).map((t) => (
             <label key={t.id} className="flex items-center gap-2 text-[13.5px] text-navy">

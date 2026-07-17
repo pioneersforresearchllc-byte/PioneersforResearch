@@ -12,7 +12,7 @@ export function OwnerTeachersPage() {
   const { data, isLoading } = useQuery({ queryKey: ['all-teachers'], queryFn: listAllTeachers })
 
   const dismiss = async (id: string, name: string) => {
-    if (!confirm(`إقالة ${name}؟ سيفقد صلاحية الدخول ويُزال من كل البرامج المكلّف فيها.`)) return
+    if (!confirm(`إقالة ${name}؟ سيفقد صلاحية الدخول ويُزال من كل الدورات المكلّف فيها.`)) return
     await dismissTeacher(id)
     void queryClient.invalidateQueries({ queryKey: ['all-teachers'] })
   }

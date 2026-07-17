@@ -133,7 +133,7 @@ function CourseEditor({
           <input
             value={form.title}
             onChange={(e) => set('title', e.target.value)}
-            placeholder="اسم البرنامج"
+            placeholder="اسم الدورة"
             className="rounded-md border border-border px-3.5 py-2.5 text-[14px]"
           />
           <textarea
@@ -155,7 +155,7 @@ function CourseEditor({
               value={form.price_cents / 100}
               disabled={form.price_cents === 0 && form.original_price_cents === null}
               onChange={(e) => set('price_cents', Math.round(Number(e.target.value) * 100))}
-              placeholder="السعر (ريال)"
+              placeholder="السعر (دولار)"
               className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px] disabled:bg-bg-soft"
             />
             <input
@@ -174,7 +174,7 @@ function CourseEditor({
               checked={form.price_cents === 0}
               onChange={(e) => set('price_cents', e.target.checked ? 0 : form.original_price_cents || 100)}
             />
-            برنامج مجاني (بدون دفع — تسجيل مباشر)
+            دورة مجانية (بدون دفع — تسجيل مباشر)
           </label>
           <input
             type="number"
@@ -190,7 +190,7 @@ function CourseEditor({
           </div>
           <label className="flex items-center gap-2 text-[13.5px] text-navy">
             <input type="checkbox" checked={form.completed} onChange={(e) => set('completed', e.target.checked)} />
-            البرنامج مكتمل (لا يُعرض تسجيل جديد)
+            الدورة مكتملة (لا يُعرض تسجيل جديد)
           </label>
 
           <div>
@@ -275,7 +275,7 @@ function CourseEditor({
               disabled={busy}
               className="flex-1 rounded-md bg-navy py-2.75 text-[14px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
             >
-              {course ? 'حفظ التعديلات' : 'إنشاء البرنامج'}
+              {course ? 'حفظ التعديلات' : 'إنشاء الدورة'}
             </button>
             <button onClick={onClose} className="rounded-md border border-border px-5 py-2.75 text-[14px] text-navy">
               إلغاء
