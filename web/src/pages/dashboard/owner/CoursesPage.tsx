@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useLanguage } from '@/lib/i18n'
 import {
   addSession,
   createCourse,
@@ -14,9 +15,9 @@ import {
   type TeacherOption,
 } from '@/lib/courses'
 
-function formatSar(cents: number) {
-  if (cents === 0) return 'مجاني'
-  return `${(cents / 100).toLocaleString('ar-SA')} دولار`
+function formatSar(cents: number, t: ReturnType<typeof useLanguage>['t']) {
+  if (cents === 0) return t('course.free')
+  return `${(cents / 100).toLocaleString('en-US')} ${t('course.currency')}`
 }
 
 const emptyForm: CourseFormValues = {
@@ -57,6 +58,7 @@ function CourseEditor({
         }
       : emptyForm,
   )
+  const { t } = useLanguage()
   const [selectedTeachers, setSelectedTeachers] = useState<string[]>(course?.teacherIds ?? [])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -84,7 +86,7 @@ function CourseEditor({
 
   const save = async () => {
     if (!form.title.trim()) {
-      setError('الاسم مطلوب')
+      setError(t('oCourses.nameRequired'))
       return
     }
     setBusy(true)
@@ -98,7 +100,7 @@ function CourseEditor({
       onSaved()
       onClose()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'تعذر الحفظ')
+      setError(e instanceof Error ? e.message : t('oCourses.saveError'))
     } finally {
       setBusy(false)
     }
@@ -126,27 +128,27 @@ function CourseEditor({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 font-heading text-lg font-bold text-navy">
-          {course ? 'تعديل الدورة' : 'دورة جديدة'}
+          {course ? t('oCourses.editTitle') : t('oCourses.newTitle')}
         </div>
 
         <div className="flex flex-col gap-3">
           <input
             value={form.title}
             onChange={(e) => set('title', e.target.value)}
-            placeholder="اسم الدورة"
+            placeholder={t('oCourses.namePh')}
             className="rounded-md border border-border px-3.5 py-2.5 text-[14px]"
           />
           <textarea
             value={form.description}
             onChange={(e) => set('description', e.target.value)}
-            placeholder="الوصف"
+            placeholder={t('oCourses.descPh')}
             rows={3}
             className="resize-y rounded-md border border-border px-3.5 py-2.5 text-[14px]"
           />
           <input
             value={form.duration_label}
             onChange={(e) => set('duration_label', e.target.value)}
-            placeholder="المدة (مثال: 8 أسابيع)"
+            placeholder={t('oCourses.durationPh')}
             className="rounded-md border border-border px-3.5 py-2.5 text-[14px]"
           />
           <div className="flex gap-3">
@@ -155,7 +157,7 @@ function CourseEditor({
               value={form.price_cents / 100}
               disabled={form.price_cents === 0 && form.original_price_cents === null}
               onChange={(e) => set('price_cents', Math.round(Number(e.target.value) * 100))}
-              placeholder="السعر (دولار)"
+              placeholder={t('oCourses.pricePh')}
               className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px] disabled:bg-bg-soft"
             />
             <input
@@ -164,7 +166,7 @@ function CourseEditor({
               onChange={(e) =>
                 set('original_price_cents', e.target.value ? Math.round(Number(e.target.value) * 100) : null)
               }
-              placeholder="السعر قبل الخصم (اختياري)"
+              placeholder={t('oCourses.originalPricePh')}
               className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
             />
           </div>
@@ -174,14 +176,14 @@ function CourseEditor({
               checked={form.price_cents === 0}
               onChange={(e) => set('price_cents', e.target.checked ? 0 : form.original_price_cents || 100)}
             />
-            دورة مجانية (بدون دفع — تسجيل مباشر)
+            {t('oCourses.freeLabel')}
           </label>
           <input
             type="number"
             min={0}
             value={form.capacity ?? ''}
             onChange={(e) => set('capacity', e.target.value ? Math.max(0, Math.round(Number(e.target.value))) : null)}
-            placeholder="الحد الأقصى للمقاعد (اتركه فارغًا لعدد غير محدود)"
+            placeholder={t('oCourses.capacityPh')}
             className="rounded-md border border-border px-3.5 py-2.5 text-[14px]"
           />
           <div className="flex items-center gap-3">
@@ -190,11 +192,11 @@ function CourseEditor({
           </div>
           <label className="flex items-center gap-2 text-[13.5px] text-navy">
             <input type="checkbox" checked={form.completed} onChange={(e) => set('completed', e.target.checked)} />
-            الدورة مكتملة (لا يُعرض تسجيل جديد)
+            {t('oCourses.completedLabel')}
           </label>
 
           <div>
-            <div className="mb-1.5 text-[13px] font-semibold text-navy">المعلمون المكلّفون</div>
+            <div className="mb-1.5 text-[13px] font-semibold text-navy">{t('oCourses.assignedTeachers')}</div>
             <div className="flex flex-wrap gap-1.5">
               {teachers.map((t) => (
                 <button
@@ -215,7 +217,7 @@ function CourseEditor({
 
           {course && (
             <div>
-              <div className="mb-1.5 text-[13px] font-semibold text-navy">الحصص</div>
+              <div className="mb-1.5 text-[13px] font-semibold text-navy">{t('oCourses.sessions')}</div>
               {course.sessions.map((s) => (
                 <div key={s.id} className="mb-1.5 flex items-center gap-2 rounded-md bg-bg-soft p-2 text-[12.5px]">
                   <span className="flex-1">
@@ -228,7 +230,7 @@ function CourseEditor({
                     }}
                     className="text-error hover:underline"
                   >
-                    حذف
+                    {t('dash.delete')}
                   </button>
                 </div>
               ))}
@@ -236,7 +238,7 @@ function CourseEditor({
                 <input
                   value={sessionTitle}
                   onChange={(e) => setSessionTitle(e.target.value)}
-                  placeholder="عنوان الحصة"
+                  placeholder={t('oCourses.sessionTitlePh')}
                   className="min-w-24 flex-1 rounded-md border border-border px-2.5 py-1.5 text-[12.5px]"
                 />
                 <input
@@ -254,14 +256,14 @@ function CourseEditor({
                 <input
                   value={sessionLink}
                   onChange={(e) => setSessionLink(e.target.value)}
-                  placeholder="رابط (اختياري)"
+                  placeholder={t('oCourses.sessionLinkPh')}
                   className="min-w-24 flex-1 rounded-md border border-border px-2.5 py-1.5 text-[12.5px]"
                 />
                 <button
                   onClick={() => void addSessionRow()}
                   className="rounded-md border border-navy px-3 py-1.5 text-[12.5px] text-navy"
                 >
-                  إضافة حصة
+                  {t('oCourses.addSession')}
                 </button>
               </div>
             </div>
@@ -275,10 +277,10 @@ function CourseEditor({
               disabled={busy}
               className="flex-1 rounded-md bg-navy py-2.75 text-[14px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
             >
-              {course ? 'حفظ التعديلات' : 'إنشاء الدورة'}
+              {course ? t('oCourses.saveEdits') : t('oCourses.create')}
             </button>
             <button onClick={onClose} className="rounded-md border border-border px-5 py-2.75 text-[14px] text-navy">
-              إلغاء
+              {t('dash.cancel')}
             </button>
           </div>
         </div>
@@ -288,6 +290,7 @@ function CourseEditor({
 }
 
 export function OwnerCoursesPage() {
+  const { t } = useLanguage()
   const queryClient = useQueryClient()
   const [editing, setEditing] = useState<CourseWithMeta | null | 'new'>(null)
 
@@ -295,14 +298,14 @@ export function OwnerCoursesPage() {
   const teachersQuery = useQuery({ queryKey: ['active-teachers'], queryFn: listActiveTeachers })
 
   const teacherNameById = useMemo(
-    () => new Map((teachersQuery.data ?? []).map((t) => [t.id, t.name])),
+    () => new Map((teachersQuery.data ?? []).map((tt) => [tt.id, tt.name])),
     [teachersQuery.data],
   )
 
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ['owner-courses'] })
 
   const remove = async (id: string) => {
-    if (!confirm('حذف هذا العنصر نهائيًا؟')) return
+    if (!confirm(t('oCourses.confirmDelete'))) return
     await deleteCourse(id)
     refresh()
   }
@@ -310,17 +313,17 @@ export function OwnerCoursesPage() {
   return (
     <div>
       <div className="mb-5 flex items-center justify-between">
-        <div className="font-heading text-xl font-bold text-navy">الدورات</div>
+        <div className="font-heading text-xl font-bold text-navy">{t('oCourses.title')}</div>
         <button
           onClick={() => setEditing('new')}
           className="rounded-md bg-navy px-4.5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-navy-hover"
         >
-          + دورة جديدة
+          {t('oCourses.newBtn')}
         </button>
       </div>
 
-      {coursesQuery.isLoading && <div className="text-muted">جارِ التحميل...</div>}
-      {coursesQuery.data && coursesQuery.data.length === 0 && <div className="text-muted">لا توجد دورات بعد.</div>}
+      {coursesQuery.isLoading && <div className="text-muted">{t('dash.loading')}</div>}
+      {coursesQuery.data && coursesQuery.data.length === 0 && <div className="text-muted">{t('oCourses.none')}</div>}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {(coursesQuery.data ?? []).map((c) => (
@@ -328,33 +331,35 @@ export function OwnerCoursesPage() {
             <div className="mb-2 flex items-start justify-between gap-2">
               <div className="text-[15.5px] font-semibold text-navy">{c.title}</div>
               {c.completed && (
-                <span className="shrink-0 rounded-full bg-bg-soft px-2.5 py-1 text-[11px] text-muted">مكتمل</span>
+                <span className="shrink-0 rounded-full bg-bg-soft px-2.5 py-1 text-[11px] text-muted">{t('oCourses.completedBadge')}</span>
               )}
             </div>
             <div className="mb-2 line-clamp-2 text-[13px] text-muted">{c.description}</div>
             <div className="mb-3 flex items-center justify-between text-[12.5px] text-muted">
               <span>{c.duration_label}</span>
-              <span className="font-semibold text-navy">{formatSar(c.price_cents)}</span>
+              <span className="font-semibold text-navy">{formatSar(c.price_cents, t)}</span>
             </div>
             <div className="mb-3 text-[12px] text-faint">
-              {c.teacherIds.map((id) => teacherNameById.get(id)).filter(Boolean).join('، ') || 'بلا معلم مكلّف'}
+              {c.teacherIds.map((id) => teacherNameById.get(id)).filter(Boolean).join('، ') || t('sCourses.noTeacher')}
             </div>
             <div className="mb-3 text-[12px] text-faint">
-              {c.enrolledCount}
-              {c.capacity != null ? `/${c.capacity}` : ''} مسجّل · {c.sessions.length} حصة
+              {t('oCourses.enrolledSessions', {
+                enrolled: `${c.enrolledCount}${c.capacity != null ? `/${c.capacity}` : ''}`,
+                sessions: String(c.sessions.length),
+              })}
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setEditing(c)}
                 className="flex-1 rounded-md border border-border py-2 text-[12.5px] text-navy hover:border-navy"
               >
-                تعديل
+                {t('dash.edit')}
               </button>
               <button
                 onClick={() => void remove(c.id)}
                 className="rounded-md border border-border px-3 py-2 text-[12.5px] text-error hover:border-error"
               >
-                حذف
+                {t('dash.delete')}
               </button>
             </div>
           </div>
