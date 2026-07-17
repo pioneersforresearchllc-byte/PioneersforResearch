@@ -126,39 +126,10 @@ function CourseEditor({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 font-heading text-lg font-bold text-navy">
-          {course
-            ? form.kind === 'program'
-              ? 'تعديل البرنامج'
-              : 'تعديل الدورة'
-            : form.kind === 'program'
-              ? 'برنامج جديد'
-              : 'دورة جديدة'}
+          {course ? 'تعديل الدورة' : 'دورة جديدة'}
         </div>
 
         <div className="flex flex-col gap-3">
-          <div>
-            <div className="mb-1.5 text-[12.5px] font-semibold text-muted">النوع</div>
-            <div className="flex rounded-lg bg-[#f0f3f7] p-1">
-              <button
-                type="button"
-                onClick={() => set('kind', 'course')}
-                className={`flex-1 rounded-md py-2 text-[13.5px] font-semibold ${
-                  form.kind === 'course' ? 'bg-navy text-white' : 'bg-transparent text-navy'
-                }`}
-              >
-                دورة
-              </button>
-              <button
-                type="button"
-                onClick={() => set('kind', 'program')}
-                className={`flex-1 rounded-md py-2 text-[13.5px] font-semibold ${
-                  form.kind === 'program' ? 'bg-navy text-white' : 'bg-transparent text-navy'
-                }`}
-              >
-                برنامج
-              </button>
-            </div>
-          </div>
           <input
             value={form.title}
             onChange={(e) => set('title', e.target.value)}
@@ -339,35 +310,26 @@ export function OwnerCoursesPage() {
   return (
     <div>
       <div className="mb-5 flex items-center justify-between">
-        <div className="font-heading text-xl font-bold text-navy">الدورات والبرامج</div>
+        <div className="font-heading text-xl font-bold text-navy">الدورات</div>
         <button
           onClick={() => setEditing('new')}
           className="rounded-md bg-navy px-4.5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-navy-hover"
         >
-          + إضافة
+          + دورة جديدة
         </button>
       </div>
 
       {coursesQuery.isLoading && <div className="text-muted">جارِ التحميل...</div>}
-      {coursesQuery.data && coursesQuery.data.length === 0 && (
-        <div className="text-muted">لا توجد دورات أو برامج بعد.</div>
-      )}
+      {coursesQuery.data && coursesQuery.data.length === 0 && <div className="text-muted">لا توجد دورات بعد.</div>}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {(coursesQuery.data ?? []).map((c) => (
           <div key={c.id} className="rounded-xl border border-border bg-white p-5">
             <div className="mb-2 flex items-start justify-between gap-2">
               <div className="text-[15.5px] font-semibold text-navy">{c.title}</div>
-              <div className="flex shrink-0 gap-1.5">
-                <span
-                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                    c.kind === 'program' ? 'bg-gold/15 text-gold' : 'bg-accent/10 text-accent'
-                  }`}
-                >
-                  {c.kind === 'program' ? 'برنامج' : 'دورة'}
-                </span>
-                {c.completed && <span className="rounded-full bg-bg-soft px-2.5 py-1 text-[11px] text-muted">مكتمل</span>}
-              </div>
+              {c.completed && (
+                <span className="shrink-0 rounded-full bg-bg-soft px-2.5 py-1 text-[11px] text-muted">مكتمل</span>
+              )}
             </div>
             <div className="mb-2 line-clamp-2 text-[13px] text-muted">{c.description}</div>
             <div className="mb-3 flex items-center justify-between text-[12.5px] text-muted">

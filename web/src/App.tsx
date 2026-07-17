@@ -17,6 +17,7 @@ import { OwnerLoginPage } from '@/pages/auth/OwnerLoginPage'
 import { OwnerOtpPage } from '@/pages/auth/OwnerOtpPage'
 import { MarketingHome } from '@/pages/marketing/MarketingHome'
 import { CourseDetailPage } from '@/pages/marketing/CourseDetailPage'
+import { ServiceDetailPage } from '@/pages/marketing/ServiceDetailPage'
 import { ArticleDetailPage } from '@/pages/marketing/ArticleDetailPage'
 import { ChatPage } from '@/pages/dashboard/chat/ChatPage'
 import { OwnerCoursesPage } from '@/pages/dashboard/owner/CoursesPage'
@@ -35,6 +36,8 @@ import { StudentArticlesPage } from '@/pages/dashboard/student/ArticlesPage'
 import { OwnerOverviewPage } from '@/pages/dashboard/owner/OverviewPage'
 import { OwnerAdminsPage } from '@/pages/dashboard/owner/AdminsPage'
 import { OwnerAccountsPage } from '@/pages/dashboard/owner/AccountsPage'
+import { OwnerServicesPage } from '@/pages/dashboard/owner/ServicesPage'
+import { OwnerServiceRequestsPage } from '@/pages/dashboard/owner/ServiceRequestsPage'
 import { OwnerContactPage } from '@/pages/dashboard/owner/ContactPage'
 import { StudentGradesPage } from '@/pages/dashboard/student/GradesPage'
 import { StudentFeedbackPage } from '@/pages/dashboard/student/FeedbackPage'
@@ -70,6 +73,8 @@ const ownerTabs: DashboardTab[] = [
   { key: 'applications', labelKey: 'tab.teacherApplications', to: '/owner/applications' },
   { key: 'teachers', labelKey: 'tab.teachers', to: '/owner/teachers' },
   { key: 'courses', labelKey: 'tab.coursesPrograms', to: '/owner/courses' },
+  { key: 'services', labelKey: 'tab.services', to: '/owner/services' },
+  { key: 'service-requests', labelKey: 'tab.serviceRequests', to: '/owner/service-requests' },
   { key: 'certificates', labelKey: 'tab.certificates', to: '/owner/certificates' },
   { key: 'admins', labelKey: 'tab.admins', to: '/owner/admins' },
   { key: 'accounts', labelKey: 'tab.accounts', to: '/owner/accounts' },
@@ -100,6 +105,7 @@ export default function App() {
         <Route element={<MarketingLayout />}>
           <Route path="/" element={<MarketingHome />} />
           <Route path="/course/:id" element={<CourseDetailPage />} />
+          <Route path="/service/:slug" element={<ServiceDetailPage />} />
           <Route path="/article/:id" element={<ArticleDetailPage />} />
         </Route>
 
@@ -150,6 +156,8 @@ export default function App() {
             <Route path="/owner/applications" element={<OwnerApplicationsPage />} />
             <Route path="/owner/teachers" element={<OwnerTeachersPage />} />
             <Route path="/owner/courses" element={<OwnerCoursesPage />} />
+            <Route path="/owner/services" element={<OwnerServicesPage />} />
+            <Route path="/owner/service-requests" element={<OwnerServiceRequestsPage />} />
             <Route path="/owner/certificates" element={<OwnerCertificatesPage />} />
             <Route path="/owner/admins" element={<OwnerAdminsPage />} />
             <Route path="/owner/accounts" element={<OwnerAccountsPage />} />

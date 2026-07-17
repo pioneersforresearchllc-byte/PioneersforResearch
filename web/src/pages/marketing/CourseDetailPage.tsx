@@ -187,10 +187,7 @@ export function CourseDetailPage() {
 
   return (
     <div className="px-4 py-12 md:px-16 md:py-20">
-      <Link
-        to={course.kind === 'program' ? '/#programs' : '/#courses'}
-        className="mb-5 inline-block text-[13px] text-muted no-underline"
-      >
+      <Link to="/#courses" className="mb-5 inline-block text-[13px] text-muted no-underline">
         {t('course.back')}
       </Link>
       <div className="mx-auto max-w-160 rounded-[10px] border border-border bg-white p-5 md:p-9">
@@ -201,15 +198,6 @@ export function CourseDetailPage() {
             alt=""
           />
         )}
-        <div className="mb-2.5">
-          <span
-            className={`rounded-full px-3 py-1 text-[12px] font-semibold ${
-              course.kind === 'program' ? 'bg-gold/15 text-gold' : 'bg-accent/10 text-accent'
-            }`}
-          >
-            {course.kind === 'program' ? t('nav.programs') : t('nav.courses')}
-          </span>
-        </div>
         <h2 className="font-heading mb-3.5 text-[26px] font-bold text-navy">
           {lang === 'en' ? course.title_en || course.title : course.title}
         </h2>

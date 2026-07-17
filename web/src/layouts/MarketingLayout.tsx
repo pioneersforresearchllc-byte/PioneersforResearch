@@ -22,8 +22,8 @@ export function MarketingLayout() {
           <a href="/#courses" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
             {t('nav.courses')}
           </a>
-          <a href="/#programs" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
-            {t('nav.programs')}
+          <a href="/#services" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
+            {t('nav.services')}
           </a>
         </>
       )}

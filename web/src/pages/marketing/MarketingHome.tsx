@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
+import { listServices, type Service } from '@/lib/services'
 
 function useTeam(t: (key: 'team.sara.role' | 'team.khalid.role' | 'team.mona.role' | 'team.faisal.role') => string) {
   return [
@@ -182,6 +183,58 @@ function OfferingSection({
   )
 }
 
+// Paid services (presentation design, data analysis…). Each card shows the
+// cheapest fixed-price package as a "from" price and links to the service's
+// own page, where the visitor picks a package and fills the request brief.
+function ServicesSection() {
+  const { t, lang } = useLanguage()
+  const { data: services } = useQuery({ queryKey: ['marketing-services'], queryFn: listServices })
+
+  const fromPrice = (s: Service) => {
+    const prices = s.packages.filter((p) => !p.is_custom && p.price_cents != null).map((p) => p.price_cents!)
+    return prices.length > 0 ? Math.min(...prices) : null
+  }
+
+  return (
+    <div id="services" className="px-4 py-12 md:px-16 md:py-20">
+      <div className="mb-12.5 text-center">
+        <h2 className="font-heading text-2xl font-bold md:text-[30px]">{t('home.services.title')}</h2>
+      </div>
+      {services && services.length > 0 ? (
+        <div className="grid grid-cols-1 gap-6.5 sm:grid-cols-2 lg:grid-cols-3">
+          {services.map((s) => {
+            const min = fromPrice(s)
+            return (
+              <div key={s.id} className="flex flex-col rounded-[10px] border border-border bg-white p-7">
+                <h3 className="mb-3 text-lg text-navy">{lang === 'en' ? s.title_en || s.title : s.title}</h3>
+                <p className="mb-4 flex-1 text-[14.5px] leading-[1.9] text-muted">
+                  {lang === 'en' ? s.description_en || s.description : s.description}
+                </p>
+                {min != null && (
+                  <div className="mb-4 text-[13px] text-muted">
+                    {t('home.services.from')}{' '}
+                    <span className="text-[15px] font-bold text-navy">
+                      {(min / 100).toLocaleString('ar-SA')} {t('course.currency')}
+                    </span>
+                  </div>
+                )}
+                <Link
+                  to={`/service/${s.slug}`}
+                  className="block w-full rounded-md bg-navy py-2.75 text-center text-[13.5px] font-semibold text-white no-underline hover:bg-navy-hover"
+                >
+                  {t('home.services.cta')}
+                </Link>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <div className="text-center text-[14.5px] text-faint">{t('home.services.empty')}</div>
+      )}
+    </div>
+  )
+}
+
 export function MarketingHome() {
   const { session, profile } = useAuth()
   const { t, lang } = useLanguage()
@@ -299,16 +352,8 @@ export function MarketingHome() {
         />
       )}
 
-      {/* PROGRAMS */}
-      {!isTeacherSession && (
-        <OfferingSection
-          id="programs"
-          title={t('home.programs.eyebrow')}
-          empty={t('home.programs.empty')}
-          ctaLabel={t('home.programs.subscribe')}
-          items={(courses ?? []).filter((c) => c.kind === 'program')}
-        />
-      )}
+      {/* SERVICES */}
+      {!isTeacherSession && <ServicesSection />}
 
       {/* RESOURCES */}
       <div id="resources" className="px-4 py-12 md:px-16 md:py-20">
