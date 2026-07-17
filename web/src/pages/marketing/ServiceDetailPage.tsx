@@ -52,7 +52,7 @@ const labelClass = 'mb-1.5 block text-[12.5px] font-semibold text-navy'
 
 export function ServiceDetailPage() {
   const { slug } = useParams()
-  const { profile } = useAuth()
+  const { session, profile } = useAuth()
   const { t, lang } = useLanguage()
   const { data: service, isLoading } = useQuery({
     queryKey: ['service', slug],
@@ -62,7 +62,7 @@ export function ServiceDetailPage() {
 
   const [selected, setSelected] = useState<ServicePackage | null>(null)
   const [fullName, setFullName] = useState(profile?.name ?? '')
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(session?.user.email ?? '')
   const [phone, setPhone] = useState('')
   const [subject, setSubject] = useState('')
   const [purpose, setPurpose] = useState('')
@@ -141,7 +141,8 @@ export function ServiceDetailPage() {
       await submitServiceRequest({
         service_id: service.id,
         package_id: selected?.id ?? null,
-        user_id: profile?.id ?? null,
+        // Must match auth.uid() — the insert policy rejects anything else.
+        user_id: session?.user.id ?? null,
         full_name: fullName.trim(),
         email: email.trim(),
         phone: phone.trim(),
@@ -220,7 +221,29 @@ export function ServiceDetailPage() {
           </div>
         </div>
 
-        {/* REQUEST FORM */}
+        {/* REQUEST FORM — sign-in only, matching the insert policy on
+            service_requests (the DB is the real gate; this is just so a
+            signed-out visitor sees a clear prompt instead of a failing form). */}
+        {!session ? (
+          <div className="rounded-xl border border-border bg-white p-8 text-center">
+            <div className="mb-2 font-heading text-lg font-bold text-navy">{t('service.loginRequiredTitle')}</div>
+            <div className="mb-5 text-[14px] leading-7 text-muted">{t('service.loginRequiredBody')}</div>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Link
+                to="/login"
+                className="rounded-md bg-navy px-6 py-2.75 text-[14px] font-semibold text-white no-underline hover:bg-navy-hover"
+              >
+                {t('nav.login')}
+              </Link>
+              <Link
+                to="/register"
+                className="rounded-md border border-navy px-6 py-2.75 text-[14px] font-semibold text-navy no-underline hover:bg-bg-soft"
+              >
+                {t('nav.register')}
+              </Link>
+            </div>
+          </div>
+        ) : (
         <form onSubmit={submit} className="rounded-xl border border-border bg-white p-5 md:p-7">
           <div className="mb-5 font-heading text-lg font-bold text-navy">{t('service.formTitle')}</div>
 
@@ -371,6 +394,7 @@ export function ServiceDetailPage() {
           </button>
           <div className="mt-2.5 text-center text-[12px] text-muted">{t('service.paymentNote')}</div>
         </form>
+        )}
       </div>
     </div>
   )

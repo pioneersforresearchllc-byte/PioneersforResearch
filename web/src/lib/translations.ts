@@ -458,6 +458,11 @@ export const translations = {
   'service.errDate': { ar: 'تاريخ التسليم مطلوب', en: 'Delivery date is required' },
   'service.errFileSize': { ar: 'حجم الملف كبير جدًا (الحد الأقصى 20 ميجابايت)', en: 'File is too large (max 20MB)' },
   'service.errSubmit': { ar: 'تعذر إرسال الطلب، حاول مجددًا', en: "Couldn't submit the request, try again" },
+  'service.loginRequiredTitle': { ar: 'سجّل الدخول لطلب الخدمة', en: 'Sign in to request this service' },
+  'service.loginRequiredBody': {
+    ar: 'طلب الخدمات متاح للأعضاء المسجّلين فقط، حتى نتمكن من متابعة طلبك والتواصل معك بشأنه.',
+    en: 'Service requests are for registered members only, so we can track your request and follow up with you about it.',
+  },
   'service.thanksTitle': { ar: 'تم استلام طلبك', en: 'Request received' },
   'service.thanksBody': {
     ar: 'شكرًا لك. سنراجع تفاصيل طلبك ونتواصل معك على البريد أو رقم التواصل الذي أدخلته لتأكيد التفاصيل والدفع.',
