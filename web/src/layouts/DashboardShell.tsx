@@ -23,7 +23,7 @@ export function DashboardShell({ subtitleKey, userName, tabs }: DashboardShellPr
     <div dir={dir} lang={lang} className="flex min-h-screen flex-col">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border px-4 py-3.5 md:px-8 md:py-4">
         <div className="font-heading text-base font-bold text-navy md:text-lg">
-          Pioneers for Research{' '}
+          Pioneers Health Research{' '}
           <span className="block text-[12.5px] font-normal text-muted md:inline md:text-[13px]">— {t(subtitleKey)}</span>
         </div>
         <div className="flex items-center gap-2.5 md:gap-4.5">

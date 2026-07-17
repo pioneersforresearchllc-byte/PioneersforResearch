@@ -78,7 +78,7 @@ export function MarketingLayout() {
       <div className="sticky top-0 z-10 border-b border-border bg-white">
         <div className="flex items-center justify-between px-4 py-4 md:px-16 md:py-5">
           <Link to="/" className="font-heading text-lg font-bold text-navy no-underline md:text-[22px]">
-            Pioneers for Research
+            Pioneers Health Research
           </Link>
           <div className="hidden items-center gap-8.5 text-[15px] md:flex">{navLinks}</div>
           <div className="hidden items-center gap-3 md:flex">{authLinks}</div>

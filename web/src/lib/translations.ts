@@ -13,7 +13,7 @@ export const translations = {
   'nav.backToDashboard': { ar: '→ رجوع للوحة التحكم', en: '→ Back to Dashboard' },
   'nav.login': { ar: 'تسجيل الدخول', en: 'Log In' },
   'nav.register': { ar: 'إنشاء حساب', en: 'Create Account' },
-  'footer.copyright': { ar: 'Pioneers for Research © 2026', en: 'Pioneers for Research © 2026' },
+  'footer.copyright': { ar: 'Pioneers Health Research © 2026', en: 'Pioneers Health Research © 2026' },
   'footer.tagline': { ar: 'منصة تدريب على البحث العلمي', en: 'Academic research training platform' },
   'footer.adminPortal': { ar: 'بوابة الإدارة', en: 'Admin Portal' },
 
@@ -34,8 +34,8 @@ export const translations = {
   'home.about.eyebrow': { ar: 'من نحن', en: 'About Us' },
   'home.about.title': { ar: 'منصة تدريب تأخذك خطوة بخطوة', en: 'A training platform that guides you step by step' },
   'home.about.body': {
-    ar: 'Pioneers for Research منصة تدريب متخصصة لطلاب الجامعات والدراسات العليا، تغطي رحلة البحث العلمي كاملة: صياغة السؤال البحثي، تصميم أدوات جمع البيانات، التحليل الإحصائي، والكتابة الأكاديمية — بإشراف مباشر ومتابعة مستمرة حتى إنجاز ورقة بحثية جاهزة للنشر.',
-    en: 'Pioneers for Research is a specialized training platform for university and graduate students, covering the full research journey: framing the research question, designing data-collection tools, statistical analysis, and academic writing — with direct supervision and continuous follow-up until a publication-ready paper is complete.',
+    ar: 'Pioneers Health Research منصة تدريب متخصصة لطلاب الجامعات والدراسات العليا، تغطي رحلة البحث العلمي كاملة: صياغة السؤال البحثي، تصميم أدوات جمع البيانات، التحليل الإحصائي، والكتابة الأكاديمية — بإشراف مباشر ومتابعة مستمرة حتى إنجاز ورقة بحثية جاهزة للنشر.',
+    en: 'Pioneers Health Research is a specialized training platform for university and graduate students, covering the full research journey: framing the research question, designing data-collection tools, statistical analysis, and academic writing — with direct supervision and continuous follow-up until a publication-ready paper is complete.',
   },
   'home.about.teamTitle': { ar: 'فريق العمل', en: 'Our Team' },
   'home.courses.eyebrow': { ar: 'الدورات', en: 'Courses' },

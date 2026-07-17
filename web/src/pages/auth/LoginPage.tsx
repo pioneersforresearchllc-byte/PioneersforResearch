@@ -76,7 +76,7 @@ export function LoginPage() {
   return (
     <AuthCard>
       <div className="mb-7 text-center">
-        <div className="font-heading text-xl font-bold text-navy">Pioneers for Research</div>
+        <div className="font-heading text-xl font-bold text-navy">Pioneers Health Research</div>
         <div className="mt-1.5 text-sm text-muted">{t('login.title')}</div>
       </div>
 
