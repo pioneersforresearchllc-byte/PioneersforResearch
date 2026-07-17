@@ -47,6 +47,18 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS })
   if (req.method !== 'POST') return json({ error: 'method not allowed' }, 405)
 
+  try {
+    return await handle(req)
+  } catch (err) {
+    // Without this, a throw (e.g. a rejected Stripe call) escapes as a
+    // runtime 500 with no CORS headers, which the browser blocks — leaving
+    // the client with only an opaque "failed to send a request".
+    console.error('create-checkout-session failed', err)
+    return json({ error: err instanceof Error ? err.message : String(err) }, 500)
+  }
+})
+
+async function handle(req: Request): Promise<Response> {
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) return json({ error: 'missing authorization' }, 401)
 
@@ -125,4 +137,4 @@ Deno.serve(async (req) => {
   if (insertErr) return json({ error: insertErr.message }, 500)
 
   return json({ url: session.url })
-})
+}
