@@ -62,8 +62,20 @@ export async function getServiceBySlug(slug: string): Promise<Service | null> {
 
 const REQUEST_BUCKET = 'service-request-files'
 
+/**
+ * Supabase Storage rejects object keys containing non-ASCII characters or
+ * spaces — and real uploads routinely have both (e.g. an Arabic-dated phone
+ * screenshot). So the stored key is a UUID plus a sanitised extension; the
+ * human-readable name is never part of the path.
+ */
+function safeObjectKey(fileName: string): string {
+  const dot = fileName.lastIndexOf('.')
+  const ext = dot > -1 ? fileName.slice(dot + 1).replace(/[^a-zA-Z0-9]/g, '').toLowerCase() : ''
+  return ext ? `${crypto.randomUUID()}.${ext}` : crypto.randomUUID()
+}
+
 export async function uploadRequestFile(file: File): Promise<string> {
-  const path = `${crypto.randomUUID()}-${file.name}`
+  const path = safeObjectKey(file.name)
   const { error } = await supabase.storage.from(REQUEST_BUCKET).upload(path, file)
   if (error) throw error
   return path
@@ -141,6 +153,10 @@ export async function setRequestPrice(id: string, finalPriceCents: number) {
     .update({ final_price_cents: finalPriceCents, status: 'awaiting_payment' })
     .eq('id', id)
   if (error) throw error
+
+  // Fire-and-forget: the price is already saved, so a mail hiccup shouldn't
+  // fail the owner's action — the customer still sees it in "My Requests".
+  void supabase.functions.invoke('notify-payment-request', { body: { requestId: id } })
 }
 
 /** The signed-in user's own requests (RLS scopes this to user_id = auth.uid()). */

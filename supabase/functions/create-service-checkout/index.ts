@@ -21,6 +21,10 @@ const SERVICE_ROLE_KEY =
 const ANON_KEY = firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) || Deno.env.get('SUPABASE_ANON_KEY')!
 const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY')!
 const SITE_URL = Deno.env.get('SITE_URL') || 'https://pioneersforresearch.pages.dev'
+// Stripe only accepts SAR from accounts in supporting countries; this
+// account rejected it. Override with the STRIPE_CURRENCY secret to switch
+// back without a code change.
+const CURRENCY = (Deno.env.get('STRIPE_CURRENCY') || 'usd').toLowerCase()
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' })
 
@@ -94,7 +98,7 @@ async function handle(req: Request): Promise<Response> {
     line_items: [
       {
         price_data: {
-          currency: 'sar',
+          currency: CURRENCY,
           product_data: { name: `${serviceTitle} — ${request.subject}` },
           unit_amount: request.final_price_cents,
         },

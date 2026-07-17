@@ -27,6 +27,9 @@ const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY')!
 // Where Stripe sends the customer back after paying. Set the SITE_URL
 // secret to override; the default is the live Cloudflare Pages domain.
 const SITE_URL = Deno.env.get('SITE_URL') || 'https://pioneersforresearch.pages.dev'
+// Keep in sync with create-service-checkout — see the note there on why this
+// isn't SAR.
+const CURRENCY = (Deno.env.get('STRIPE_CURRENCY') || 'usd').toLowerCase()
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' })
 
@@ -99,7 +102,7 @@ Deno.serve(async (req) => {
     line_items: [
       {
         price_data: {
-          currency: 'sar',
+          currency: CURRENCY,
           product_data: { name: course.title },
           unit_amount: course.price_cents,
         },

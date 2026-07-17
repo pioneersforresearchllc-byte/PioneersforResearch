@@ -16,7 +16,7 @@ import {
 
 function formatSar(cents: number) {
   if (cents === 0) return 'مجاني'
-  return `${(cents / 100).toLocaleString('ar-SA')} ريال`
+  return `${(cents / 100).toLocaleString('ar-SA')} دولار`
 }
 
 const emptyForm: CourseFormValues = {
