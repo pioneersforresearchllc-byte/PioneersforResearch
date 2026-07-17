@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/lib/i18n'
 import {
   listMyAssignments,
   submitAnswer,
@@ -9,14 +10,15 @@ import {
 } from '@/lib/assignments'
 import { PaperclipIcon } from '@/pages/dashboard/chat/Icons'
 
-function statusLabel(a: MyAssignment) {
-  if (!a.submission || a.submission.status === 'pending') return 'لم يُسلّم بعد'
-  if (a.submission.status === 'submitted') return 'بانتظار التصحيح'
-  return `تم التصحيح — ${a.submission.grade}/100`
+function statusLabel(a: MyAssignment, t: ReturnType<typeof useLanguage>['t']) {
+  if (!a.submission || a.submission.status === 'pending') return t('sAssign.notSubmitted')
+  if (a.submission.status === 'submitted') return t('sAssign.awaitingGrade')
+  return t('sAssign.graded', { grade: String(a.submission.grade) })
 }
 
 function SubmitForm({ assignment, onSubmitted }: { assignment: MyAssignment; onSubmitted: () => void }) {
   const { profile } = useAuth()
+  const { t } = useLanguage()
   const [answer, setAnswer] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
@@ -37,7 +39,7 @@ function SubmitForm({ assignment, onSubmitted }: { assignment: MyAssignment; onS
       })
       onSubmitted()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'تعذر تسليم الواجب، حاول مجددًا')
+      setError(e instanceof Error ? e.message : t('sAssign.submitError'))
     } finally {
       setBusy(false)
     }
@@ -48,7 +50,7 @@ function SubmitForm({ assignment, onSubmitted }: { assignment: MyAssignment; onS
       <textarea
         value={answer}
         onChange={(e) => setAnswer(e.target.value)}
-        placeholder="إجابتك (اختياري)"
+        placeholder={t('sAssign.answerPh')}
         rows={3}
         className="resize-y rounded-md border border-border px-3 py-2 text-[13.5px]"
       />
@@ -62,7 +64,7 @@ function SubmitForm({ assignment, onSubmitted }: { assignment: MyAssignment; onS
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          title="إرفاق ملف"
+          title={t('sAssign.attachFile')}
           className="flex shrink-0 items-center justify-center rounded-full border border-border p-2 text-muted hover:border-navy hover:text-navy"
         >
           <PaperclipIcon />
@@ -70,13 +72,13 @@ function SubmitForm({ assignment, onSubmitted }: { assignment: MyAssignment; onS
         {file && <span className="truncate text-[12.5px] text-navy">{file.name}</span>}
       </div>
       {error && <div className="text-[12px] text-error">{error}</div>}
-      <div className="text-[11.5px] text-faint">تنبيه: ما تقدر تعدّل إجابتك بعد التسليم.</div>
+      <div className="text-[11.5px] text-faint">{t('sAssign.noEditWarning')}</div>
       <button
         onClick={() => void submit()}
         disabled={busy}
         className="self-start rounded-md bg-navy px-4.5 py-2 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
       >
-        تسليم الواجب
+        {t('sAssign.submit')}
       </button>
     </div>
   )
@@ -84,6 +86,7 @@ function SubmitForm({ assignment, onSubmitted }: { assignment: MyAssignment; onS
 
 export function StudentAssignmentsPage() {
   const { profile } = useAuth()
+  const { t } = useLanguage()
   const queryClient = useQueryClient()
   const [expanded, setExpanded] = useState<string | null>(null)
 
@@ -97,10 +100,10 @@ export function StudentAssignmentsPage() {
 
   return (
     <div>
-      <div className="mb-5 font-heading text-xl font-bold text-navy">واجباتي</div>
+      <div className="mb-5 font-heading text-xl font-bold text-navy">{t('sAssign.title')}</div>
 
-      {isLoading && <div className="text-muted">جارِ التحميل...</div>}
-      {data && data.length === 0 && <div className="text-muted">لا توجد واجبات حاليًا.</div>}
+      {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
+      {data && data.length === 0 && <div className="text-muted">{t('sAssign.none')}</div>}
 
       <div className="flex flex-col gap-2.5">
         {(data ?? []).map((a) => {
@@ -114,7 +117,7 @@ export function StudentAssignmentsPage() {
                 <div>
                   <div className="text-[14px] font-semibold text-navy">{a.title}</div>
                   <div className="text-[12.5px] text-muted">
-                    {a.courseTitle} · تسليم: {a.due_date}
+                    {t('sAssign.courseDue', { course: a.courseTitle, date: a.due_date })}
                   </div>
                 </div>
                 <span
@@ -122,7 +125,7 @@ export function StudentAssignmentsPage() {
                     graded ? 'text-success' : a.submission ? 'text-accent' : 'text-faint'
                   }`}
                 >
-                  {statusLabel(a)}
+                  {statusLabel(a, t)}
                 </span>
               </button>
 
@@ -131,7 +134,7 @@ export function StudentAssignmentsPage() {
                   {a.details && <p className="mb-2 text-[13.5px] leading-7 text-muted-2">{a.details}</p>}
                   {a.file_url && (
                     <a href={a.file_url} target="_blank" rel="noreferrer" className="mb-2 inline-block text-[12.5px] text-navy">
-                      📎 ملف الواجب من المعلم
+                      {t('sAssign.teacherFile')}
                     </a>
                   )}
 
@@ -147,16 +150,16 @@ export function StudentAssignmentsPage() {
                           rel="noreferrer"
                           className="mb-1.5 inline-block text-[12.5px] text-navy"
                         >
-                          📎 ملفك المرفق
+                          {t('sAssign.yourFile')}
                         </a>
                       )}
                       {graded && a.submission.feedback && (
                         <div className="mt-1.5 rounded-md bg-success-bg p-2 text-[13px] text-success">
-                          ملاحظات المعلم: {a.submission.feedback}
+                          {t('sAssign.feedbackLabel', { text: a.submission.feedback })}
                         </div>
                       )}
                       {!graded && (
-                        <div className="text-[12.5px] text-muted">تم التسليم — بانتظار التصحيح. لا يمكن تعديل الإجابة.</div>
+                        <div className="text-[12.5px] text-muted">{t('sAssign.submittedWaiting')}</div>
                       )}
                     </div>
                   ) : (

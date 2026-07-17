@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/lib/i18n'
 import { listMyGrades } from '@/lib/account'
 import { listMyEnrolledCourses } from '@/lib/courses'
 
 export function StudentGradesPage() {
   const { profile } = useAuth()
+  const { t } = useLanguage()
   const coursesQuery = useQuery({
     queryKey: ['my-enrolled-courses', profile?.id],
     enabled: !!profile,
@@ -18,12 +20,12 @@ export function StudentGradesPage() {
 
   return (
     <div>
-      <div className="mb-5 font-heading text-xl font-bold text-navy">تقدمي ودرجاتي</div>
+      <div className="mb-5 font-heading text-xl font-bold text-navy">{t('sGrades.title')}</div>
 
       <div className="mb-6">
-        <div className="mb-2.5 text-[15px] font-semibold text-navy">تقدمي بالدورات</div>
+        <div className="mb-2.5 text-[15px] font-semibold text-navy">{t('sGrades.progressTitle')}</div>
         {coursesQuery.data && coursesQuery.data.length === 0 && (
-          <div className="text-[13.5px] text-muted">لا توجد برامج مسجّل فيها.</div>
+          <div className="text-[13.5px] text-muted">{t('sGrades.noCourses')}</div>
         )}
         <div className="flex flex-col gap-2">
           {(coursesQuery.data ?? []).map((c) => (
@@ -41,9 +43,9 @@ export function StudentGradesPage() {
       </div>
 
       <div>
-        <div className="mb-2.5 text-[15px] font-semibold text-navy">درجات الواجبات</div>
+        <div className="mb-2.5 text-[15px] font-semibold text-navy">{t('sGrades.assignmentGrades')}</div>
         {gradesQuery.data && gradesQuery.data.length === 0 && (
-          <div className="text-[13.5px] text-muted">لا توجد واجبات مصحّحة بعد.</div>
+          <div className="text-[13.5px] text-muted">{t('sGrades.noGraded')}</div>
         )}
         <div className="flex flex-col gap-2">
           {(gradesQuery.data ?? []).map((g) => (

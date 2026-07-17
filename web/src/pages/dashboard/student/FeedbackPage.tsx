@@ -1,9 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/lib/i18n'
 import { listMyGrades } from '@/lib/account'
 
 export function StudentFeedbackPage() {
   const { profile } = useAuth()
+  const { t } = useLanguage()
   const { data, isLoading } = useQuery({
     queryKey: ['my-grades', profile?.id],
     enabled: !!profile,
@@ -14,10 +16,10 @@ export function StudentFeedbackPage() {
 
   return (
     <div>
-      <div className="mb-5 font-heading text-xl font-bold text-navy">ملاحظات المعلم</div>
+      <div className="mb-5 font-heading text-xl font-bold text-navy">{t('sFeedback.title')}</div>
 
-      {isLoading && <div className="text-muted">جارِ التحميل...</div>}
-      {withFeedback.length === 0 && !isLoading && <div className="text-muted">لا توجد ملاحظات بعد.</div>}
+      {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
+      {withFeedback.length === 0 && !isLoading && <div className="text-muted">{t('sFeedback.none')}</div>}
 
       <div className="flex flex-col gap-2.5">
         {withFeedback.map((g) => (
