@@ -18,9 +18,14 @@ export function MarketingLayout() {
         {t('nav.about')}
       </a>
       {!isTeacherSession && (
-        <a href="/#programs" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
-          {t('nav.programs')}
-        </a>
+        <>
+          <a href="/#courses" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
+            {t('nav.courses')}
+          </a>
+          <a href="/#programs" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
+            {t('nav.programs')}
+          </a>
+        </>
       )}
       <a href="/#resources" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
         {t('nav.resources')}

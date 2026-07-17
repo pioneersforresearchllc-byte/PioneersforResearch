@@ -41,6 +41,7 @@ interface CourseCard {
   duration_label: string
   price_cents: number
   original_price_cents: number | null
+  kind: 'course' | 'program'
   avg_rating: number
   rating_count: number
 }
@@ -51,7 +52,7 @@ function useCourses() {
     queryFn: async (): Promise<CourseCard[]> => {
       const { data: courses, error } = await supabase
         .from('courses')
-        .select('id, title, description, title_en, description_en, duration_label, price_cents, original_price_cents')
+        .select('id, title, description, title_en, description_en, duration_label, price_cents, original_price_cents, kind')
         .order('created_at', { ascending: false })
       if (error) throw error
       if (!courses?.length) return []
@@ -113,6 +114,74 @@ function useArticlePreviews() {
   })
 }
 
+// Shared card grid for the two public offering sections (courses and
+// programs) — both are the same underlying row type, only labelled and
+// filtered differently.
+function OfferingSection({
+  id,
+  eyebrow,
+  title,
+  empty,
+  ctaLabel,
+  items,
+  soft,
+}: {
+  id: string
+  eyebrow: string
+  title: string
+  empty: string
+  ctaLabel: string
+  items: CourseCard[]
+  soft?: boolean
+}) {
+  const { t, lang } = useLanguage()
+  return (
+    <div id={id} className={`px-4 py-12 md:px-16 md:py-20 ${soft ? 'bg-bg-soft' : ''}`}>
+      <div className="mb-12.5 text-center">
+        <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-accent">{eyebrow}</div>
+        <h2 className="font-heading text-2xl font-bold md:text-[30px]">{title}</h2>
+      </div>
+      {items.length > 0 ? (
+        <div className="grid grid-cols-1 gap-6.5 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((c) => (
+            <div key={c.id} className="rounded-[10px] border border-border bg-white p-7">
+              <h3 className="mb-3 text-lg text-navy">{lang === 'en' ? c.title_en || c.title : c.title}</h3>
+              <p className="mb-4 text-[14.5px] leading-[1.9] text-muted">
+                {lang === 'en' ? c.description_en || c.description : c.description}
+              </p>
+              <div className="mb-3 flex items-center gap-2">
+                <Stars avg={c.avg_rating} />
+                <span className="text-[12.5px] text-muted">
+                  {c.avg_rating.toFixed(1)} ({t('course.ratingCount', { count: String(c.rating_count) })})
+                </span>
+              </div>
+              <div className="mb-4 flex items-center justify-between">
+                <div className="text-[13px] font-semibold text-accent">{c.duration_label}</div>
+                <div>
+                  {c.original_price_cents && c.original_price_cents > c.price_cents && (
+                    <span className="ml-2 text-[13px] text-faint line-through">
+                      {formatSar(c.original_price_cents, t)}
+                    </span>
+                  )}
+                  <span className="text-[15px] font-bold text-navy">{formatSar(c.price_cents, t)}</span>
+                </div>
+              </div>
+              <Link
+                to={`/course/${c.id}`}
+                className="block w-full rounded-md bg-navy py-2.75 text-center text-[13.5px] font-semibold text-white no-underline hover:bg-navy-hover"
+              >
+                {ctaLabel}
+              </Link>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center text-[14.5px] text-faint">{empty}</div>
+      )}
+    </div>
+  )
+}
+
 export function MarketingHome() {
   const { session, profile } = useAuth()
   const { t, lang } = useLanguage()
@@ -169,7 +238,7 @@ export function MarketingHome() {
             </Link>
             {!isTeacherSession && (
               <a
-                href="#programs"
+                href="#courses"
                 className="rounded-md border border-navy px-7.5 py-3.5 text-[15px] text-navy no-underline hover:bg-bg-soft"
               >
                 {t('home.hero.browsePrograms')}
@@ -217,51 +286,29 @@ export function MarketingHome() {
         </div>
       </div>
 
+      {/* COURSES */}
+      {!isTeacherSession && (
+        <OfferingSection
+          id="courses"
+          soft
+          eyebrow={t('home.courses.eyebrow')}
+          title={t('home.courses.title')}
+          empty={t('home.courses.empty')}
+          ctaLabel={t('home.courses.subscribe')}
+          items={(courses ?? []).filter((c) => c.kind === 'course')}
+        />
+      )}
+
       {/* PROGRAMS */}
       {!isTeacherSession && (
-        <div id="programs" className="bg-bg-soft px-4 py-12 md:px-16 md:py-20">
-          <div className="mb-12.5 text-center">
-            <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-accent">{t('home.programs.eyebrow')}</div>
-            <h2 className="font-heading text-2xl font-bold md:text-[30px]">{t('home.programs.title')}</h2>
-          </div>
-          {courses && courses.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6.5 sm:grid-cols-2 lg:grid-cols-3">
-              {courses.map((c) => (
-                <div key={c.id} className="rounded-[10px] border border-border bg-white p-7">
-                  <h3 className="mb-3 text-lg text-navy">{lang === 'en' ? c.title_en || c.title : c.title}</h3>
-                  <p className="mb-4 text-[14.5px] leading-[1.9] text-muted">
-                    {lang === 'en' ? c.description_en || c.description : c.description}
-                  </p>
-                  <div className="mb-3 flex items-center gap-2">
-                    <Stars avg={c.avg_rating} />
-                    <span className="text-[12.5px] text-muted">
-                      {c.avg_rating.toFixed(1)} ({t('course.ratingCount', { count: String(c.rating_count) })})
-                    </span>
-                  </div>
-                  <div className="mb-4 flex items-center justify-between">
-                    <div className="text-[13px] font-semibold text-accent">{c.duration_label}</div>
-                    <div>
-                      {c.original_price_cents && c.original_price_cents > c.price_cents && (
-                        <span className="ml-2 text-[13px] text-faint line-through">
-                          {formatSar(c.original_price_cents, t)}
-                        </span>
-                      )}
-                      <span className="text-[15px] font-bold text-navy">{formatSar(c.price_cents, t)}</span>
-                    </div>
-                  </div>
-                  <Link
-                    to={`/course/${c.id}`}
-                    className="block w-full rounded-md bg-navy py-2.75 text-center text-[13.5px] font-semibold text-white no-underline hover:bg-navy-hover"
-                  >
-                    {t('home.programs.subscribe')}
-                  </Link>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center text-[14.5px] text-faint">{t('home.programs.empty')}</div>
-          )}
-        </div>
+        <OfferingSection
+          id="programs"
+          eyebrow={t('home.programs.eyebrow')}
+          title={t('home.programs.title')}
+          empty={t('home.programs.empty')}
+          ctaLabel={t('home.programs.subscribe')}
+          items={(courses ?? []).filter((c) => c.kind === 'program')}
+        />
       )}
 
       {/* RESOURCES */}

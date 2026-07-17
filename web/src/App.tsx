@@ -69,7 +69,7 @@ const ownerTabs: DashboardTab[] = [
   { key: 'overview', labelKey: 'tab.overview', to: '/owner' },
   { key: 'applications', labelKey: 'tab.teacherApplications', to: '/owner/applications' },
   { key: 'teachers', labelKey: 'tab.teachers', to: '/owner/teachers' },
-  { key: 'courses', labelKey: 'tab.programs', to: '/owner/courses' },
+  { key: 'courses', labelKey: 'tab.coursesPrograms', to: '/owner/courses' },
   { key: 'certificates', labelKey: 'tab.certificates', to: '/owner/certificates' },
   { key: 'admins', labelKey: 'tab.admins', to: '/owner/admins' },
   { key: 'accounts', labelKey: 'tab.accounts', to: '/owner/accounts' },

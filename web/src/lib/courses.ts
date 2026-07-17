@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabase'
 import { translateTexts } from '@/lib/translate'
 
+export type CourseKind = 'course' | 'program'
+
 export interface Course {
   id: string
   title: string
@@ -13,6 +15,7 @@ export interface Course {
   image_url: string | null
   completed: boolean
   capacity: number | null
+  kind: CourseKind
   created_at: string
 }
 
@@ -85,6 +88,7 @@ export interface CourseFormValues {
   image_url: string | null
   completed: boolean
   capacity: number | null
+  kind: CourseKind
 }
 
 // Free courses (price_cents = 0) skip payment entirely — RLS

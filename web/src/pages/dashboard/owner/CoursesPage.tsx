@@ -28,6 +28,7 @@ const emptyForm: CourseFormValues = {
   image_url: null,
   completed: false,
   capacity: null,
+  kind: 'course',
 }
 
 function CourseEditor({
@@ -52,6 +53,7 @@ function CourseEditor({
           image_url: course.image_url,
           completed: course.completed,
           capacity: course.capacity,
+          kind: course.kind,
         }
       : emptyForm,
   )
@@ -82,7 +84,7 @@ function CourseEditor({
 
   const save = async () => {
     if (!form.title.trim()) {
-      setError('اسم البرنامج مطلوب')
+      setError('الاسم مطلوب')
       return
     }
     setBusy(true)
@@ -124,10 +126,39 @@ function CourseEditor({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 font-heading text-lg font-bold text-navy">
-          {course ? 'تعديل البرنامج' : 'برنامج جديد'}
+          {course
+            ? form.kind === 'program'
+              ? 'تعديل البرنامج'
+              : 'تعديل الدورة'
+            : form.kind === 'program'
+              ? 'برنامج جديد'
+              : 'دورة جديدة'}
         </div>
 
         <div className="flex flex-col gap-3">
+          <div>
+            <div className="mb-1.5 text-[12.5px] font-semibold text-muted">النوع</div>
+            <div className="flex rounded-lg bg-[#f0f3f7] p-1">
+              <button
+                type="button"
+                onClick={() => set('kind', 'course')}
+                className={`flex-1 rounded-md py-2 text-[13.5px] font-semibold ${
+                  form.kind === 'course' ? 'bg-navy text-white' : 'bg-transparent text-navy'
+                }`}
+              >
+                دورة
+              </button>
+              <button
+                type="button"
+                onClick={() => set('kind', 'program')}
+                className={`flex-1 rounded-md py-2 text-[13.5px] font-semibold ${
+                  form.kind === 'program' ? 'bg-navy text-white' : 'bg-transparent text-navy'
+                }`}
+              >
+                برنامج
+              </button>
+            </div>
+          </div>
           <input
             value={form.title}
             onChange={(e) => set('title', e.target.value)}
@@ -300,7 +331,7 @@ export function OwnerCoursesPage() {
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ['owner-courses'] })
 
   const remove = async (id: string) => {
-    if (!confirm('حذف هذا البرنامج نهائيًا؟')) return
+    if (!confirm('حذف هذا العنصر نهائيًا؟')) return
     await deleteCourse(id)
     refresh()
   }
@@ -308,26 +339,35 @@ export function OwnerCoursesPage() {
   return (
     <div>
       <div className="mb-5 flex items-center justify-between">
-        <div className="font-heading text-xl font-bold text-navy">البرامج</div>
+        <div className="font-heading text-xl font-bold text-navy">الدورات والبرامج</div>
         <button
           onClick={() => setEditing('new')}
           className="rounded-md bg-navy px-4.5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-navy-hover"
         >
-          + برنامج جديد
+          + إضافة
         </button>
       </div>
 
       {coursesQuery.isLoading && <div className="text-muted">جارِ التحميل...</div>}
       {coursesQuery.data && coursesQuery.data.length === 0 && (
-        <div className="text-muted">لا توجد برامج بعد.</div>
+        <div className="text-muted">لا توجد دورات أو برامج بعد.</div>
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {(coursesQuery.data ?? []).map((c) => (
           <div key={c.id} className="rounded-xl border border-border bg-white p-5">
-            <div className="mb-2 flex items-start justify-between">
+            <div className="mb-2 flex items-start justify-between gap-2">
               <div className="text-[15.5px] font-semibold text-navy">{c.title}</div>
-              {c.completed && <span className="rounded-full bg-bg-soft px-2.5 py-1 text-[11px] text-muted">مكتمل</span>}
+              <div className="flex shrink-0 gap-1.5">
+                <span
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                    c.kind === 'program' ? 'bg-gold/15 text-gold' : 'bg-accent/10 text-accent'
+                  }`}
+                >
+                  {c.kind === 'program' ? 'برنامج' : 'دورة'}
+                </span>
+                {c.completed && <span className="rounded-full bg-bg-soft px-2.5 py-1 text-[11px] text-muted">مكتمل</span>}
+              </div>
             </div>
             <div className="mb-2 line-clamp-2 text-[13px] text-muted">{c.description}</div>
             <div className="mb-3 flex items-center justify-between text-[12.5px] text-muted">
