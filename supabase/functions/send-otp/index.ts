@@ -78,13 +78,13 @@ async function sendOtpEmail(to: string, code: string): Promise<{ ok: boolean; re
     },
   })
   try {
-    // Plain-text ONLY — a single text/plain part avoids the malformed
-    // multipart/alternative rendering some clients showed as raw MIME.
+    // ASCII-only subject + code up front so it can't be garbled by a
+    // client that fails to decode an RFC-2047 encoded-word Arabic subject.
     await client.send({
       from: SMTP_FROM,
       to,
-      subject: 'رمز الدخول إلى بوابة الإدارة',
-      content: `رمز الدخول الخاص بك هو: ${code}\n\nصالح لمدة 10 دقائق.`,
+      subject: `Pioneers for Research - Login Code: ${code}`,
+      content: `Your admin login code is: ${code}\nValid for 10 minutes.\n\nرمز الدخول إلى بوابة الإدارة: ${code}\nصالح لمدة 10 دقائق.`,
     })
     return { ok: true, reason: '' }
   } catch (err) {

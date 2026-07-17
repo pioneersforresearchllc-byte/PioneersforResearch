@@ -64,13 +64,13 @@ async function sendResetEmail(to: string, code: string) {
     },
   })
   try {
-    // Plain-text ONLY — a single text/plain part avoids the malformed
-    // multipart/alternative rendering some clients showed as raw MIME.
+    // ASCII-only subject + code up front so it can't be garbled by a
+    // client that fails to decode an RFC-2047 encoded-word Arabic subject.
     await client.send({
       from: SMTP_FROM,
       to,
-      subject: 'رمز إعادة تعيين كلمة المرور',
-      content: `رمز إعادة تعيين كلمة المرور الخاص بك هو: ${code}\n\nصالح لمدة 10 دقائق. إذا لم تطلب هذا الرمز، تجاهل هذه الرسالة.`,
+      subject: `Pioneers for Research - Password Reset Code: ${code}`,
+      content: `Your password reset code is: ${code}\nValid for 10 minutes.\n\nرمز إعادة تعيين كلمة المرور: ${code}\nصالح لمدة 10 دقائق. إذا لم تطلب هذا الرمز، تجاهل هذه الرسالة.`,
     })
     return true
   } catch {

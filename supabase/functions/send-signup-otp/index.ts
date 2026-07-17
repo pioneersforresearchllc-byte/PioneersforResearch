@@ -63,11 +63,19 @@ async function sendOtpEmail(to: string, code: string): Promise<'sent' | 'not_con
     // denomailer builds when both are present was rendering as raw MIME
     // source in some clients. A single text/plain part is bulletproof, and
     // the 6-digit code is all that matters here anyway.
+    // ASCII-only subject + code up front — a non-ASCII (Arabic) subject gets
+    // RFC-2047 encoded-word wrapped ("=?utf-8?Q?…?="), which some clients
+    // failed to decode and showed as raw source. Keeping the code in plain
+    // ASCII digits guarantees it's always readable.
     await client.send({
       from: SMTP_FROM,
       to,
-      subject: 'رمز تأكيد إنشاء الحساب',
-      content: `رمز تأكيد إنشاء حسابك في منصة Pioneers for Research هو: ${code}\n\nصالح لمدة 10 دقائق. إذا لم تطلب هذا الرمز، تجاهل هذه الرسالة.`,
+      subject: `Pioneers for Research - Verification Code: ${code}`,
+      content:
+        `Your verification code is: ${code}\n` +
+        `Valid for 10 minutes.\n\n` +
+        `رمز تأكيد إنشاء حسابك: ${code}\n` +
+        `صالح لمدة 10 دقائق. إذا لم تطلب هذا الرمز، تجاهل هذه الرسالة.`,
     })
     return 'sent'
   } catch (err) {
