@@ -24,7 +24,9 @@ const SERVICE_ROLE_KEY =
   firstFromJsonDict(Deno.env.get('SUPABASE_SECRET_KEYS')) || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANON_KEY = firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) || Deno.env.get('SUPABASE_ANON_KEY')!
 const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY')!
-const SITE_URL = Deno.env.get('SITE_URL') || 'https://pioneersfor-research.vercel.app'
+// Where Stripe sends the customer back after paying. Set the SITE_URL
+// secret to override; the default is the live Cloudflare Pages domain.
+const SITE_URL = Deno.env.get('SITE_URL') || 'https://pioneersforresearch.pages.dev'
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' })
 
