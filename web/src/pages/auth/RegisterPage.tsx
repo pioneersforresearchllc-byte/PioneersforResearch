@@ -120,6 +120,7 @@ export function RegisterPage() {
   return (
     <AuthCard>
       <div className="mb-7 text-center">
+        <img src="/logo.png" alt="" className="mx-auto mb-3 h-14 w-14" />
         <div className="font-heading text-xl font-bold text-navy">Pioneers Health Research</div>
         <div className="mt-1.5 text-sm text-muted">{t('register.title')}</div>
       </div>
