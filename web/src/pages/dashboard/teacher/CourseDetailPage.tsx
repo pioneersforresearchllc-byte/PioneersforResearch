@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/lib/i18n'
 import { getTaughtCourseDetail } from '@/lib/courses'
 import { createAssignment, listAssignmentsForCourse, uploadAssignmentFile } from '@/lib/assignments'
 
@@ -26,13 +27,14 @@ function NewAssignmentModal({
   const [selected, setSelected] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const { t } = useLanguage()
 
   const toggle = (id: string) =>
     setSelected((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]))
 
   const submit = async () => {
     if (!title.trim() || !dueDate) {
-      setError('اسم الواجب وتاريخ التسليم مطلوبان')
+      setError(t('tCourseDetail.nameDateRequired'))
       return
     }
     setBusy(true)
@@ -52,7 +54,7 @@ function NewAssignmentModal({
       onCreated()
       onClose()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'تعذر إنشاء الواجب')
+      setError(e instanceof Error ? e.message : t('tCourseDetail.createError'))
     } finally {
       setBusy(false)
     }
@@ -61,12 +63,12 @@ function NewAssignmentModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="max-h-[85vh] w-full max-w-[460px] overflow-y-auto rounded-xl bg-white p-6" onClick={(e) => e.stopPropagation()}>
-        <div className="mb-4 font-heading text-lg font-bold text-navy">واجب جديد</div>
+        <div className="mb-4 font-heading text-lg font-bold text-navy">{t('tCourseDetail.newAssignmentTitle')}</div>
         <div className="flex flex-col gap-3">
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="اسم الواجب"
+            placeholder={t('tCourseDetail.assignmentNamePh')}
             className="rounded-md border border-border px-3.5 py-2.5 text-[14px]"
           />
           <input
@@ -78,7 +80,7 @@ function NewAssignmentModal({
           <textarea
             value={details}
             onChange={(e) => setDetails(e.target.value)}
-            placeholder="تفاصيل الواجب (اختياري)"
+            placeholder={t('tCourseDetail.detailsPh')}
             rows={3}
             className="resize-y rounded-md border border-border px-3.5 py-2.5 text-[14px]"
           />
@@ -86,7 +88,7 @@ function NewAssignmentModal({
 
           <label className="flex items-center gap-2 text-[13.5px] text-navy">
             <input type="checkbox" checked={targetAll} onChange={(e) => setTargetAll(e.target.checked)} />
-            لكل الطلاب المسجّلين بالدورة
+            {t('tCourseDetail.forAllStudents')}
           </label>
 
           {!targetAll && (
@@ -114,10 +116,10 @@ function NewAssignmentModal({
               disabled={busy}
               className="flex-1 rounded-md bg-navy py-2.75 text-[14px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
             >
-              إنشاء الواجب
+              {t('tCourseDetail.createAssignment')}
             </button>
             <button onClick={onClose} className="rounded-md border border-border px-5 py-2.75 text-[14px] text-navy">
-              إلغاء
+              {t('dash.cancel')}
             </button>
           </div>
         </div>
@@ -129,6 +131,7 @@ function NewAssignmentModal({
 export function TeacherCourseDetailPage() {
   const { id } = useParams()
   const { profile } = useAuth()
+  const { t } = useLanguage()
   const queryClient = useQueryClient()
   const [showNewAssignment, setShowNewAssignment] = useState(false)
 
@@ -143,13 +146,13 @@ export function TeacherCourseDetailPage() {
     queryFn: () => listAssignmentsForCourse(id!),
   })
 
-  if (isLoading) return <div className="text-muted">جارِ التحميل...</div>
+  if (isLoading) return <div className="text-muted">{t('dash.loading')}</div>
   if (!data) {
     return (
       <div>
-        <div className="mb-3 text-muted">أنت غير مكلّف بهذه الدورة.</div>
+        <div className="mb-3 text-muted">{t('cDetail.notAssigned')}</div>
         <Link to="/teacher/courses" className="text-navy no-underline">
-          → رجوع للدورات
+          {t('cDetail.backToTeaching')}
         </Link>
       </div>
     )
@@ -158,14 +161,14 @@ export function TeacherCourseDetailPage() {
   return (
     <div>
       <Link to="/teacher/courses" className="mb-4 inline-block text-[13px] text-muted no-underline">
-        → رجوع للدورات
+        {t('cDetail.backToTeaching')}
       </Link>
       <div className="mb-1.5 font-heading text-xl font-bold text-navy">{data.course.title}</div>
       <p className="mb-6 max-w-160 text-[14.5px] leading-8 text-muted-2">{data.course.description}</p>
 
       <div className="mb-6">
-        <div className="mb-2.5 text-[15px] font-semibold text-navy">الحصص</div>
-        {data.sessions.length === 0 && <div className="text-[13.5px] text-muted">لا توجد حصص مجدولة بعد.</div>}
+        <div className="mb-2.5 text-[15px] font-semibold text-navy">{t('cDetail.sessions')}</div>
+        {data.sessions.length === 0 && <div className="text-[13.5px] text-muted">{t('cDetail.noSessions')}</div>}
         <div className="flex flex-col gap-2">
           {data.sessions.map((s) => (
             <div key={s.id} className="flex items-center justify-between rounded-lg border border-border bg-white p-4">
@@ -182,7 +185,7 @@ export function TeacherCourseDetailPage() {
                   rel="noreferrer"
                   className="rounded-md border border-navy px-4 py-1.75 text-[12.5px] text-navy no-underline hover:bg-bg-soft"
                 >
-                  رابط الحصة
+                  {t('cDetail.sessionLink')}
                 </a>
               )}
             </div>
@@ -192,16 +195,16 @@ export function TeacherCourseDetailPage() {
 
       <div className="mb-6">
         <div className="mb-2.5 flex items-center justify-between">
-          <div className="text-[15px] font-semibold text-navy">الواجبات</div>
+          <div className="text-[15px] font-semibold text-navy">{t('tCourseDetail.assignments')}</div>
           <button
             onClick={() => setShowNewAssignment(true)}
             className="rounded-md bg-navy px-4 py-2 text-[12.5px] font-semibold text-white hover:bg-navy-hover"
           >
-            + واجب جديد
+            {t('tCourseDetail.newAssignment')}
           </button>
         </div>
         {assignmentsQuery.data && assignmentsQuery.data.length === 0 && (
-          <div className="text-[13.5px] text-muted">لا توجد واجبات بعد.</div>
+          <div className="text-[13.5px] text-muted">{t('tCourseDetail.noAssignments')}</div>
         )}
         <div className="flex flex-col gap-2">
           {(assignmentsQuery.data ?? []).map((a) => (
@@ -212,10 +215,10 @@ export function TeacherCourseDetailPage() {
             >
               <div>
                 <div className="text-[14px] font-semibold text-navy">{a.title}</div>
-                <div className="text-[12.5px] text-muted">تسليم: {a.due_date}</div>
+                <div className="text-[12.5px] text-muted">{t('tCourseDetail.due', { date: a.due_date })}</div>
               </div>
               <div className="text-[12.5px] text-faint">
-                {a.submittedCount} تسليم · {a.gradedCount} مصحّح
+                {t('tCourseDetail.submittedGraded', { submitted: String(a.submittedCount), graded: String(a.gradedCount) })}
               </div>
             </Link>
           ))}
@@ -223,8 +226,10 @@ export function TeacherCourseDetailPage() {
       </div>
 
       <div>
-        <div className="mb-2.5 text-[15px] font-semibold text-navy">الطلاب المسجّلون ({data.students.length})</div>
-        {data.students.length === 0 && <div className="text-[13.5px] text-muted">لا يوجد طلاب مسجّلون بعد.</div>}
+        <div className="mb-2.5 text-[15px] font-semibold text-navy">
+          {t('tCourseDetail.enrolledStudents', { n: String(data.students.length) })}
+        </div>
+        {data.students.length === 0 && <div className="text-[13.5px] text-muted">{t('tCourseDetail.noStudents')}</div>}
         <div className="flex flex-col gap-2">
           {data.students.map((s) => (
             <div key={s.id} className="flex items-center justify-between rounded-lg border border-border bg-white p-3.5">
@@ -232,7 +237,7 @@ export function TeacherCourseDetailPage() {
                 <div className="text-[13.5px] font-semibold text-navy">{s.name}</div>
                 <div className="text-[12px] text-muted">@{s.username}</div>
               </div>
-              <div className="text-[12.5px] text-faint">{s.progress}% تقدّم</div>
+              <div className="text-[12.5px] text-faint">{t('tCourseDetail.progress', { n: String(s.progress) })}</div>
             </div>
           ))}
         </div>

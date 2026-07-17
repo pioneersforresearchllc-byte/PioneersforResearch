@@ -1,9 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/lib/i18n'
 import { listMyStudents } from '@/lib/courses'
 
 export function TeacherStudentsPage() {
   const { profile } = useAuth()
+  const { t } = useLanguage()
   const { data, isLoading } = useQuery({
     queryKey: ['my-students', profile?.id],
     enabled: !!profile,
@@ -12,10 +14,10 @@ export function TeacherStudentsPage() {
 
   return (
     <div>
-      <div className="mb-5 font-heading text-xl font-bold text-navy">الطلاب</div>
+      <div className="mb-5 font-heading text-xl font-bold text-navy">{t('tStudents.title')}</div>
 
-      {isLoading && <div className="text-muted">جارِ التحميل...</div>}
-      {data && data.length === 0 && <div className="text-muted">لا يوجد طلاب مسجّلون ببرامجك بعد.</div>}
+      {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
+      {data && data.length === 0 && <div className="text-muted">{t('tStudents.none')}</div>}
 
       <div className="flex flex-col gap-2.5">
         {(data ?? []).map((s) => (

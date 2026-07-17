@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/lib/i18n'
 import {
   createArticle,
   deleteArticle,
@@ -21,6 +22,7 @@ function ArticleForm({
   onClose: () => void
   onSaved: () => void
 }) {
+  const { t } = useLanguage()
   const [title, setTitle] = useState(article?.title ?? '')
   const [content, setContent] = useState(article?.content ?? '')
   const [imageUrl, setImageUrl] = useState(article?.image_url ?? null)
@@ -38,7 +40,7 @@ function ArticleForm({
 
   const save = async () => {
     if (!title.trim() || !content.trim()) {
-      setError('العنوان والمحتوى مطلوبان')
+      setError(t('tArticles.titleRequired'))
       return
     }
     setBusy(true)
@@ -52,7 +54,7 @@ function ArticleForm({
       onSaved()
       onClose()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'تعذر الحفظ')
+      setError(e instanceof Error ? e.message : t('tArticles.saveError'))
     } finally {
       setBusy(false)
     }
@@ -61,18 +63,20 @@ function ArticleForm({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="max-h-[85vh] w-full max-w-[520px] overflow-y-auto rounded-xl bg-white p-6" onClick={(e) => e.stopPropagation()}>
-        <div className="mb-4 font-heading text-lg font-bold text-navy">{article ? 'تعديل المقال' : 'مقال جديد'}</div>
+        <div className="mb-4 font-heading text-lg font-bold text-navy">
+          {article ? t('tArticles.editArticle') : t('tArticles.newArticle')}
+        </div>
         <div className="flex flex-col gap-3">
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="عنوان المقال"
+            placeholder={t('tArticles.titlePh')}
             className="rounded-md border border-border px-3.5 py-2.5 text-[14px]"
           />
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="محتوى المقال"
+            placeholder={t('tArticles.contentPh')}
             rows={6}
             className="resize-y rounded-md border border-border px-3.5 py-2.5 text-[14px]"
           />
@@ -87,10 +91,10 @@ function ArticleForm({
               disabled={busy}
               className="flex-1 rounded-md bg-navy py-2.75 text-[14px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
             >
-              {article ? 'حفظ التعديلات' : 'نشر المقال'}
+              {article ? t('tArticles.saveEdits') : t('tArticles.publish')}
             </button>
             <button onClick={onClose} className="rounded-md border border-border px-5 py-2.75 text-[14px] text-navy">
-              إلغاء
+              {t('dash.cancel')}
             </button>
           </div>
         </div>
@@ -101,6 +105,7 @@ function ArticleForm({
 
 export function TeacherArticlesPage() {
   const { profile } = useAuth()
+  const { t } = useLanguage()
   const queryClient = useQueryClient()
   const [editing, setEditing] = useState<Article | null | 'new'>(null)
 
@@ -113,7 +118,7 @@ export function TeacherArticlesPage() {
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ['my-articles', profile?.id] })
 
   const remove = async (id: string) => {
-    if (!confirm('حذف هذا المقال نهائيًا؟')) return
+    if (!confirm(t('tArticles.confirmDelete'))) return
     await deleteArticle(id)
     refresh()
   }
@@ -121,37 +126,37 @@ export function TeacherArticlesPage() {
   return (
     <div>
       <div className="mb-5 flex items-center justify-between">
-        <div className="font-heading text-xl font-bold text-navy">مقالاتي</div>
+        <div className="font-heading text-xl font-bold text-navy">{t('tArticles.title')}</div>
         <button
           onClick={() => setEditing('new')}
           className="rounded-md bg-navy px-4.5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-navy-hover"
         >
-          + مقال جديد
+          {t('tArticles.newBtn')}
         </button>
       </div>
 
-      {isLoading && <div className="text-muted">جارِ التحميل...</div>}
-      {data && data.length === 0 && <div className="text-muted">لسه ما نشرت أي مقال.</div>}
+      {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
+      {data && data.length === 0 && <div className="text-muted">{t('tArticles.none')}</div>}
 
       <div className="flex flex-col gap-2.5">
         {(data ?? []).map((a) => (
           <div key={a.id} className="flex items-center justify-between rounded-lg border border-border bg-white p-4">
             <div>
               <div className="text-[14px] font-semibold text-navy">{a.title}</div>
-              <div className="text-[12.5px] text-muted">{a.likes_count} إعجاب</div>
+              <div className="text-[12.5px] text-muted">{t('tArticles.likes', { n: String(a.likes_count) })}</div>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setEditing(a)}
                 className="rounded-md border border-border px-3.5 py-1.5 text-[12.5px] text-navy hover:border-navy"
               >
-                تعديل
+                {t('dash.edit')}
               </button>
               <button
                 onClick={() => void remove(a.id)}
                 className="rounded-md border border-border px-3.5 py-1.5 text-[12.5px] text-error hover:border-error"
               >
-                حذف
+                {t('dash.delete')}
               </button>
             </div>
           </div>

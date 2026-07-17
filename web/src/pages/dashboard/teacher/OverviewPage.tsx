@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/lib/i18n'
 import { listMyTaughtCourses } from '@/lib/courses'
 import { listAssignmentsForTeacher } from '@/lib/assignments'
 
 export function TeacherOverviewPage() {
   const { profile } = useAuth()
+  const { t } = useLanguage()
   const coursesQuery = useQuery({
     queryKey: ['my-taught-courses', profile?.id],
     enabled: !!profile,
@@ -21,21 +23,21 @@ export function TeacherOverviewPage() {
 
   return (
     <div>
-      <div className="mb-1.5 font-heading text-xl font-bold text-navy">أهلًا {profile?.name}</div>
-      <div className="mb-6 text-[13.5px] text-muted">نظرة سريعة على برامجك</div>
+      <div className="mb-1.5 font-heading text-xl font-bold text-navy">{t('tOverview.hello', { name: profile?.name ?? '' })}</div>
+      <div className="mb-6 text-[13.5px] text-muted">{t('tOverview.subtitle')}</div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-border bg-white p-5 text-center">
           <div className="font-heading text-[26px] font-bold text-navy">{coursesQuery.data?.length ?? 0}</div>
-          <div className="mt-1.5 text-[12.5px] text-muted">برامج مكلّف فيها</div>
+          <div className="mt-1.5 text-[12.5px] text-muted">{t('tOverview.myCourses')}</div>
         </div>
         <div className="rounded-xl border border-border bg-white p-5 text-center">
           <div className="font-heading text-[26px] font-bold text-navy">{totalStudents}</div>
-          <div className="mt-1.5 text-[12.5px] text-muted">إجمالي الطلاب</div>
+          <div className="mt-1.5 text-[12.5px] text-muted">{t('tOverview.totalStudents')}</div>
         </div>
         <div className="rounded-xl border border-border bg-white p-5 text-center">
           <div className="font-heading text-[26px] font-bold text-navy">{pendingReview}</div>
-          <div className="mt-1.5 text-[12.5px] text-muted">واجبات بانتظار التصحيح</div>
+          <div className="mt-1.5 text-[12.5px] text-muted">{t('tOverview.pendingReview')}</div>
         </div>
       </div>
     </div>
