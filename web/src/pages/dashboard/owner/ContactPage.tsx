@@ -1,7 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useLanguage } from '@/lib/i18n'
 import { listContactMessages, markContactMessageRead } from '@/lib/owner'
 
 export function OwnerContactPage() {
+  const { t } = useLanguage()
   const queryClient = useQueryClient()
   const { data, isLoading } = useQuery({ queryKey: ['contact-messages'], queryFn: listContactMessages })
 
@@ -12,10 +14,10 @@ export function OwnerContactPage() {
 
   return (
     <div>
-      <div className="mb-5 font-heading text-xl font-bold text-navy">رسائل التواصل</div>
+      <div className="mb-5 font-heading text-xl font-bold text-navy">{t('oContact.title')}</div>
 
-      {isLoading && <div className="text-muted">جارِ التحميل...</div>}
-      {data && data.length === 0 && <div className="text-muted">لا توجد رسائل بعد.</div>}
+      {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
+      {data && data.length === 0 && <div className="text-muted">{t('oContact.none')}</div>}
 
       <div className="flex flex-col gap-2.5">
         {(data ?? []).map((m) => (
@@ -33,7 +35,7 @@ export function OwnerContactPage() {
                 onClick={() => void markRead(m.id)}
                 className="rounded-md border border-navy px-3.5 py-1.5 text-[12px] text-navy hover:bg-white"
               >
-                تحديد كمقروءة
+                {t('oContact.markRead')}
               </button>
             )}
           </div>

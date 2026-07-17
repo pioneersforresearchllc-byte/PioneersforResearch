@@ -1,7 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useLanguage } from '@/lib/i18n'
 import { approveTeacher, listPendingTeachers, rejectTeacher, signCvFile } from '@/lib/teachers'
 
 export function OwnerApplicationsPage() {
+  const { t } = useLanguage()
   const queryClient = useQueryClient()
   const { data, isLoading } = useQuery({ queryKey: ['pending-teachers'], queryFn: listPendingTeachers })
 
@@ -12,7 +14,7 @@ export function OwnerApplicationsPage() {
     refresh()
   }
   const reject = async (id: string) => {
-    if (!confirm('رفض هذا الطلب؟')) return
+    if (!confirm(t('oApps.confirmReject'))) return
     await rejectTeacher(id)
     refresh()
   }
@@ -23,48 +25,48 @@ export function OwnerApplicationsPage() {
 
   return (
     <div>
-      <div className="mb-5 font-heading text-xl font-bold text-navy">طلبات المعلمين</div>
+      <div className="mb-5 font-heading text-xl font-bold text-navy">{t('oApps.title')}</div>
 
-      {isLoading && <div className="text-muted">جارِ التحميل...</div>}
-      {data && data.length === 0 && <div className="text-muted">لا توجد طلبات معلّقة.</div>}
+      {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
+      {data && data.length === 0 && <div className="text-muted">{t('oApps.none')}</div>}
 
       <div className="flex flex-col gap-4">
-        {(data ?? []).map((t) => (
-          <div key={t.id} className="rounded-xl border border-border bg-white p-5">
+        {(data ?? []).map((app) => (
+          <div key={app.id} className="rounded-xl border border-border bg-white p-5">
             <div className="mb-2 flex items-center justify-between">
-              <div className="text-[15.5px] font-semibold text-navy">{t.name}</div>
-              <span className="text-[12px] text-faint">@{t.username}</span>
+              <div className="text-[15.5px] font-semibold text-navy">{app.name}</div>
+              <span className="text-[12px] text-faint">@{app.username}</span>
             </div>
             <div className="mb-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-muted">
-              {t.specialty && <span>التخصص: {t.specialty}</span>}
-              {t.qualification && <span>المؤهل: {t.qualification}</span>}
-              {t.years_experience != null && <span>الخبرة: {t.years_experience} سنة</span>}
+              {app.specialty && <span>{t('oApps.specialtyLabel', { v: app.specialty })}</span>}
+              {app.qualification && <span>{t('oApps.qualificationLabel', { v: app.qualification })}</span>}
+              {app.years_experience != null && <span>{t('oApps.experienceLabel', { n: String(app.years_experience) })}</span>}
             </div>
-            {t.cv_text && (
+            {app.cv_text && (
               <div className="mb-3 whitespace-pre-wrap rounded-md bg-bg-soft p-3 text-[13px] leading-7 text-muted-2">
-                {t.cv_text}
+                {app.cv_text}
               </div>
             )}
-            {t.cv_file_url && (
+            {app.cv_file_url && (
               <button
-                onClick={() => void openCv(t.cv_file_url!)}
+                onClick={() => void openCv(app.cv_file_url!)}
                 className="mb-3 inline-block text-[12.5px] font-semibold text-navy underline"
               >
-                📎 تحميل ملف السيرة الذاتية
+                {t('oApps.downloadCv')}
               </button>
             )}
             <div className="flex gap-2.5">
               <button
-                onClick={() => void approve(t.id)}
+                onClick={() => void approve(app.id)}
                 className="rounded-md bg-success px-4.5 py-2 text-[13px] font-semibold text-white hover:opacity-90"
               >
-                قبول
+                {t('oApps.accept')}
               </button>
               <button
-                onClick={() => void reject(t.id)}
+                onClick={() => void reject(app.id)}
                 className="rounded-md border border-error px-4.5 py-2 text-[13px] text-error hover:bg-error-bg"
               >
-                رفض
+                {t('oApps.reject')}
               </button>
             </div>
           </div>

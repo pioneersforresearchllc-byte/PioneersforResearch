@@ -1,29 +1,29 @@
 import { useQuery } from '@tanstack/react-query'
+import { useLanguage } from '@/lib/i18n'
 import { getOverviewStats } from '@/lib/owner'
 
-function formatSar(cents: number) {
-  return `${(cents / 100).toLocaleString('ar-SA')} ريال`
-}
-
 export function OwnerOverviewPage() {
+  const { t } = useLanguage()
   const { data, isLoading } = useQuery({ queryKey: ['owner-overview-stats'], queryFn: getOverviewStats })
+
+  const formatSar = (cents: number) => `${(cents / 100).toLocaleString('en-US')} ${t('course.currency')}`
 
   const cards = data
     ? [
-        { label: 'طلبات معلمين معلّقة', value: data.pending_teacher_count },
-        { label: 'معلمون نشطون', value: data.approved_teacher_count },
-        { label: 'الدورات', value: data.courses_count },
-        { label: 'الطلاب', value: data.students_count },
-        { label: 'الإيرادات', value: formatSar(data.total_revenue_cents) },
-        { label: 'عدد مرات تسجيل الدخول', value: data.login_count },
-        { label: 'متوسط التقييم', value: data.overall_avg_rating.toFixed(1) },
+        { label: t('oOverview.pendingTeachers'), value: data.pending_teacher_count },
+        { label: t('oOverview.activeTeachers'), value: data.approved_teacher_count },
+        { label: t('oOverview.courses'), value: data.courses_count },
+        { label: t('oOverview.students'), value: data.students_count },
+        { label: t('oOverview.revenue'), value: formatSar(data.total_revenue_cents) },
+        { label: t('oOverview.logins'), value: data.login_count },
+        { label: t('oOverview.avgRating'), value: data.overall_avg_rating.toFixed(1) },
       ]
     : []
 
   return (
     <div>
-      <div className="mb-5 font-heading text-xl font-bold text-navy">نظرة عامة</div>
-      {isLoading && <div className="text-muted">جارِ التحميل...</div>}
+      <div className="mb-5 font-heading text-xl font-bold text-navy">{t('oOverview.title')}</div>
+      {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {cards.map((c) => (
           <div key={c.label} className="rounded-xl border border-border bg-white p-5 text-center">
