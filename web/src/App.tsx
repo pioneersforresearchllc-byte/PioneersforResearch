@@ -46,6 +46,7 @@ import { MyRequestsPage, MyRequestsRedirect } from '@/pages/dashboard/shared/MyR
 import { StudentOverviewPage } from '@/pages/dashboard/student/OverviewPage'
 import { TeacherOverviewPage } from '@/pages/dashboard/teacher/OverviewPage'
 import { TeacherStudentsPage } from '@/pages/dashboard/teacher/StudentsPage'
+import { TeacherAssignedRequestsPage } from '@/pages/dashboard/teacher/AssignedRequestsPage'
 
 const studentTabs: DashboardTab[] = [
   { key: 'overview', labelKey: 'tab.overview', to: '/student' },
@@ -66,6 +67,7 @@ const teacherTabs: DashboardTab[] = [
   { key: 'courses', labelKey: 'tab.coursesPrograms', to: '/teacher/courses' },
   { key: 'review', labelKey: 'tab.reviewAssignments', to: '/teacher/review' },
   { key: 'articles', labelKey: 'tab.myArticles', to: '/teacher/articles' },
+  { key: 'assigned', labelKey: 'tab.assignedRequests', to: '/teacher/assigned' },
   { key: 'requests', labelKey: 'tab.myRequests', to: '/teacher/requests' },
   { key: 'chat', labelKey: 'tab.messages', to: '/teacher/chat' },
   { key: 'account', labelKey: 'tab.myAccount', to: '/teacher/account' },
@@ -150,6 +152,7 @@ export default function App() {
             <Route path="/teacher/courses/:id" element={<TeacherCourseDetailPage />} />
             <Route path="/teacher/review" element={<TeacherReviewPage />} />
             <Route path="/teacher/articles" element={<TeacherArticlesPage />} />
+            <Route path="/teacher/assigned" element={<TeacherAssignedRequestsPage />} />
             <Route path="/teacher/requests" element={<MyRequestsPage />} />
             <Route path="/teacher/chat" element={<ChatPage />} />
             <Route path="/teacher/account" element={<AccountPage />} />

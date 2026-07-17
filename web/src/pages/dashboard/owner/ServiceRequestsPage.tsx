@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
+import { listActiveTeachers } from '@/lib/courses'
 import {
+  assignRequestTeacher,
   listServiceRequests,
   setRequestPrice,
   signRequestFile,
@@ -81,8 +83,14 @@ export function OwnerServiceRequestsPage() {
   const { t } = useLanguage()
   const queryClient = useQueryClient()
   const { data: requests, isLoading } = useQuery({ queryKey: ['service-requests'], queryFn: listServiceRequests })
+  const { data: teachers } = useQuery({ queryKey: ['active-teachers'], queryFn: listActiveTeachers })
 
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ['service-requests'] })
+
+  const assign = async (id: string, teacherId: string) => {
+    await assignRequestTeacher(id, teacherId || null)
+    refresh()
+  }
 
   const setStatus = async (id: string, status: RequestStatus) => {
     await updateRequestStatus(id, status)
@@ -176,6 +184,24 @@ export function OwnerServiceRequestsPage() {
                   {t('service.referenceUrl')}
                 </a>
               )}
+            </div>
+
+            <div className="mb-3 flex flex-wrap items-end gap-2 rounded-lg bg-bg-soft p-3">
+              <div>
+                <label className="mb-1 block text-[11.5px] font-semibold text-muted">{t('adminRequests.assignee')}</label>
+                <select
+                  value={r.assigned_teacher_id ?? ''}
+                  onChange={(e) => void assign(r.id, e.target.value)}
+                  className="w-48 rounded-md border border-border px-2.5 py-1.5 text-[13px]"
+                >
+                  <option value="">{t('adminRequests.unassigned')}</option>
+                  {(teachers ?? []).map((tt) => (
+                    <option key={tt.id} value={tt.id}>
+                      {tt.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <PriceControl request={r} onSaved={refresh} />

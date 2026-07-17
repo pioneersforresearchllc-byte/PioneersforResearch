@@ -119,22 +119,48 @@ export interface ServiceRequestRow extends ServiceRequestInput {
   id: string
   status: RequestStatus
   final_price_cents: number | null
+  assigned_teacher_id: string | null
   created_at: string
   serviceTitle: string
   packageTitle: string | null
+  assigneeName: string | null
+}
+
+const REQUEST_SELECT =
+  '*, service:services(title), package:service_packages(title), assignee:profiles!service_requests_assigned_teacher_id_fkey(name)'
+
+function mapRequest(r: Record<string, unknown>): ServiceRequestRow {
+  return {
+    ...(r as unknown as ServiceRequestRow),
+    serviceTitle: (r.service as { title: string } | null)?.title ?? '',
+    packageTitle: (r.package as { title: string } | null)?.title ?? null,
+    assigneeName: (r.assignee as { name: string } | null)?.name ?? null,
+  }
 }
 
 export async function listServiceRequests(): Promise<ServiceRequestRow[]> {
   const { data, error } = await supabase
     .from('service_requests')
-    .select('*, service:services(title), package:service_packages(title)')
+    .select(REQUEST_SELECT)
     .order('created_at', { ascending: false })
   if (error) throw error
-  return (data ?? []).map((r) => ({
-    ...(r as unknown as ServiceRequestRow),
-    serviceTitle: (r.service as unknown as { title: string } | null)?.title ?? '',
-    packageTitle: (r.package as unknown as { title: string } | null)?.title ?? null,
-  }))
+  return (data ?? []).map(mapRequest)
+}
+
+/** Requests the owner has put on this teacher's plate. */
+export async function listAssignedRequests(teacherId: string): Promise<ServiceRequestRow[]> {
+  const { data, error } = await supabase
+    .from('service_requests')
+    .select(REQUEST_SELECT)
+    .eq('assigned_teacher_id', teacherId)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []).map(mapRequest)
+}
+
+export async function assignRequestTeacher(id: string, teacherId: string | null) {
+  const { error } = await supabase.from('service_requests').update({ assigned_teacher_id: teacherId }).eq('id', id)
+  if (error) throw error
 }
 
 export async function updateRequestStatus(id: string, status: RequestStatus) {
@@ -163,15 +189,11 @@ export async function setRequestPrice(id: string, finalPriceCents: number) {
 export async function listMyServiceRequests(userId: string): Promise<ServiceRequestRow[]> {
   const { data, error } = await supabase
     .from('service_requests')
-    .select('*, service:services(title), package:service_packages(title)')
+    .select(REQUEST_SELECT)
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
   if (error) throw error
-  return (data ?? []).map((r) => ({
-    ...(r as unknown as ServiceRequestRow),
-    serviceTitle: (r.service as unknown as { title: string } | null)?.title ?? '',
-    packageTitle: (r.package as unknown as { title: string } | null)?.title ?? null,
-  }))
+  return (data ?? []).map(mapRequest)
 }
 
 /** Starts Stripe Checkout for a priced request; returns the hosted page URL. */

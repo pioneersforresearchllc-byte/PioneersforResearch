@@ -488,6 +488,22 @@ export const translations = {
   'adminRequests.status.cancelled': { ar: 'ملغي', en: 'Cancelled' },
   'adminRequests.finalPrice': { ar: 'السعر النهائي (دولار)', en: 'Final price (USD)' },
   'adminRequests.requestPayment': { ar: 'اطلب الدفع', en: 'Request payment' },
+  'adminRequests.assignee': { ar: 'المعلم المكلّف', en: 'Assigned teacher' },
+  'adminRequests.unassigned': { ar: 'بدون تكليف', en: 'Unassigned' },
+
+  'assignedRequests.title': { ar: 'الخدمات المكلّف بها', en: 'Assigned Services' },
+  'assignedRequests.subtitle': {
+    ar: 'طلبات الخدمات التي كلّفتك بها الإدارة',
+    en: 'Service requests the admin has assigned to you',
+  },
+  'assignedRequests.empty': { ar: 'لا توجد خدمات مكلّف بها حاليًا.', en: 'No services assigned to you right now.' },
+  'assignedRequests.start': { ar: 'ابدأ التنفيذ', en: 'Start work' },
+  'assignedRequests.markDone': { ar: 'تم التسليم', en: 'Mark delivered' },
+  'assignedRequests.waitingPayment': {
+    ar: 'بانتظار إتمام العميل للدفع قبل بدء التنفيذ.',
+    en: 'Waiting for the customer to pay before work can start.',
+  },
+  'tab.assignedRequests': { ar: 'الخدمات المكلّف بها', en: 'Assigned Services' },
 
   'myRequests.title': { ar: 'طلباتي', en: 'My Requests' },
   'myRequests.empty': { ar: 'لم ترسل أي طلب خدمة بعد.', en: "You haven't submitted any service request yet." },
