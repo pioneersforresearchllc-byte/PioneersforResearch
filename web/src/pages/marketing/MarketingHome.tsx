@@ -127,7 +127,7 @@ function OfferingSection({
   soft,
 }: {
   id: string
-  eyebrow: string
+  eyebrow?: string
   title: string
   empty: string
   ctaLabel: string
@@ -138,7 +138,7 @@ function OfferingSection({
   return (
     <div id={id} className={`px-4 py-12 md:px-16 md:py-20 ${soft ? 'bg-bg-soft' : ''}`}>
       <div className="mb-12.5 text-center">
-        <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-accent">{eyebrow}</div>
+        {eyebrow && <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-accent">{eyebrow}</div>}
         <h2 className="font-heading text-2xl font-bold md:text-[30px]">{title}</h2>
       </div>
       {items.length > 0 ? (
@@ -303,8 +303,7 @@ export function MarketingHome() {
       {!isTeacherSession && (
         <OfferingSection
           id="programs"
-          eyebrow={t('home.programs.eyebrow')}
-          title={t('home.programs.title')}
+          title={t('home.programs.eyebrow')}
           empty={t('home.programs.empty')}
           ctaLabel={t('home.programs.subscribe')}
           items={(courses ?? []).filter((c) => c.kind === 'program')}
