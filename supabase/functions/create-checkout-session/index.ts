@@ -81,7 +81,7 @@ async function handle(req: Request): Promise<Response> {
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).maybeSingle()
   if (!profile || profile.role !== 'student') return json({ error: 'students only' }, 403)
 
-  let body: { courseId?: string }
+  let body: { courseId?: string; code?: string }
   try {
     body = await req.json()
   } catch {
@@ -114,6 +114,25 @@ async function handle(req: Request): Promise<Response> {
     if ((count ?? 0) >= course.capacity) return json({ error: 'course is full' }, 409)
   }
 
+  // Optional discount code: validated server-side against this course and the
+  // current date. An invalid/expired code is rejected.
+  let unitAmount = course.price_cents
+  const code = (body.code || '').trim()
+  if (code) {
+    const nowIso = new Date().toISOString()
+    const { data: dcs } = await admin
+      .from('discount_codes')
+      .select('percent_off, starts_at, ends_at')
+      .ilike('code', code)
+      .eq('active', true)
+      .eq('course_id', courseId)
+    const dc = (dcs ?? []).find(
+      (d) => (!d.starts_at || d.starts_at <= nowIso) && (!d.ends_at || d.ends_at >= nowIso),
+    )
+    if (!dc) return json({ error: 'invalid_code' }, 400)
+    unitAmount = Math.max(50, Math.round((course.price_cents * (100 - dc.percent_off)) / 100))
+  }
+
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     payment_method_types: ['card'],
@@ -123,7 +142,7 @@ async function handle(req: Request): Promise<Response> {
         price_data: {
           currency: CURRENCY,
           product_data: { name: course.title },
-          unit_amount: course.price_cents,
+          unit_amount: unitAmount,
         },
         quantity: 1,
       },
@@ -136,7 +155,7 @@ async function handle(req: Request): Promise<Response> {
   const { error: insertErr } = await admin.from('payments').insert({
     course_id: courseId,
     student_id: user.id,
-    amount_cents: course.price_cents,
+    amount_cents: unitAmount,
     provider: 'stripe',
     provider_ref: session.id,
     status: 'pending',

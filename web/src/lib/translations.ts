@@ -845,4 +845,30 @@ export const translations = {
   'cms.team.confirmDelete': { ar: 'حذف هذا العضو؟', en: 'Delete this member?' },
   'cms.team.visible': { ar: 'ظاهر', en: 'Visible' },
   'cms.team.empty': { ar: 'لا يوجد أعضاء بعد — تظهر القائمة الافتراضية.', en: 'No members yet — the default list shows.' },
+
+  // Discounts (owner)
+  'tab.discounts': { ar: 'التخفيضات', en: 'Promotions' },
+  'disc.title': { ar: 'أكواد التخفيض', en: 'Discount codes' },
+  'disc.newTitle': { ar: 'كود جديد', en: 'New code' },
+  'disc.codePh': { ar: 'الكود (مثل SAVE20)', en: 'Code (e.g. SAVE20)' },
+  'disc.percentPh': { ar: 'نسبة التخفيض %', en: 'Discount %' },
+  'disc.targetType': { ar: 'يُطبّق على', en: 'Applies to' },
+  'disc.course': { ar: 'دورة', en: 'Course' },
+  'disc.service': { ar: 'خدمة', en: 'Service' },
+  'disc.selectTarget': { ar: 'اختر...', en: 'Select…' },
+  'disc.startsAt': { ar: 'يبدأ (اختياري)', en: 'Starts (optional)' },
+  'disc.endsAt': { ar: 'ينتهي (اختياري)', en: 'Ends (optional)' },
+  'disc.create': { ar: 'إنشاء الكود', en: 'Create code' },
+  'disc.creating': { ar: 'جارٍ الإنشاء...', en: 'Creating…' },
+  'disc.empty': { ar: 'لا توجد أكواد بعد.', en: 'No codes yet.' },
+  'disc.active': { ar: 'مفعّل', en: 'Active' },
+  'disc.inactive': { ar: 'موقوف', en: 'Inactive' },
+  'disc.confirmDelete': { ar: 'حذف هذا الكود؟', en: 'Delete this code?' },
+  'disc.fillFields': { ar: 'أدخل الكود والنسبة والهدف.', en: 'Enter a code, percentage and target.' },
+  'disc.noEnd': { ar: 'بلا نهاية', en: 'No end date' },
+  'disc.createError': { ar: 'تعذّر إنشاء الكود (قد يكون مكررًا).', en: 'Could not create the code (it may already exist).' },
+
+  // Discount code at checkout (customer)
+  'checkout.promoPh': { ar: 'كود التخفيض (اختياري)', en: 'Discount code (optional)' },
+  'checkout.invalidCode': { ar: 'كود التخفيض غير صالح أو منتهٍ.', en: 'The discount code is invalid or expired.' },
 } as const satisfies Record<string, { ar: string; en: string }>

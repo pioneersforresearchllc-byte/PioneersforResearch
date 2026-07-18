@@ -102,6 +102,7 @@ export function CourseDetailPage() {
   const { data: alreadyEnrolled } = useMyEnrollment(id, profile?.role === 'student' ? profile.id : undefined)
   const [enrollBusy, setEnrollBusy] = useState(false)
   const [enrollError, setEnrollError] = useState('')
+  const [promoCode, setPromoCode] = useState('')
   const paymentStatus = searchParams.get('payment')
   const studentId = profile?.role === 'student' ? profile.id : undefined
 
@@ -159,11 +160,12 @@ export function CourseDetailPage() {
     setEnrollError('')
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: { courseId: course.id },
+        body: { courseId: course.id, code: promoCode.trim() || undefined },
       })
       const result = data as { url?: string; error?: string } | null
       if (error || !result?.url) {
-        setEnrollError(result?.error || t('course.enrollError'))
+        const reason = result?.error || (error instanceof Error ? error.message : '')
+        setEnrollError(reason.includes('invalid_code') ? t('checkout.invalidCode') : reason || t('course.enrollError'))
         return
       }
       window.location.href = result.url
@@ -254,21 +256,31 @@ export function CourseDetailPage() {
                 {t('course.alreadyEnrolled')}
               </Link>
             ) : (
-              <button
-                onClick={() => void subscribe()}
-                disabled={enrollBusy || isFull}
-                className="w-full rounded-md bg-navy py-4 text-[15px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
-              >
-                {isFull
-                  ? t('course.full')
-                  : enrollBusy
-                    ? course.price_cents === 0
-                      ? t('course.enrolling')
-                      : t('course.redirectingToPayment')
-                    : course.price_cents === 0
-                      ? t('course.enrollFree')
-                      : t('course.subscribeAndPay', { price: formatSar(course.price_cents, t) })}
-              </button>
+              <>
+                {course.price_cents > 0 && !isFull && (
+                  <input
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                    placeholder={t('checkout.promoPh')}
+                    className="mb-2.5 w-full rounded-md border border-border px-3.5 py-2.5 text-[14px]"
+                  />
+                )}
+                <button
+                  onClick={() => void subscribe()}
+                  disabled={enrollBusy || isFull}
+                  className="w-full rounded-md bg-navy py-4 text-[15px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+                >
+                  {isFull
+                    ? t('course.full')
+                    : enrollBusy
+                      ? course.price_cents === 0
+                        ? t('course.enrolling')
+                        : t('course.redirectingToPayment')
+                      : course.price_cents === 0
+                        ? t('course.enrollFree')
+                        : t('course.subscribeAndPay', { price: formatSar(course.price_cents, t) })}
+                </button>
+              </>
             )}
           </>
         )}

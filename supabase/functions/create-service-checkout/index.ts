@@ -73,7 +73,7 @@ async function handle(req: Request): Promise<Response> {
   } = await userClient.auth.getUser()
   if (userErr || !user || !user.email) return json({ error: 'unauthorized' }, 401)
 
-  let body: { requestId?: string }
+  let body: { requestId?: string; code?: string }
   try {
     body = await req.json()
   } catch {
@@ -86,7 +86,7 @@ async function handle(req: Request): Promise<Response> {
 
   const { data: request } = await admin
     .from('service_requests')
-    .select('id, user_id, subject, status, final_price_cents, service:services(title)')
+    .select('id, user_id, subject, status, final_price_cents, service_id, service:services(title)')
     .eq('id', requestId)
     .maybeSingle()
   if (!request) return json({ error: 'request not found' }, 404)
@@ -96,6 +96,26 @@ async function handle(req: Request): Promise<Response> {
   if (request.status !== 'awaiting_payment') return json({ error: 'request is not awaiting payment' }, 409)
   if (!request.final_price_cents || request.final_price_cents <= 0) {
     return json({ error: 'request has no price set' }, 409)
+  }
+
+  // Optional discount code: validated server-side against this service and the
+  // current date. An invalid/expired code is rejected so the client can tell
+  // the customer, rather than silently charging full price.
+  let unitAmount = request.final_price_cents
+  const code = (body.code || '').trim()
+  if (code) {
+    const nowIso = new Date().toISOString()
+    const { data: dcs } = await admin
+      .from('discount_codes')
+      .select('percent_off, starts_at, ends_at')
+      .ilike('code', code)
+      .eq('active', true)
+      .eq('service_id', request.service_id)
+    const dc = (dcs ?? []).find(
+      (d) => (!d.starts_at || d.starts_at <= nowIso) && (!d.ends_at || d.ends_at >= nowIso),
+    )
+    if (!dc) return json({ error: 'invalid_code' }, 400)
+    unitAmount = Math.max(50, Math.round((request.final_price_cents * (100 - dc.percent_off)) / 100))
   }
 
   const serviceTitle = (request.service as unknown as { title: string } | null)?.title ?? 'Service'
@@ -109,7 +129,7 @@ async function handle(req: Request): Promise<Response> {
         price_data: {
           currency: CURRENCY,
           product_data: { name: `${serviceTitle} — ${request.subject}` },
-          unit_amount: request.final_price_cents,
+          unit_amount: unitAmount,
         },
         quantity: 1,
       },
@@ -122,7 +142,7 @@ async function handle(req: Request): Promise<Response> {
   const { error: insertErr } = await admin.from('payments').insert({
     service_request_id: requestId,
     student_id: user.id,
-    amount_cents: request.final_price_cents,
+    amount_cents: unitAmount,
     provider: 'stripe',
     provider_ref: session.id,
     status: 'pending',

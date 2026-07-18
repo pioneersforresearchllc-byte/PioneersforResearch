@@ -36,6 +36,7 @@ export function MyRequestsPage() {
   // Ids that had an unseen development on this page load — highlighted so the
   // requester can spot what changed, even after we clear the flag below.
   const [highlightIds, setHighlightIds] = useState<Set<string>>(new Set())
+  const [promo, setPromo] = useState<Record<string, string>>({})
   const seenCleared = useRef(false)
 
   const { data: requests, isLoading } = useQuery({
@@ -75,10 +76,11 @@ export function MyRequestsPage() {
     setPayingId(id)
     setError('')
     try {
-      const url = await startServiceCheckout(id)
+      const url = await startServiceCheckout(id, promo[id])
       window.location.href = url
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('myRequests.payError'))
+      const msg = e instanceof Error ? e.message : ''
+      setError(msg.includes('invalid_code') ? t('checkout.invalidCode') : msg || t('myRequests.payError'))
       setPayingId(null)
     }
   }
@@ -132,13 +134,21 @@ export function MyRequestsPage() {
                     {(r.final_price_cents / 100).toLocaleString('ar-SA')} {t('course.currency')}
                   </span>
                 </div>
-                <button
-                  onClick={() => void pay(r.id)}
-                  disabled={payingId === r.id}
-                  className="rounded-md bg-navy px-5 py-2.25 text-[13.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-60"
-                >
-                  {payingId === r.id ? '...' : t('myRequests.payNow')}
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    value={promo[r.id] ?? ''}
+                    onChange={(e) => setPromo((p) => ({ ...p, [r.id]: e.target.value.toUpperCase() }))}
+                    placeholder={t('checkout.promoPh')}
+                    className="w-40 rounded-md border border-border px-3 py-2 text-[13px]"
+                  />
+                  <button
+                    onClick={() => void pay(r.id)}
+                    disabled={payingId === r.id}
+                    className="rounded-md bg-navy px-5 py-2.25 text-[13.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-60"
+                  >
+                    {payingId === r.id ? '...' : t('myRequests.payNow')}
+                  </button>
+                </div>
               </div>
             )}
 
