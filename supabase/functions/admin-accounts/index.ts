@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
   if (body.action === 'list') {
     const { data: profiles, error: profErr } = await admin
       .from('profiles')
-      .select('id, name, username, role, status, is_temp_admin')
+      .select('id, name, username, role, status, is_temp_admin, created_at')
       .order('created_at', { ascending: false })
     if (profErr) return json({ error: profErr.message }, 500)
 

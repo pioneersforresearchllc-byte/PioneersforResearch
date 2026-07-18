@@ -25,6 +25,7 @@ export interface AccountRow {
   is_temp_admin: boolean
   email: string | null
   last_sign_in_at: string | null
+  created_at: string
 }
 
 export async function listAllAccounts(): Promise<AccountRow[]> {

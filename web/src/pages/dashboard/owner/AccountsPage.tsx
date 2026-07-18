@@ -69,21 +69,35 @@ function PasswordControl({ account }: { account: AccountRow }) {
   )
 }
 
+type RoleFilter = 'all' | 'student' | 'teacher' | 'admin'
+
 export function OwnerAccountsPage() {
   const { t, lang } = useLanguage()
   const [search, setSearch] = useState('')
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
   const { data, isLoading, isError } = useQuery({ queryKey: ['admin-accounts'], queryFn: listAllAccounts })
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    if (!q) return data ?? []
-    return (data ?? []).filter(
-      (a) =>
+    return (data ?? []).filter((a) => {
+      const matchesRole =
+        roleFilter === 'all' ||
+        (roleFilter === 'admin' ? a.role === 'owner' : a.role === roleFilter)
+      const matchesSearch =
+        !q ||
         a.name.toLowerCase().includes(q) ||
         a.username.toLowerCase().includes(q) ||
-        (a.email ?? '').toLowerCase().includes(q),
-    )
-  }, [data, search])
+        (a.email ?? '').toLowerCase().includes(q)
+      return matchesRole && matchesSearch
+    })
+  }, [data, search, roleFilter])
+
+  const filters: { key: RoleFilter; label: string }[] = [
+    { key: 'all', label: t('adminAccounts.filterAll') },
+    { key: 'student', label: t('adminAccounts.filterStudents') },
+    { key: 'teacher', label: t('adminAccounts.filterTeachers') },
+    { key: 'admin', label: t('adminAccounts.filterAdmins') },
+  ]
 
   const roleLabel = (role: string) =>
     role === 'teacher' ? t('role.teacher') : role === 'owner' ? t('role.owner') : t('role.student')
@@ -97,20 +111,38 @@ export function OwnerAccountsPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder={t('adminAccounts.searchPh')}
-        className="mb-4 w-full max-w-100 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
+        className="mb-3 w-full max-w-100 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
       />
+
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        {filters.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setRoleFilter(f.key)}
+            className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold ${
+              roleFilter === f.key ? 'bg-navy text-white' : 'border border-border text-navy hover:border-navy'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+        {!isLoading && !isError && (
+          <span className="text-[12.5px] text-muted">{t('adminAccounts.countLabel', { n: String(filtered.length) })}</span>
+        )}
+      </div>
 
       {isLoading && <div className="text-muted">{t('adminAccounts.loading')}</div>}
       {isError && <div className="text-error">{t('adminAccounts.loadFailed')}</div>}
 
       {!isLoading && !isError && (
         <div className="overflow-x-auto rounded-xl border border-border bg-white">
-          <table className="w-full min-w-[640px] text-right text-[13.5px]">
+          <table className="w-full min-w-[760px] text-right text-[13.5px]">
             <thead>
               <tr className="border-b border-border text-[12.5px] text-muted">
                 <th className="p-3 font-semibold">{t('adminAccounts.colName')}</th>
                 <th className="p-3 font-semibold">{t('adminAccounts.colRole')}</th>
                 <th className="p-3 font-semibold">{t('adminAccounts.colEmail')}</th>
+                <th className="p-3 font-semibold">{t('adminAccounts.colRegistered')}</th>
                 <th className="p-3 font-semibold">{t('adminAccounts.colLastActive')}</th>
                 <th className="p-3 font-semibold">{t('adminAccounts.colActions')}</th>
               </tr>
@@ -128,6 +160,7 @@ export function OwnerAccountsPage() {
                     </span>
                   </td>
                   <td className="p-3 text-muted">{a.email ?? '—'}</td>
+                  <td className="p-3 text-muted">{formatDate(a.created_at, lang, '—')}</td>
                   <td className="p-3 text-muted">{formatDate(a.last_sign_in_at, lang, t('adminAccounts.never'))}</td>
                   <td className="p-3">
                     <PasswordControl account={a} />
