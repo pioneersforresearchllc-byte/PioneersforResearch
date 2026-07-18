@@ -199,7 +199,21 @@ export async function listMyServiceRequests(userId: string): Promise<ServiceRequ
 /** Starts Stripe Checkout for a priced request; returns the hosted page URL. */
 export async function startServiceCheckout(requestId: string): Promise<string> {
   const { data, error } = await supabase.functions.invoke('create-service-checkout', { body: { requestId } })
-  if (error) throw error
+  if (error) {
+    // On a non-2xx the SDK only gives a generic message; the useful detail is
+    // in the response body it attached to error.context. Surface that instead.
+    const ctx = (error as { context?: Response }).context
+    if (ctx && typeof ctx.text === 'function') {
+      try {
+        const raw = await ctx.text()
+        const parsed = JSON.parse(raw) as { error?: string }
+        throw new Error(parsed.error || raw || error.message)
+      } catch (e) {
+        if (e instanceof Error && e.message) throw e
+      }
+    }
+    throw error
+  }
   const result = data as { url?: string; error?: string }
   if (result.error || !result.url) throw new Error(result.error || 'checkout failed')
   return result.url
