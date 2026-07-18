@@ -3,11 +3,13 @@ import { translations } from '@/lib/translations'
 
 export type Lang = 'ar' | 'en'
 
+export type TranslateFn = (key: keyof typeof translations, vars?: Record<string, string>) => string
+
 interface LanguageContextValue {
   lang: Lang
   dir: 'rtl' | 'ltr'
   toggleLang: () => void
-  t: (key: keyof typeof translations, vars?: Record<string, string>) => string
+  t: TranslateFn
 }
 
 const LanguageContext = createContext<LanguageContextValue | undefined>(undefined)

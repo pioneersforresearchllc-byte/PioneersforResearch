@@ -4,6 +4,7 @@ import type { ChatProfile } from '@/types/chat'
 import { Avatar } from '@/pages/dashboard/chat/Avatar'
 import { XIcon } from '@/pages/dashboard/chat/Icons'
 import { createGroup, findOrCreateDm, searchEligibleUsers } from '@/lib/chat'
+import { useLanguage } from '@/lib/i18n'
 
 interface NewConversationModalProps {
   myUserId: string
@@ -13,6 +14,7 @@ interface NewConversationModalProps {
 }
 
 export function NewConversationModal({ myUserId, myRole, onClose, onCreated }: NewConversationModalProps) {
+  const { t } = useLanguage()
   const canCreateGroup = myRole === 'teacher' || myRole === 'owner'
   const [mode, setMode] = useState<'dm' | 'group'>('dm')
   const [query, setQuery] = useState('')
@@ -63,7 +65,7 @@ export function NewConversationModal({ myUserId, myRole, onClose, onCreated }: N
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <div className="font-heading text-lg font-bold text-navy">محادثة جديدة</div>
+          <div className="font-heading text-lg font-bold text-navy">{t('chat.newConversation')}</div>
           <button onClick={onClose} className="p-1 text-muted hover:text-navy">
             <XIcon />
           </button>
@@ -77,7 +79,7 @@ export function NewConversationModal({ myUserId, myRole, onClose, onCreated }: N
                 mode === 'dm' ? 'bg-navy text-white' : 'bg-transparent text-navy'
               }`}
             >
-              رسالة مباشرة
+              {t('chat.directMessage')}
             </button>
             <button
               onClick={() => setMode('group')}
@@ -85,7 +87,7 @@ export function NewConversationModal({ myUserId, myRole, onClose, onCreated }: N
                 mode === 'group' ? 'bg-navy text-white' : 'bg-transparent text-navy'
               }`}
             >
-              إنشاء قروب
+              {t('chat.createGroup')}
             </button>
           </div>
         )}
@@ -94,7 +96,7 @@ export function NewConversationModal({ myUserId, myRole, onClose, onCreated }: N
           <input
             value={groupName}
             onChange={(e) => setGroupName(e.target.value)}
-            placeholder="اسم القروب"
+            placeholder={t('chat.groupNamePh')}
             className="mb-3 w-full box-border rounded-md border border-border px-3 py-2.5 text-[14px]"
           />
         )}
@@ -116,12 +118,12 @@ export function NewConversationModal({ myUserId, myRole, onClose, onCreated }: N
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="ابحث بالاسم أو اسم المستخدم..."
+          placeholder={t('chat.searchByNameOrUsername')}
           className="mb-3 w-full box-border rounded-md border border-border px-3 py-2.5 text-[14px]"
         />
 
         <div className="flex-1 overflow-y-auto">
-          {results.length === 0 && <div className="p-3 text-center text-[13px] text-muted">لا نتائج</div>}
+          {results.length === 0 && <div className="p-3 text-center text-[13px] text-muted">{t('chat.noResults')}</div>}
           {results.map((u) => {
             const isSelected = selected.some((p) => p.id === u.id)
             return (
@@ -150,7 +152,7 @@ export function NewConversationModal({ myUserId, myRole, onClose, onCreated }: N
             disabled={busy || !groupName.trim() || selected.length === 0}
             className="mt-3 rounded-md bg-navy py-2.5 text-[14px] font-semibold text-white hover:bg-navy-hover disabled:opacity-40"
           >
-            إنشاء القروب
+            {t('chat.createGroupBtn')}
           </button>
         )}
       </div>

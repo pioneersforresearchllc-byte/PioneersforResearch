@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/lib/i18n'
 import type { Message } from '@/types/chat'
 import { Avatar } from '@/pages/dashboard/chat/Avatar'
 import { UsersIcon } from '@/pages/dashboard/chat/Icons'
@@ -20,6 +21,7 @@ import {
 
 export function ChatPage() {
   const { profile } = useAuth()
+  const { t } = useLanguage()
   const queryClient = useQueryClient()
   const [activeId, setActiveId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
@@ -108,7 +110,7 @@ export function ChatPage() {
       />
 
       {!activeConversation && (
-        <div className="hidden flex-1 items-center justify-center text-[14px] text-muted md:flex">اختر محادثة أو ابدأ محادثة جديدة</div>
+        <div className="hidden flex-1 items-center justify-center text-[14px] text-muted md:flex">{t('chat.emptyState')}</div>
       )}
 
       {activeConversation && (
@@ -137,7 +139,7 @@ export function ChatPage() {
                   {activeConversation.type === 'group' ? activeConversation.name : activeConversation.otherMember?.name}
                 </div>
                 {activeConversation.type === 'group' && (
-                  <div className="text-[12px] text-muted">{activeConversation.members.length} أعضاء</div>
+                  <div className="text-[12px] text-muted">{t('chat.membersCount', { count: String(activeConversation.members.length) })}</div>
                 )}
               </div>
             </div>
@@ -146,7 +148,7 @@ export function ChatPage() {
                 onClick={() => setShowGroupInfo((v) => !v)}
                 className="rounded-md border border-border px-3 py-1.5 text-[12.5px] text-navy hover:border-navy"
               >
-                معلومات القروب
+                {t('chat.groupInfo')}
               </button>
             )}
           </div>

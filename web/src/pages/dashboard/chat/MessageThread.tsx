@@ -4,6 +4,7 @@ import type { Message } from '@/types/chat'
 import { Avatar } from '@/pages/dashboard/chat/Avatar'
 import { FileIcon, MoreIcon, ReplyIcon } from '@/pages/dashboard/chat/Icons'
 import { canDeleteMessage, canEditMessage, deleteMessage, editMessage, signChatAttachment } from '@/lib/chat'
+import { useLanguage } from '@/lib/i18n'
 
 // The AI bot suggests pages using markdown-link syntax, e.g.
 // "...[إنشاء حساب طالب](/register)". Pull those out so they render as
@@ -38,15 +39,16 @@ function useSignedUrl(path: string | null) {
   return url
 }
 
-function formatTime(ts: string) {
-  return new Date(ts).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+function formatTime(ts: string, lang: string) {
+  return new Date(ts).toLocaleTimeString(lang === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' })
 }
 
 function Attachment({ m }: { m: Message }) {
+  const { t } = useLanguage()
   const url = useSignedUrl(m.attachment_url)
   if (!m.attachment_kind || !url) return null
   if (m.attachment_kind === 'image') {
-    return <img src={url} alt={m.attachment_name ?? 'صورة'} className="mt-1.5 max-w-[220px] rounded-lg" />
+    return <img src={url} alt={m.attachment_name ?? t('chat.image')} className="mt-1.5 max-w-[220px] rounded-lg" />
   }
   if (m.attachment_kind === 'audio') {
     return <audio controls src={url} className="mt-1.5 max-w-[220px]" />
@@ -59,7 +61,7 @@ function Attachment({ m }: { m: Message }) {
       className="mt-1.5 flex items-center gap-2 rounded-lg border border-border-2 bg-white px-3 py-2 text-[13px] text-navy no-underline"
     >
       <FileIcon />
-      <span className="truncate">{m.attachment_name ?? 'ملف'}</span>
+      <span className="truncate">{m.attachment_name ?? t('chat.file')}</span>
     </a>
   )
 }
@@ -74,6 +76,7 @@ interface MessageBubbleProps {
 }
 
 function MessageBubble({ m, isMine, showSender, myUserId, onReply, onChanged }: MessageBubbleProps) {
+  const { t, lang } = useLanguage()
   const [menuOpen, setMenuOpen] = useState(false)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(m.text ?? '')
@@ -82,7 +85,7 @@ function MessageBubble({ m, isMine, showSender, myUserId, onReply, onChanged }: 
     return (
       <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} px-2 py-0.5`}>
         <div className="max-w-[65%] rounded-2xl bg-[#eef1f5] px-4 py-2 text-[13px] italic text-muted">
-          تم حذف هذه الرسالة
+          {t('chat.thisMessageDeleted')}
         </div>
       </div>
     )
@@ -128,7 +131,7 @@ function MessageBubble({ m, isMine, showSender, myUserId, onReply, onChanged }: 
                       }}
                       className="block w-full px-3 py-1.5 text-right text-[13px] hover:bg-bg-soft"
                     >
-                      تعديل
+                      {t('chat.edit')}
                     </button>
                   )}
                   {canDelete && (
@@ -140,7 +143,7 @@ function MessageBubble({ m, isMine, showSender, myUserId, onReply, onChanged }: 
                       }}
                       className="block w-full px-3 py-1.5 text-right text-[13px] text-error hover:bg-error-bg"
                     >
-                      حذف
+                      {t('chat.delete')}
                     </button>
                   )}
                 </div>
@@ -168,7 +171,7 @@ function MessageBubble({ m, isMine, showSender, myUserId, onReply, onChanged }: 
               }`}
             >
               <div className="font-semibold">{m.replyTo.sender?.name ?? ''}</div>
-              <div className="truncate">{m.replyTo.deleted ? 'رسالة محذوفة' : (m.replyTo.text ?? 'مرفق')}</div>
+              <div className="truncate">{m.replyTo.deleted ? t('chat.deletedMessage') : (m.replyTo.text ?? t('chat.attachment'))}</div>
             </div>
           )}
 
@@ -182,10 +185,10 @@ function MessageBubble({ m, isMine, showSender, myUserId, onReply, onChanged }: 
               />
               <div className="flex justify-end gap-2 text-[12px]">
                 <button onClick={() => setEditing(false)} className="opacity-80">
-                  إلغاء
+                  {t('chat.cancel')}
                 </button>
                 <button onClick={() => void saveEdit()} className="font-semibold">
-                  حفظ
+                  {t('chat.save')}
                 </button>
               </div>
             </div>
@@ -222,8 +225,8 @@ function MessageBubble({ m, isMine, showSender, myUserId, onReply, onChanged }: 
           )}
         </div>
         <div className={`mt-0.5 flex gap-1 px-1 text-[11px] text-faint ${isMine ? 'justify-end' : 'justify-start'}`}>
-          {m.edited && <span>معدّلة ·</span>}
-          <span>{formatTime(m.created_at)}</span>
+          {m.edited && <span>{t('chat.edited')}</span>}
+          <span>{formatTime(m.created_at, lang)}</span>
         </div>
       </div>
     </div>

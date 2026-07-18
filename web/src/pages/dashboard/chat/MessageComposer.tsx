@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import type { Message } from '@/types/chat'
 import { PaperclipIcon, SendIcon, XIcon } from '@/pages/dashboard/chat/Icons'
 import { sendMessage, uploadChatAttachment } from '@/lib/chat'
+import { useLanguage } from '@/lib/i18n'
 
 interface MessageComposerProps {
   conversationId: string
@@ -12,6 +13,7 @@ interface MessageComposerProps {
 }
 
 export function MessageComposer({ conversationId, myUserId, replyTo, onCancelReply, onSent }: MessageComposerProps) {
+  const { t } = useLanguage()
   const [text, setText] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
@@ -45,8 +47,8 @@ export function MessageComposer({ conversationId, myUserId, replyTo, onCancelRep
       {replyTo && (
         <div className="mb-2 flex items-center justify-between rounded-lg bg-bg-soft px-3 py-2 text-[12.5px]">
           <div className="min-w-0">
-            <div className="font-semibold text-navy">الرد على {replyTo.sender?.name}</div>
-            <div className="truncate text-muted">{replyTo.deleted ? 'رسالة محذوفة' : (replyTo.text ?? 'مرفق')}</div>
+            <div className="font-semibold text-navy">{t('chat.replyingTo', { name: replyTo.sender?.name ?? '' })}</div>
+            <div className="truncate text-muted">{replyTo.deleted ? t('chat.deletedMessage') : (replyTo.text ?? t('chat.attachment'))}</div>
           </div>
           <button onClick={onCancelReply} className="shrink-0 p-1 text-muted hover:text-navy">
             <XIcon />
@@ -72,7 +74,7 @@ export function MessageComposer({ conversationId, myUserId, replyTo, onCancelRep
         <button
           onClick={() => fileInputRef.current?.click()}
           className="shrink-0 rounded-full border border-border p-2.5 text-muted hover:text-navy"
-          title="إرفاق ملف"
+          title={t('chat.attachFile')}
         >
           <PaperclipIcon />
         </button>
@@ -85,7 +87,7 @@ export function MessageComposer({ conversationId, myUserId, replyTo, onCancelRep
               void handleSend()
             }
           }}
-          placeholder="اكتب رسالة..."
+          placeholder={t('chat.typeMessage')}
           rows={1}
           className="max-h-28 flex-1 resize-none rounded-2xl border border-border px-4 py-2.5 text-[14px]"
         />

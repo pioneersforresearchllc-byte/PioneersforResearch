@@ -12,6 +12,7 @@ import {
   searchEligibleUsers,
 } from '@/lib/chat'
 import type { ChatProfile, JoinRequest } from '@/types/chat'
+import { useLanguage } from '@/lib/i18n'
 
 interface GroupInfoPanelProps {
   conversation: ConversationSummary
@@ -22,6 +23,7 @@ interface GroupInfoPanelProps {
 }
 
 export function GroupInfoPanel({ conversation, myUserId, myRole, onClose, onChanged }: GroupInfoPanelProps) {
+  const { t } = useLanguage()
   const isAdmin = conversation.isAdmin
   const [requests, setRequests] = useState<JoinRequest[]>([])
   const [addQuery, setAddQuery] = useState('')
@@ -53,7 +55,7 @@ export function GroupInfoPanel({ conversation, myUserId, myRole, onClose, onChan
 
   const handleApprove = async (req: JoinRequest) => {
     if (!isAdmin) {
-      setPermissionError('ليس لديك صلاحية في القبول — يجب أن يوافق أحد المشرفين على طلب الانضمام.')
+      setPermissionError(t('chat.noJoinPermission'))
       return
     }
     await approveJoinRequest(req)
@@ -63,7 +65,7 @@ export function GroupInfoPanel({ conversation, myUserId, myRole, onClose, onChan
 
   const handleDeny = async (req: JoinRequest) => {
     if (!isAdmin) {
-      setPermissionError('ليس لديك صلاحية في القبول — يجب أن يوافق أحد المشرفين على طلب الانضمام.')
+      setPermissionError(t('chat.noJoinPermission'))
       return
     }
     await denyJoinRequest(req.id)
@@ -85,7 +87,7 @@ export function GroupInfoPanel({ conversation, myUserId, myRole, onClose, onChan
   return (
     <div className="flex w-full shrink-0 flex-col border-r border-border bg-white md:w-[300px]">
       <div className="flex items-center justify-between border-b border-border p-3.5">
-        <div className="font-heading text-[15px] font-bold text-navy">معلومات القروب</div>
+        <div className="font-heading text-[15px] font-bold text-navy">{t('chat.groupInfo')}</div>
         <button onClick={onClose} className="p-1 text-muted hover:text-navy">
           <XIcon />
         </button>
@@ -98,11 +100,11 @@ export function GroupInfoPanel({ conversation, myUserId, myRole, onClose, onChan
 
         {isAdmin && (
           <div className="mb-4">
-            <div className="mb-1.5 text-[13px] font-semibold text-navy">إضافة عضو</div>
+            <div className="mb-1.5 text-[13px] font-semibold text-navy">{t('chat.addMember')}</div>
             <input
               value={addQuery}
               onChange={(e) => setAddQuery(e.target.value)}
-              placeholder="ابحث بالاسم أو اسم المستخدم..."
+              placeholder={t('chat.searchByNameOrUsername')}
               className="w-full box-border rounded-md border border-border px-3 py-2 text-[13px]"
             />
             {addResults.map((u) => (
@@ -120,7 +122,7 @@ export function GroupInfoPanel({ conversation, myUserId, myRole, onClose, onChan
 
         {isAdmin && requests.length > 0 && (
           <div className="mb-4">
-            <div className="mb-1.5 text-[13px] font-semibold text-navy">طلبات الانضمام</div>
+            <div className="mb-1.5 text-[13px] font-semibold text-navy">{t('chat.joinRequests')}</div>
             {requests.map((r) => (
               <div key={r.id} className="mb-1.5 flex items-center gap-2 rounded-md bg-bg-soft p-2">
                 <Avatar name={r.profile.name} avatarUrl={r.profile.avatar_url} size={28} />
@@ -137,17 +139,17 @@ export function GroupInfoPanel({ conversation, myUserId, myRole, onClose, onChan
         )}
 
         <div>
-          <div className="mb-1.5 text-[13px] font-semibold text-navy">الأعضاء ({conversation.members.length})</div>
+          <div className="mb-1.5 text-[13px] font-semibold text-navy">{t('chat.members', { count: String(conversation.members.length) })}</div>
           {conversation.members.map((m) => (
             <div key={m.user_id} className="flex items-center gap-2 rounded-md p-2 hover:bg-bg-soft">
               <Avatar name={m.profile.name} avatarUrl={m.profile.avatar_url} size={30} />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13px] text-navy">{m.profile.name}</div>
-                {m.is_admin && <div className="text-[11px] text-gold">مشرف</div>}
+                {m.is_admin && <div className="text-[11px] text-gold">{t('chat.admin')}</div>}
               </div>
               {isAdmin && m.user_id !== myUserId && (
                 <button onClick={() => void handleRemove(m.user_id)} className="shrink-0 text-[11.5px] text-error hover:underline">
-                  إزالة
+                  {t('chat.remove')}
                 </button>
               )}
             </div>
