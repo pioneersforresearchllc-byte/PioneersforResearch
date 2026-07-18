@@ -20,7 +20,16 @@ const SERVICE_ROLE_KEY =
   firstFromJsonDict(Deno.env.get('SUPABASE_SECRET_KEYS')) || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANON_KEY = firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) || Deno.env.get('SUPABASE_ANON_KEY')!
 const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY')!
-const SITE_URL = Deno.env.get('SITE_URL') || 'https://pioneersforresearch.pages.dev'
+// Stripe rejects success_url/cancel_url that aren't absolute URLs. A SITE_URL
+// secret set without a scheme (e.g. "pioneersforresearch.pages.dev") would
+// produce "…/my-requests" — invalid — so normalize: add https:// if missing
+// and drop any trailing slash to avoid a doubled one.
+function normalizeSiteUrl(raw: string | undefined): string {
+  const trimmed = (raw || '').trim().replace(/\/+$/, '')
+  if (!trimmed) return 'https://pioneersforresearch.pages.dev'
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+}
+const SITE_URL = normalizeSiteUrl(Deno.env.get('SITE_URL'))
 // Stripe only accepts SAR from accounts in supporting countries; this
 // account rejected it. Override with the STRIPE_CURRENCY secret to switch
 // back without a code change.

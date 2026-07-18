@@ -24,9 +24,16 @@ const SERVICE_ROLE_KEY =
   firstFromJsonDict(Deno.env.get('SUPABASE_SECRET_KEYS')) || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANON_KEY = firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) || Deno.env.get('SUPABASE_ANON_KEY')!
 const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY')!
-// Where Stripe sends the customer back after paying. Set the SITE_URL
-// secret to override; the default is the live Cloudflare Pages domain.
-const SITE_URL = Deno.env.get('SITE_URL') || 'https://pioneersforresearch.pages.dev'
+// Where Stripe sends the customer back after paying. Set the SITE_URL secret
+// to override; the default is the live Cloudflare Pages domain. Stripe rejects
+// non-absolute URLs, so normalize: add https:// if the secret was set without
+// a scheme, and drop any trailing slash to avoid a doubled one.
+function normalizeSiteUrl(raw: string | undefined): string {
+  const trimmed = (raw || '').trim().replace(/\/+$/, '')
+  if (!trimmed) return 'https://pioneersforresearch.pages.dev'
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+}
+const SITE_URL = normalizeSiteUrl(Deno.env.get('SITE_URL'))
 // Keep in sync with create-service-checkout — see the note there on why this
 // isn't SAR.
 const CURRENCY = (Deno.env.get('STRIPE_CURRENCY') || 'usd').toLowerCase()
