@@ -107,14 +107,21 @@ async function handle(req: Request): Promise<Response> {
     const nowIso = new Date().toISOString()
     const { data: dcs } = await admin
       .from('discount_codes')
-      .select('percent_off, starts_at, ends_at')
+      .select('id, percent_off, starts_at, ends_at')
       .ilike('code', code)
       .eq('active', true)
-      .eq('service_id', request.service_id)
     const dc = (dcs ?? []).find(
       (d) => (!d.starts_at || d.starts_at <= nowIso) && (!d.ends_at || d.ends_at >= nowIso),
     )
     if (!dc) return json({ error: 'invalid_code' }, 400)
+    // The code must include this service among its targets.
+    const { data: target } = await admin
+      .from('discount_code_targets')
+      .select('id')
+      .eq('discount_code_id', dc.id)
+      .eq('service_id', request.service_id)
+      .maybeSingle()
+    if (!target) return json({ error: 'invalid_code' }, 400)
     unitAmount = Math.max(50, Math.round((request.final_price_cents * (100 - dc.percent_off)) / 100))
   }
 

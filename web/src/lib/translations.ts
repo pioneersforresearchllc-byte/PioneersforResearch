@@ -867,6 +867,12 @@ export const translations = {
   'disc.fillFields': { ar: 'أدخل الكود والنسبة والهدف.', en: 'Enter a code, percentage and target.' },
   'disc.noEnd': { ar: 'بلا نهاية', en: 'No end date' },
   'disc.createError': { ar: 'تعذّر إنشاء الكود (قد يكون مكررًا).', en: 'Could not create the code (it may already exist).' },
+  'disc.pickTargets': { ar: 'المنتجات المشمولة (اختر واحدًا أو أكثر)', en: 'Included products (pick one or more)' },
+  'disc.coursesLabel': { ar: 'الدورات', en: 'Courses' },
+  'disc.servicesLabel': { ar: 'الخدمات', en: 'Services' },
+  'disc.selectAtLeastOne': { ar: 'اختر منتجًا واحدًا على الأقل.', en: 'Select at least one product.' },
+  'disc.appliesTo': { ar: 'يشمل', en: 'Applies to' },
+  'disc.itemsCount': { ar: '{n} منتج', en: '{n} products' },
 
   // Discount code at checkout (customer)
   'checkout.promoPh': { ar: 'كود التخفيض (اختياري)', en: 'Discount code (optional)' },
