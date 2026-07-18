@@ -233,8 +233,20 @@ export function OwnerServiceRequestsPage() {
               </div>
             </div>
 
-            {/* Pricing only matters before payment. */}
-            {!isPaidPhase(r.status) && <PriceControl request={r} onSaved={refresh} />}
+            {/* Pricing only matters before payment. A fixed-price package is
+                auto-priced and shown read-only; only custom packages are
+                priced manually by the owner. */}
+            {!isPaidPhase(r.status) &&
+              (r.packagePriceCents != null && !r.packageIsCustom ? (
+                <div className="mb-3 rounded-lg bg-bg-soft p-3 text-[13px] text-navy">
+                  {t('adminRequests.fixedPrice')}:{' '}
+                  <span className="font-bold">
+                    {((r.final_price_cents ?? r.packagePriceCents) / 100).toLocaleString('en-US')} {t('course.currency')}
+                  </span>
+                </div>
+              ) : (
+                <PriceControl request={r} onSaved={refresh} />
+              ))}
 
             <div className="flex flex-wrap items-center gap-1.5">
               {isPaidPhase(r.status) ? (

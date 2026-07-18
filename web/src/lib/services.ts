@@ -124,6 +124,8 @@ export interface ServiceRequestRow extends ServiceRequestInput {
   created_at: string
   serviceTitle: string
   packageTitle: string | null
+  packagePriceCents: number | null
+  packageIsCustom: boolean
   assigneeName: string | null
 }
 
@@ -148,13 +150,16 @@ export function isPaidPhase(status: RequestStatus): boolean {
 }
 
 const REQUEST_SELECT =
-  '*, service:services(title), package:service_packages(title), assignee:profiles!service_requests_assigned_teacher_id_fkey(name)'
+  '*, service:services(title), package:service_packages(title, price_cents, is_custom), assignee:profiles!service_requests_assigned_teacher_id_fkey(name)'
 
 function mapRequest(r: Record<string, unknown>): ServiceRequestRow {
+  const pkg = r.package as { title: string; price_cents: number | null; is_custom: boolean } | null
   return {
     ...(r as unknown as ServiceRequestRow),
     serviceTitle: (r.service as { title: string } | null)?.title ?? '',
-    packageTitle: (r.package as { title: string } | null)?.title ?? null,
+    packageTitle: pkg?.title ?? null,
+    packagePriceCents: pkg?.price_cents ?? null,
+    packageIsCustom: pkg?.is_custom ?? false,
     assigneeName: (r.assignee as { name: string } | null)?.name ?? null,
   }
 }

@@ -494,6 +494,7 @@ export const translations = {
   'adminRequests.status.cancelled': { ar: 'ملغي', en: 'Cancelled' },
   'adminRequests.finalPrice': { ar: 'السعر النهائي (دولار)', en: 'Final price (USD)' },
   'adminRequests.requestPayment': { ar: 'اطلب الدفع', en: 'Request payment' },
+  'adminRequests.fixedPrice': { ar: 'سعر ثابت من الباقة (لا يمكن تغييره)', en: 'Fixed price from package (not editable)' },
   'adminRequests.assignee': { ar: 'المعلم المكلّف', en: 'Assigned teacher' },
   'adminRequests.unassigned': { ar: 'بدون تكليف', en: 'Unassigned' },
 
