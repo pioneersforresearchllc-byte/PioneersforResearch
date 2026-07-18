@@ -827,4 +827,9 @@ export const translations = {
   'cms.lbl.resourcesTitle': { ar: 'الموارد — العنوان', en: 'Resources — title' },
   'cms.lbl.contactEyebrow': { ar: 'تواصل — العنوان الصغير', en: 'Contact — eyebrow' },
   'cms.lbl.contactTitle': { ar: 'تواصل — العنوان', en: 'Contact — title' },
+
+  // Social links editor
+  'cms.social.title': { ar: 'روابط التواصل الاجتماعي', en: 'Social links' },
+  'cms.social.hint': { ar: 'اترك الحقل فارغًا لإخفاء الأيقونة من التذييل.', en: 'Leave a field empty to hide that icon from the footer.' },
+  'cms.social.urlPh': { ar: 'الرابط (فارغ = إخفاء)', en: 'URL (empty = hidden)' },
 } as const satisfies Record<string, { ar: string; en: string }>

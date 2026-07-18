@@ -66,6 +66,29 @@ export async function saveSiteContent(key: string, valueAr: string, valueEn: str
   if (error) throw error
 }
 
+// ── Social account links (footer) ─────────────────────────────────────────
+// Stored in site_content under these keys so the owner can edit or hide each
+// one from the admin panel. Defaults are used until a row exists; once the
+// owner saves a row, that value wins — and an empty value hides the icon.
+export const SOCIAL_KEYS = ['social.instagram', 'social.x', 'social.discord'] as const
+export type SocialKey = (typeof SOCIAL_KEYS)[number]
+
+export const DEFAULT_SOCIAL: Record<SocialKey, string> = {
+  'social.instagram': 'https://www.instagram.com/pioneers.health.research/?hl=en',
+  'social.x': 'https://x.com/Pioneers_hr',
+  'social.discord': 'https://discord.gg/tVspUg5GfR',
+}
+
+/**
+ * Resolves a social link: if the owner has saved a row (even an empty one, to
+ * hide it) that wins; otherwise the built-in default URL is used.
+ */
+export function resolveSocialLink(content: ContentMap | undefined, key: SocialKey): string {
+  const entry = content?.[key]
+  if (entry === undefined) return DEFAULT_SOCIAL[key]
+  return entry.en ?? ''
+}
+
 /**
  * Returns a resolver that prefers the owner's edited copy for a key and
  * falls back to the built-in translation. Use it exactly like `t()` for the
