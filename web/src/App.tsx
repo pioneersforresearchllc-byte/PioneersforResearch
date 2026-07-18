@@ -179,7 +179,7 @@ export default function App() {
           </Route>
         </Route>
 
-        <Route path="*" element={<Placeholder title="الصفحة غير موجودة" />} />
+        <Route path="*" element={<Placeholder />} />
       </Routes>
     </>
   )

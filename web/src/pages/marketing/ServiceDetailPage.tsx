@@ -37,7 +37,7 @@ const LAYOUTS: Record<string, FormLayout> = {
     quantityLabelKey: 'service.sampleSize',
     showTargetAudience: false,
     showBrandColors: false,
-    softwareChoices: ['SPSS', 'R', 'Python', 'Excel', 'أي برنامج'],
+    softwareChoices: ['SPSS', 'R', 'Python', 'Excel', 'any'],
   },
 }
 
@@ -313,7 +313,7 @@ export function ServiceDetailPage() {
                 <option value="">—</option>
                 {layout.softwareChoices.map((s) => (
                   <option key={s} value={s}>
-                    {s}
+                    {s === 'any' ? t('service.anySoftware') : s}
                   </option>
                 ))}
               </select>

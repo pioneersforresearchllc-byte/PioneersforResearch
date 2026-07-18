@@ -7,45 +7,46 @@ export type ContentKey = keyof typeof translations
 export type ContentMap = Record<string, { ar: string | null; en: string | null }>
 
 // The homepage strings the owner is allowed to edit, grouped for the editor
-// UI. Every key here must exist in `translations` (that's the fallback text).
-export const EDITABLE_CONTENT: { group: string; keys: { key: ContentKey; label: string }[] }[] = [
+// UI. Every `key` must exist in `translations` (that's the fallback text), and
+// `groupKey`/`labelKey` are translation keys for the editor's own bilingual UI.
+export const EDITABLE_CONTENT: { groupKey: ContentKey; keys: { key: ContentKey; labelKey: ContentKey }[] }[] = [
   {
-    group: 'الواجهة الرئيسية (Hero)',
+    groupKey: 'cms.group.hero',
     keys: [
-      { key: 'home.hero.title', label: 'العنوان الرئيسي' },
-      { key: 'home.hero.subtitle', label: 'النص التعريفي' },
-      { key: 'home.hero.createAccount', label: 'زر إنشاء الحساب' },
-      { key: 'home.hero.browsePrograms', label: 'زر استعراض الدورات' },
+      { key: 'home.hero.title', labelKey: 'cms.lbl.heroTitle' },
+      { key: 'home.hero.subtitle', labelKey: 'cms.lbl.heroSubtitle' },
+      { key: 'home.hero.createAccount', labelKey: 'cms.lbl.heroCreateAccount' },
+      { key: 'home.hero.browsePrograms', labelKey: 'cms.lbl.heroBrowse' },
     ],
   },
   {
-    group: 'الأرقام (Stats)',
+    groupKey: 'cms.group.stats',
     keys: [
-      { key: 'home.stats.programs', label: 'وصف عدد الدورات' },
-      { key: 'home.stats.stages', label: 'وصف مراحل الإشراف' },
-      { key: 'home.stats.oneToOne', label: 'وصف الإشراف الفردي' },
-      { key: 'home.stats.certificate', label: 'وصف الشهادة' },
+      { key: 'home.stats.programs', labelKey: 'cms.lbl.statsPrograms' },
+      { key: 'home.stats.stages', labelKey: 'cms.lbl.statsStages' },
+      { key: 'home.stats.oneToOne', labelKey: 'cms.lbl.statsOneToOne' },
+      { key: 'home.stats.certificate', labelKey: 'cms.lbl.statsCertificate' },
     ],
   },
   {
-    group: 'من نحن (About)',
+    groupKey: 'cms.group.about',
     keys: [
-      { key: 'home.about.eyebrow', label: 'العنوان الصغير' },
-      { key: 'home.about.title', label: 'العنوان' },
-      { key: 'home.about.body', label: 'النص' },
-      { key: 'home.about.teamTitle', label: 'عنوان فريق العمل' },
+      { key: 'home.about.eyebrow', labelKey: 'cms.lbl.aboutEyebrow' },
+      { key: 'home.about.title', labelKey: 'cms.lbl.aboutTitle' },
+      { key: 'home.about.body', labelKey: 'cms.lbl.aboutBody' },
+      { key: 'home.about.teamTitle', labelKey: 'cms.lbl.aboutTeamTitle' },
     ],
   },
   {
-    group: 'أقسام الصفحة',
+    groupKey: 'cms.group.sections',
     keys: [
-      { key: 'home.courses.eyebrow', label: 'الدورات — العنوان الصغير' },
-      { key: 'home.courses.title', label: 'الدورات — العنوان' },
-      { key: 'home.services.title', label: 'الخدمات — العنوان' },
-      { key: 'home.resources.eyebrow', label: 'الموارد — العنوان الصغير' },
-      { key: 'home.resources.title', label: 'الموارد — العنوان' },
-      { key: 'home.contact.eyebrow', label: 'تواصل — العنوان الصغير' },
-      { key: 'home.contact.title', label: 'تواصل — العنوان' },
+      { key: 'home.courses.eyebrow', labelKey: 'cms.lbl.coursesEyebrow' },
+      { key: 'home.courses.title', labelKey: 'cms.lbl.coursesTitle' },
+      { key: 'home.services.title', labelKey: 'cms.lbl.servicesTitle' },
+      { key: 'home.resources.eyebrow', labelKey: 'cms.lbl.resourcesEyebrow' },
+      { key: 'home.resources.title', labelKey: 'cms.lbl.resourcesTitle' },
+      { key: 'home.contact.eyebrow', labelKey: 'cms.lbl.contactEyebrow' },
+      { key: 'home.contact.title', labelKey: 'cms.lbl.contactTitle' },
     ],
   },
 ]

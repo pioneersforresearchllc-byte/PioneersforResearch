@@ -89,14 +89,14 @@ export function OwnerHomeContentPage() {
 
       <div className="flex flex-col gap-6">
         {EDITABLE_CONTENT.map((section) => (
-          <div key={section.group}>
-            <div className="mb-2.5 text-[14px] font-bold text-navy">{section.group}</div>
+          <div key={section.groupKey}>
+            <div className="mb-2.5 text-[14px] font-bold text-navy">{t(section.groupKey)}</div>
             <div className="flex flex-col gap-3">
-              {section.keys.map(({ key, label }) => (
+              {section.keys.map(({ key, labelKey }) => (
                 <Row
                   key={key}
                   contentKey={key}
-                  label={label}
+                  label={t(labelKey)}
                   currentAr={content?.[key]?.ar ?? translations[key].ar}
                   currentEn={content?.[key]?.en ?? translations[key].en}
                   onSaved={refresh}
