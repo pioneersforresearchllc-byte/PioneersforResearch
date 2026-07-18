@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { listMyServiceRequests, markMyRequestsSeen, startServiceCheckout, type RequestStatus } from '@/lib/services'
+import { validateDiscount, type DiscountPreview } from '@/lib/discounts'
 
 /**
  * Stripe redirects back to a fixed /my-requests URL, but the page itself
@@ -37,6 +38,9 @@ export function MyRequestsPage() {
   // requester can spot what changed, even after we clear the flag below.
   const [highlightIds, setHighlightIds] = useState<Set<string>>(new Set())
   const [promo, setPromo] = useState<Record<string, string>>({})
+  const [applied, setApplied] = useState<Record<string, DiscountPreview>>({})
+  const [checkingId, setCheckingId] = useState<string | null>(null)
+  const [codeMsg, setCodeMsg] = useState<Record<string, string>>({})
   const seenCleared = useRef(false)
 
   const { data: requests, isLoading } = useQuery({
@@ -72,7 +76,34 @@ export function MyRequestsPage() {
               ? t('myRequests.status.done')
               : t('myRequests.status.cancelled')
 
+  const reasonMsg = (reason?: string) =>
+    reason === 'new_users_only'
+      ? t('checkout.reasonNewUsers')
+      : reason === 'first_purchase_only'
+        ? t('checkout.reasonFirstPurchase')
+        : t('checkout.invalidCode')
+
+  const applyCode = async (id: string) => {
+    const code = (promo[id] ?? '').trim()
+    if (!code) return
+    setCheckingId(id)
+    setCodeMsg((m) => ({ ...m, [id]: '' }))
+    setApplied((a) => {
+      const next = { ...a }
+      delete next[id]
+      return next
+    })
+    const res = await validateDiscount({ code, requestId: id })
+    setCheckingId(null)
+    if (res.valid) setApplied((a) => ({ ...a, [id]: res }))
+    else setCodeMsg((m) => ({ ...m, [id]: reasonMsg(res.reason) }))
+  }
+
   const pay = async (id: string) => {
+    if ((promo[id] ?? '').trim() && !applied[id]?.valid) {
+      setError(t('checkout.verifyFirst'))
+      return
+    }
     setPayingId(id)
     setError('')
     try {
@@ -127,20 +158,48 @@ export function MyRequestsPage() {
             </div>
 
             {r.status === 'awaiting_payment' && r.final_price_cents != null && (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-gold/10 p-3.5">
-                <div className="text-[14px] text-navy">
+              <div className="rounded-lg bg-gold/10 p-3.5">
+                <div className="mb-2 text-[14px] text-navy">
                   {t('myRequests.amountDue')}:{' '}
-                  <span className="font-bold">
-                    {(r.final_price_cents / 100).toLocaleString('ar-SA')} {t('course.currency')}
-                  </span>
+                  {applied[r.id]?.valid ? (
+                    <>
+                      <span className="text-faint line-through">
+                        {((applied[r.id].original_cents ?? 0) / 100).toLocaleString('en-US')} {t('course.currency')}
+                      </span>{' '}
+                      <span className="font-bold">
+                        {((applied[r.id].discounted_cents ?? 0) / 100).toLocaleString('en-US')} {t('course.currency')}
+                      </span>{' '}
+                      <span className="text-accent">(−{applied[r.id].percent_off}%)</span>
+                    </>
+                  ) : (
+                    <span className="font-bold">
+                      {(r.final_price_cents / 100).toLocaleString('en-US')} {t('course.currency')}
+                    </span>
+                  )}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <input
                     value={promo[r.id] ?? ''}
-                    onChange={(e) => setPromo((p) => ({ ...p, [r.id]: e.target.value.toUpperCase() }))}
+                    onChange={(e) => {
+                      const v = e.target.value.toUpperCase()
+                      setPromo((p) => ({ ...p, [r.id]: v }))
+                      setApplied((a) => {
+                        const n = { ...a }
+                        delete n[r.id]
+                        return n
+                      })
+                      setCodeMsg((m) => ({ ...m, [r.id]: '' }))
+                    }}
                     placeholder={t('checkout.promoPh')}
                     className="w-40 rounded-md border border-border px-3 py-2 text-[13px]"
                   />
+                  <button
+                    onClick={() => void applyCode(r.id)}
+                    disabled={!(promo[r.id] ?? '').trim() || checkingId === r.id}
+                    className="rounded-md border border-navy px-4 py-2 text-[13px] font-semibold text-navy hover:bg-white disabled:opacity-50"
+                  >
+                    {checkingId === r.id ? t('checkout.checking') : t('checkout.apply')}
+                  </button>
                   <button
                     onClick={() => void pay(r.id)}
                     disabled={payingId === r.id}
@@ -149,6 +208,8 @@ export function MyRequestsPage() {
                     {payingId === r.id ? '...' : t('myRequests.payNow')}
                   </button>
                 </div>
+                {applied[r.id]?.valid && <div className="mt-2 text-[13px] font-semibold text-success">{t('checkout.valid')}</div>}
+                {codeMsg[r.id] && <div className="mt-2 text-[13px] text-error">{codeMsg[r.id]}</div>}
               </div>
             )}
 

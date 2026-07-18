@@ -107,7 +107,7 @@ async function handle(req: Request): Promise<Response> {
     const nowIso = new Date().toISOString()
     const { data: dcs } = await admin
       .from('discount_codes')
-      .select('id, percent_off, starts_at, ends_at')
+      .select('id, percent_off, starts_at, ends_at, new_users_only, first_purchase_only')
       .ilike('code', code)
       .eq('active', true)
     const dc = (dcs ?? []).find(
@@ -122,6 +122,19 @@ async function handle(req: Request): Promise<Response> {
       .eq('service_id', request.service_id)
       .maybeSingle()
     if (!target) return json({ error: 'invalid_code' }, 400)
+    if (dc.new_users_only) {
+      const { data: prof } = await admin.from('profiles').select('created_at').eq('id', user.id).maybeSingle()
+      const ageDays = prof?.created_at ? (Date.now() - new Date(prof.created_at).getTime()) / 86400000 : 9999
+      if (ageDays > 30) return json({ error: 'invalid_code' }, 400)
+    }
+    if (dc.first_purchase_only) {
+      const { count } = await admin
+        .from('payments')
+        .select('id', { count: 'exact', head: true })
+        .eq('student_id', user.id)
+        .eq('status', 'completed')
+      if ((count ?? 0) > 0) return json({ error: 'invalid_code' }, 400)
+    }
     unitAmount = Math.max(50, Math.round((request.final_price_cents * (100 - dc.percent_off)) / 100))
   }
 

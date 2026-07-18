@@ -883,4 +883,16 @@ export const translations = {
   // Discount code at checkout (customer)
   'checkout.promoPh': { ar: 'كود التخفيض (اختياري)', en: 'Discount code (optional)' },
   'checkout.invalidCode': { ar: 'كود التخفيض غير صالح أو منتهٍ.', en: 'The discount code is invalid or expired.' },
+  'checkout.apply': { ar: 'تحقّق', en: 'Apply' },
+  'checkout.checking': { ar: 'جارٍ التحقق...', en: 'Checking…' },
+  'checkout.valid': { ar: 'الكود صالح ✓', en: 'Code valid ✓' },
+  'checkout.verifyFirst': { ar: 'تحقّق من الكود أولًا قبل الدفع.', en: 'Verify the code before paying.' },
+  'checkout.afterDiscount': { ar: 'بعد الخصم', en: 'After discount' },
+  'checkout.reasonNewUsers': { ar: 'هذا الكود للأعضاء الجدد فقط.', en: 'This code is for new members only.' },
+  'checkout.reasonFirstPurchase': { ar: 'هذا الكود لأول عملية شراء فقط.', en: 'This code is for first purchases only.' },
+  // Discount rule labels (admin)
+  'disc.newUsersOnly': { ar: 'للأعضاء الجدد فقط (مسجّلون خلال ٣٠ يومًا)', en: 'New members only (registered within 30 days)' },
+  'disc.firstPurchaseOnly': { ar: 'لأول عملية شراء فقط', en: 'First purchase only' },
+  'disc.newBadge': { ar: 'أعضاء جدد', en: 'New members' },
+  'disc.firstBadge': { ar: 'أول شراء', en: 'First purchase' },
 } as const satisfies Record<string, { ar: string; en: string }>

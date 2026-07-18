@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { enrollFree } from '@/lib/courses'
+import { validateDiscount, type DiscountPreview } from '@/lib/discounts'
 import { useLanguage } from '@/lib/i18n'
 
 function formatSar(cents: number, t: ReturnType<typeof useLanguage>['t']) {
@@ -103,6 +104,9 @@ export function CourseDetailPage() {
   const [enrollBusy, setEnrollBusy] = useState(false)
   const [enrollError, setEnrollError] = useState('')
   const [promoCode, setPromoCode] = useState('')
+  const [applied, setApplied] = useState<DiscountPreview | null>(null)
+  const [checking, setChecking] = useState(false)
+  const [codeMsg, setCodeMsg] = useState('')
   const paymentStatus = searchParams.get('payment')
   const studentId = profile?.role === 'student' ? profile.id : undefined
 
@@ -156,6 +160,12 @@ export function CourseDetailPage() {
       return
     }
 
+    // If a code was typed it must be verified (valid) before paying.
+    if (promoCode.trim() && !(applied && applied.valid)) {
+      setEnrollError(t('checkout.verifyFirst'))
+      return
+    }
+
     setEnrollBusy(true)
     setEnrollError('')
     try {
@@ -173,6 +183,28 @@ export function CourseDetailPage() {
       setEnrollError(e instanceof Error ? e.message : t('course.enrollError'))
       setEnrollBusy(false)
     }
+  }
+
+  const reasonMsg = (reason?: string) =>
+    reason === 'new_users_only'
+      ? t('checkout.reasonNewUsers')
+      : reason === 'first_purchase_only'
+        ? t('checkout.reasonFirstPurchase')
+        : t('checkout.invalidCode')
+
+  const applyCode = async () => {
+    if (!session) {
+      navigate('/login', { state: { resumeSubscribeCourseId: id } })
+      return
+    }
+    if (!course || !promoCode.trim()) return
+    setChecking(true)
+    setCodeMsg('')
+    setApplied(null)
+    const res = await validateDiscount({ code: promoCode.trim(), courseId: course.id })
+    setChecking(false)
+    if (res.valid) setApplied(res)
+    else setCodeMsg(reasonMsg(res.reason))
   }
 
   if (isLoading) return <div className="px-4 py-12 text-center text-muted md:px-16 md:py-20">...</div>
@@ -258,12 +290,36 @@ export function CourseDetailPage() {
             ) : (
               <>
                 {course.price_cents > 0 && !isFull && (
-                  <input
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                    placeholder={t('checkout.promoPh')}
-                    className="mb-2.5 w-full rounded-md border border-border px-3.5 py-2.5 text-[14px]"
-                  />
+                  <div className="mb-2.5">
+                    <div className="flex gap-2">
+                      <input
+                        value={promoCode}
+                        onChange={(e) => {
+                          setPromoCode(e.target.value.toUpperCase())
+                          setApplied(null)
+                          setCodeMsg('')
+                        }}
+                        placeholder={t('checkout.promoPh')}
+                        className="min-w-0 flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
+                      />
+                      <button
+                        onClick={() => void applyCode()}
+                        disabled={!promoCode.trim() || checking}
+                        className="shrink-0 rounded-md border border-navy px-4 py-2.5 text-[13.5px] font-semibold text-navy hover:bg-bg-soft disabled:opacity-50"
+                      >
+                        {checking ? t('checkout.checking') : t('checkout.apply')}
+                      </button>
+                    </div>
+                    {applied?.valid && (
+                      <div className="mt-2 flex items-center gap-2 text-[13.5px]">
+                        <span className="font-semibold text-success">{t('checkout.valid')}</span>
+                        <span className="text-faint line-through">{formatSar(applied.original_cents ?? 0, t)}</span>
+                        <span className="font-bold text-navy">{formatSar(applied.discounted_cents ?? 0, t)}</span>
+                        <span className="text-accent">(−{applied.percent_off}%)</span>
+                      </div>
+                    )}
+                    {codeMsg && <div className="mt-2 text-[13px] text-error">{codeMsg}</div>}
+                  </div>
                 )}
                 <button
                   onClick={() => void subscribe()}
@@ -278,7 +334,9 @@ export function CourseDetailPage() {
                         : t('course.redirectingToPayment')
                       : course.price_cents === 0
                         ? t('course.enrollFree')
-                        : t('course.subscribeAndPay', { price: formatSar(course.price_cents, t) })}
+                        : t('course.subscribeAndPay', {
+                            price: formatSar(applied?.valid ? applied.discounted_cents ?? 0 : course.price_cents, t),
+                          })}
                 </button>
               </>
             )}

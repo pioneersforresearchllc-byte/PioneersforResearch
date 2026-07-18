@@ -24,6 +24,8 @@ export function OwnerDiscountsPage() {
   const [serviceIds, setServiceIds] = useState<Set<string>>(new Set())
   const [startsAt, setStartsAt] = useState('')
   const [endsAt, setEndsAt] = useState('')
+  const [newUsersOnly, setNewUsersOnly] = useState(false)
+  const [firstPurchaseOnly, setFirstPurchaseOnly] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -69,6 +71,8 @@ export function OwnerDiscountsPage() {
         starts_at: startsAt ? `${startsAt}T00:00:00Z` : null,
         ends_at: endsAt ? `${endsAt}T23:59:59Z` : null,
         active: true,
+        new_users_only: newUsersOnly,
+        first_purchase_only: firstPurchaseOnly,
         courseIds: [...courseIds],
         serviceIds: [...serviceIds],
       })
@@ -78,6 +82,8 @@ export function OwnerDiscountsPage() {
       setServiceIds(new Set())
       setStartsAt('')
       setEndsAt('')
+      setNewUsersOnly(false)
+      setFirstPurchaseOnly(false)
       refresh()
     } catch {
       setError(t('disc.createError'))
@@ -146,6 +152,17 @@ export function OwnerDiscountsPage() {
           </div>
         </div>
 
+        <div className="mt-3 flex flex-col gap-2">
+          <label className="flex items-center gap-2 text-[13px] text-navy">
+            <input type="checkbox" checked={newUsersOnly} onChange={(e) => setNewUsersOnly(e.target.checked)} />
+            {t('disc.newUsersOnly')}
+          </label>
+          <label className="flex items-center gap-2 text-[13px] text-navy">
+            <input type="checkbox" checked={firstPurchaseOnly} onChange={(e) => setFirstPurchaseOnly(e.target.checked)} />
+            {t('disc.firstPurchaseOnly')}
+          </label>
+        </div>
+
         {error && <div className="mt-2 text-[13px] text-error">{error}</div>}
         <button
           onClick={() => void create()}
@@ -189,6 +206,16 @@ export function OwnerDiscountsPage() {
               {t('disc.appliesTo')}: {t('disc.itemsCount', { n: String(dc.targets.length) })}
               {dc.targets.length > 0 && <span className="text-faint"> — {targetNames(dc)}</span>}
             </div>
+            {(dc.new_users_only || dc.first_purchase_only) && (
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {dc.new_users_only && (
+                  <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">{t('disc.newBadge')}</span>
+                )}
+                {dc.first_purchase_only && (
+                  <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">{t('disc.firstBadge')}</span>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>
