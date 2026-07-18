@@ -41,6 +41,9 @@ const SMTP_USER = Deno.env.get('SMTP_USER')
 const SMTP_PASS = Deno.env.get('SMTP_PASS')
 const SMTP_FROM = Deno.env.get('SMTP_FROM') || SMTP_USER || ''
 const RESEND_COOLDOWN_MS = 5 * 60 * 1000
+// A device that verified an OTP within this window skips the email on its next
+// logins. Kept in sync with is_verified_owner()'s 48h re-auth window.
+const TRUST_WINDOW_MS = 48 * 60 * 60 * 1000
 
 // Browser calls to Edge Functions are cross-origin (the site runs on
 // Vercel, the function on supabase.co), so without these headers the
@@ -120,10 +123,43 @@ Deno.serve(async (req) => {
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).maybeSingle()
   if (!profile || profile.role !== 'owner') return json({ error: 'not an owner account' }, 403)
 
+  // A recognised device that verified an OTP within the last 48h skips the
+  // email entirely: we write a fresh consumed+verified OTP row so
+  // is_verified_owner() passes, and tell the client to route straight in.
+  let deviceId: string | undefined
+  try {
+    deviceId = ((await req.json()) as { deviceId?: string })?.deviceId
+  } catch {
+    // no body — treated as an unrecognised device, OTP is sent
+  }
+  if (deviceId) {
+    const deviceHash = await sha256Hex(deviceId)
+    const { data: device } = await admin
+      .from('admin_trusted_devices')
+      .select('last_verified_at')
+      .eq('user_id', user.id)
+      .eq('device_hash', deviceHash)
+      .maybeSingle()
+    if (device && Date.now() - new Date(device.last_verified_at).getTime() < TRUST_WINDOW_MS) {
+      await admin.from('admin_login_otps').insert({
+        user_id: user.id,
+        code_hash: 'trusted-device-skip',
+        expires_at: new Date().toISOString(),
+        consumed: true,
+        verified_at: new Date().toISOString(),
+      })
+      await admin.from('login_events').insert({ user_id: user.id })
+      return json({ skipped: true })
+    }
+  }
+
+  // Rate-limit only real (unconsumed) sends — the auto-verified skip rows above
+  // are consumed immediately and must not block a later genuine send.
   const { data: recent } = await admin
     .from('admin_login_otps')
     .select('created_at')
     .eq('user_id', user.id)
+    .eq('consumed', false)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle()

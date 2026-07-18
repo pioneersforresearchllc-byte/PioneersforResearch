@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
   } = await userClient.auth.getUser()
   if (userErr || !user) return json({ error: 'unauthorized' }, 401)
 
-  let body: { code?: string }
+  let body: { code?: string; deviceId?: string }
   try {
     body = await req.json()
   } catch {
@@ -98,6 +98,17 @@ Deno.serve(async (req) => {
   if (updateErr) return json({ error: updateErr.message }, 500)
 
   await admin.from('login_events').insert({ user_id: user.id })
+
+  // Remember this device so its next logins (within 48h) can skip the email.
+  // last_verified_at tracks real verifications only, so the 48h cadence holds.
+  const deviceId = (body.deviceId || '').trim()
+  if (deviceId) {
+    const deviceHash = await sha256Hex(deviceId)
+    await admin.from('admin_trusted_devices').upsert(
+      { user_id: user.id, device_hash: deviceHash, last_verified_at: new Date().toISOString() },
+      { onConflict: 'user_id,device_hash' },
+    )
+  }
 
   return json({ verified: true })
 })

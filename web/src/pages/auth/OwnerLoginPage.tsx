@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { fetchProfile } from '@/lib/profile'
+import { getOwnerDeviceId } from '@/lib/device'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 
@@ -44,9 +45,17 @@ export function OwnerLoginPage() {
         return
       }
 
-      const { data: otpData, error: otpErr } = await supabase.functions.invoke('send-otp')
+      const { data: otpData, error: otpErr } = await supabase.functions.invoke('send-otp', {
+        body: { deviceId: getOwnerDeviceId() },
+      })
       if (otpErr) {
         setError(t('ownerLogin.otpSendError'))
+        return
+      }
+
+      // Trusted device within the 48h window: no code was sent, go straight in.
+      if ((otpData as { skipped?: boolean } | null)?.skipped) {
+        navigate('/owner')
         return
       }
 

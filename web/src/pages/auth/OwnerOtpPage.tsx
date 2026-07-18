@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
+import { getOwnerDeviceId } from '@/lib/device'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 
@@ -23,7 +24,7 @@ export function OwnerOtpPage() {
     setBusy(true)
     try {
       const { data, error: fnErr } = await supabase.functions.invoke('verify-otp', {
-        body: { code: code.trim() },
+        body: { code: code.trim(), deviceId: getOwnerDeviceId() },
       })
       const result = data as { verified?: boolean; error?: string } | null
       if (fnErr || !result?.verified) {
