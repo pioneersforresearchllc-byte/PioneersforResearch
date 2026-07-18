@@ -348,11 +348,11 @@ export function MarketingHome() {
           <div className="font-heading mb-4.5 text-lg font-semibold">{ct('home.about.teamTitle')}</div>
           {TEAM.map((member, i) => (
             <div key={`${member.name}-${i}`} className="border-b border-border py-3 last:border-b-0">
-              <div className="flex items-baseline justify-between gap-3">
-                <span className="text-[15px] font-medium">{member.name}</span>
-                <span className="shrink-0 text-[13.5px] text-muted">{member.role}</span>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                <span className="break-words text-[15px] font-medium">{member.name}</span>
+                <span className="break-words text-[13.5px] text-muted">{member.role}</span>
               </div>
-              {member.bio && <p className="mt-1 text-[12.5px] leading-6 text-muted">{member.bio}</p>}
+              {member.bio && <p className="mt-1 break-words text-[12.5px] leading-6 text-muted">{member.bio}</p>}
             </div>
           ))}
         </div>
