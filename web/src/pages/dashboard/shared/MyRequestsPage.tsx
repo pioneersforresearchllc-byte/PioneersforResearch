@@ -3,14 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
-import {
-  canDeleteRequest,
-  deleteMyServiceRequest,
-  listMyServiceRequests,
-  markMyRequestsSeen,
-  startServiceCheckout,
-  type RequestStatus,
-} from '@/lib/services'
+import { listMyServiceRequests, markMyRequestsSeen, startServiceCheckout, type RequestStatus } from '@/lib/services'
 
 /**
  * Stripe redirects back to a fixed /my-requests URL, but the page itself
@@ -39,7 +32,6 @@ export function MyRequestsPage() {
   const { t } = useLanguage()
   const queryClient = useQueryClient()
   const [payingId, setPayingId] = useState<string | null>(null)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [error, setError] = useState('')
   // Ids that had an unseen development on this page load — highlighted so the
   // requester can spot what changed, even after we clear the flag below.
@@ -65,20 +57,6 @@ export function MyRequestsPage() {
       void queryClient.invalidateQueries({ queryKey: ['my-requests-unseen', profile?.id] })
     })
   }, [requests, queryClient, profile?.id])
-
-  const remove = async (id: string) => {
-    if (!confirm(t('myRequests.confirmDelete'))) return
-    setDeletingId(id)
-    setError('')
-    try {
-      await deleteMyServiceRequest(id)
-      void queryClient.invalidateQueries({ queryKey: ['my-service-requests', profile?.id] })
-    } catch (e) {
-      setError(e instanceof Error ? e.message : t('myRequests.deleteError'))
-    } finally {
-      setDeletingId(null)
-    }
-  }
 
   const statusLabel = (s: RequestStatus) =>
     s === 'pending'
@@ -168,20 +146,6 @@ export function MyRequestsPage() {
             {(r.status === 'paid' || r.status === 'in_progress') && (
               <div className="text-[13px] text-muted">{t('myRequests.paidNote')}</div>
             )}
-
-            <div className="mt-3 flex items-center justify-end border-t border-border-2 pt-3">
-              {canDeleteRequest(r.status) ? (
-                <button
-                  onClick={() => void remove(r.id)}
-                  disabled={deletingId === r.id}
-                  className="rounded-md border border-error px-3.5 py-1.5 text-[12.5px] text-error hover:bg-error-bg disabled:opacity-50"
-                >
-                  {deletingId === r.id ? '...' : t('myRequests.delete')}
-                </button>
-              ) : (
-                <span className="text-[11.5px] text-faint">{t('myRequests.cannotDeletePaid')}</span>
-              )}
-            </div>
           </div>
         ))}
       </div>

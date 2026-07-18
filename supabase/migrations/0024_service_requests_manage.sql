@@ -58,16 +58,10 @@ alter table payments add constraint payments_service_request_id_fkey
   foreign key (service_request_id) references service_requests (id) on delete set null;
 alter table payments drop constraint if exists payments_target_check;
 
--- ── 3. Self-delete, guarded by status ────────────────────────────────────
--- A requester may delete their own request only when nothing is owed on it:
--- unpaid stages (pending / awaiting_payment / cancelled) or an already
--- delivered one (done). A 'paid' or 'in_progress' request can't be removed
--- until it's delivered. (DELETE is already granted to authenticated in 0020;
--- this policy is what actually scopes it to safe rows.)
+-- Note: deleting a request is an admin-only action (the owner does it from the
+-- service-requests panel, covered by the existing service_requests_write_owner
+-- policy). Requesters cannot delete their own requests, so there is no
+-- self-delete policy here. The paid-unless-delivered rule is enforced in the
+-- owner UI. If an earlier version of this migration created a
+-- service_requests_delete_self policy, drop it:
 drop policy if exists service_requests_delete_self on service_requests;
-create policy service_requests_delete_self on service_requests
-  for delete to authenticated
-  using (
-    user_id = auth.uid()
-    and status in ('pending', 'awaiting_payment', 'cancelled', 'done')
-  );

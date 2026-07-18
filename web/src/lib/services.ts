@@ -222,8 +222,8 @@ export async function listMyServiceRequests(userId: string): Promise<ServiceRequ
   return (data ?? []).map(mapRequest)
 }
 
-/** Deletes the caller's own request. RLS blocks paid-but-undelivered ones. */
-export async function deleteMyServiceRequest(id: string) {
+/** Owner deletes a request (RLS: owner-only). Callers gate on canDeleteRequest. */
+export async function deleteServiceRequest(id: string) {
   const { error } = await supabase.from('service_requests').delete().eq('id', id)
   if (error) throw error
 }

@@ -4,6 +4,8 @@ import { useLanguage } from '@/lib/i18n'
 import { listActiveTeachers } from '@/lib/courses'
 import {
   assignRequestTeacher,
+  canDeleteRequest,
+  deleteServiceRequest,
   isPaidPhase,
   listServiceRequests,
   notifyRequestDone,
@@ -90,8 +92,24 @@ export function OwnerServiceRequestsPage() {
   const queryClient = useQueryClient()
   const { data: requests, isLoading } = useQuery({ queryKey: ['service-requests'], queryFn: listServiceRequests })
   const { data: teachers } = useQuery({ queryKey: ['active-teachers'], queryFn: listActiveTeachers })
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [error, setError] = useState('')
 
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ['service-requests'] })
+
+  const remove = async (id: string) => {
+    if (!confirm(t('myRequests.confirmDelete'))) return
+    setDeletingId(id)
+    setError('')
+    try {
+      await deleteServiceRequest(id)
+      refresh()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('myRequests.deleteError'))
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   const assign = async (id: string, teacherId: string) => {
     await assignRequestTeacher(id, teacherId || null)
@@ -131,6 +149,7 @@ export function OwnerServiceRequestsPage() {
 
       {isLoading && <div className="text-muted">...</div>}
       {requests && requests.length === 0 && <div className="text-muted">{t('adminRequests.empty')}</div>}
+      {error && <div className="mb-3 text-[13.5px] text-error">{error}</div>}
 
       <div className="flex flex-col gap-4">
         {(requests ?? []).map((r) => (
@@ -251,6 +270,20 @@ export function OwnerServiceRequestsPage() {
                     {statusLabel(s)}
                   </button>
                 ))
+              )}
+            </div>
+
+            <div className="mt-3 flex items-center justify-end border-t border-border-2 pt-3">
+              {canDeleteRequest(r.status) ? (
+                <button
+                  onClick={() => void remove(r.id)}
+                  disabled={deletingId === r.id}
+                  className="rounded-md border border-error px-3.5 py-1.5 text-[12.5px] text-error hover:bg-error-bg disabled:opacity-50"
+                >
+                  {deletingId === r.id ? '...' : t('myRequests.delete')}
+                </button>
+              ) : (
+                <span className="text-[11.5px] text-faint">{t('myRequests.cannotDeletePaid')}</span>
               )}
             </div>
           </div>
