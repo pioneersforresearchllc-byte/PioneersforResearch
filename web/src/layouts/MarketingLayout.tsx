@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { fetchSiteContent, resolveSocialLink } from '@/lib/content'
+import { AnnouncementPopup } from '@/components/AnnouncementPopup'
 
 const dashboardPathFor = (role: string) =>
   role === 'student' ? '/student' : role === 'teacher' ? '/teacher' : '/owner'
@@ -176,6 +177,8 @@ export function MarketingLayout() {
           </Link>
         </span>
       </div>
+
+      <AnnouncementPopup />
     </div>
   )
 }

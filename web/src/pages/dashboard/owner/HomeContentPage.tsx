@@ -261,6 +261,61 @@ function TeamEditor() {
   )
 }
 
+function AnnouncementEditor({ content, onSaved }: { content: ContentMap | undefined; onSaved: () => void }) {
+  const { t } = useLanguage()
+  const [enabled, setEnabled] = useState(!!content?.['announce.enabled']?.en)
+  const [titleAr, setTitleAr] = useState(content?.['announce.title']?.ar ?? '')
+  const [titleEn, setTitleEn] = useState(content?.['announce.title']?.en ?? '')
+  const [bodyAr, setBodyAr] = useState(content?.['announce.body']?.ar ?? '')
+  const [bodyEn, setBodyEn] = useState(content?.['announce.body']?.en ?? '')
+  const [busy, setBusy] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const save = async () => {
+    setBusy(true)
+    setSaved(false)
+    try {
+      await saveSiteContent('announce.enabled', enabled ? '1' : '', enabled ? '1' : '')
+      await saveSiteContent('announce.title', titleAr.trim(), titleEn.trim())
+      await saveSiteContent('announce.body', bodyAr.trim(), bodyEn.trim())
+      setSaved(true)
+      onSaved()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const field = 'w-full rounded-md border border-border px-3 py-2 text-[13.5px]'
+  return (
+    <div>
+      <div className="mb-1 text-[14px] font-bold text-navy">{t('cms.announce.title')}</div>
+      <div className="mb-2.5 text-[12.5px] text-muted">{t('cms.announce.hint')}</div>
+      <div className="rounded-lg border border-border-2 bg-bg-soft p-3.5">
+        <label className="mb-3 flex items-center gap-2 text-[13px] font-semibold text-navy">
+          <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
+          {t('cms.announce.enabled')}
+        </label>
+        <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <input value={titleAr} onChange={(e) => setTitleAr(e.target.value)} placeholder={t('cms.announce.titleArPh')} className={field} />
+          <input dir="ltr" value={titleEn} onChange={(e) => setTitleEn(e.target.value)} placeholder={t('cms.announce.titleEnPh')} className={field} />
+          <textarea value={bodyAr} onChange={(e) => setBodyAr(e.target.value)} rows={3} placeholder={t('cms.announce.bodyArPh')} className={`${field} resize-y`} />
+          <textarea dir="ltr" value={bodyEn} onChange={(e) => setBodyEn(e.target.value)} rows={3} placeholder={t('cms.announce.bodyEnPh')} className={`${field} resize-y`} />
+        </div>
+        <div className="flex items-center justify-end gap-2">
+          {saved && <span className="text-[12px] text-success">{t('homeContent.saved')}</span>}
+          <button
+            onClick={() => void save()}
+            disabled={busy}
+            className="rounded-md bg-navy px-4 py-1.75 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+          >
+            {t('homeContent.save')}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function OwnerHomeContentPage() {
   const { t } = useLanguage()
   const queryClient = useQueryClient()
@@ -294,6 +349,7 @@ export function OwnerHomeContentPage() {
         ))}
 
         <SocialLinksEditor content={content} onSaved={refresh} />
+        <AnnouncementEditor key={content ? 'loaded' : 'loading'} content={content} onSaved={refresh} />
         <TeamEditor />
       </div>
     </div>

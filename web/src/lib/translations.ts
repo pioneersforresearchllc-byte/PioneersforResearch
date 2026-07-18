@@ -852,6 +852,15 @@ export const translations = {
   'cms.team.visible': { ar: 'ظاهر', en: 'Visible' },
   'cms.team.empty': { ar: 'لا يوجد أعضاء بعد — تظهر القائمة الافتراضية.', en: 'No members yet — the default list shows.' },
 
+  // Announcement popup editor
+  'cms.announce.title': { ar: 'إعلان منبثق (فقاعة)', en: 'Announcement popup' },
+  'cms.announce.hint': { ar: 'يظهر للزوار في فقاعة أنيقة أسفل الشاشة، بها زر إغلاق، ويظهر مرة واحدة لكل زائر.', en: 'Shows to visitors in a neat bubble with a close button, once per visitor.' },
+  'cms.announce.enabled': { ar: 'تفعيل الإعلان', en: 'Enable announcement' },
+  'cms.announce.titleArPh': { ar: 'عنوان الإعلان (عربي)', en: 'Title (Arabic)' },
+  'cms.announce.titleEnPh': { ar: 'عنوان الإعلان (إنجليزي)', en: 'Title (English)' },
+  'cms.announce.bodyArPh': { ar: 'نص الإعلان (عربي) — اكتب الأكواد هنا', en: 'Body (Arabic) — put the codes here' },
+  'cms.announce.bodyEnPh': { ar: 'نص الإعلان (إنجليزي)', en: 'Body (English)' },
+
   // Discounts (owner)
   'tab.discounts': { ar: 'التخفيضات', en: 'Promotions' },
   'disc.title': { ar: 'أكواد التخفيض', en: 'Discount codes' },
