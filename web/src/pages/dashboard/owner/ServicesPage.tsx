@@ -24,7 +24,7 @@ function PackageRow({ pkg, onSaved }: { pkg: ServicePackage; onSaved: () => void
       await updatePackage(pkg.id, {
         title: title.trim(),
         description: description.trim() || null,
-        price_cents: isCustom || !priceRiyal.trim() ? null : Math.round(Number(priceRiyal) * 100),
+        price_cents: priceRiyal.trim() ? Math.round(Number(priceRiyal) * 100) : null,
         is_custom: isCustom,
       })
       setSaved(true)
@@ -52,8 +52,7 @@ function PackageRow({ pkg, onSaved }: { pkg: ServicePackage; onSaved: () => void
             min={0}
             value={priceRiyal}
             onChange={(e) => setPriceRiyal(e.target.value)}
-            disabled={isCustom}
-            className={`${inputClass} disabled:opacity-50`}
+            className={inputClass}
           />
         </div>
       </div>
