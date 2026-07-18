@@ -832,4 +832,17 @@ export const translations = {
   'cms.social.title': { ar: 'روابط التواصل الاجتماعي', en: 'Social links' },
   'cms.social.hint': { ar: 'اترك الحقل فارغًا لإخفاء الأيقونة من التذييل.', en: 'Leave a field empty to hide that icon from the footer.' },
   'cms.social.urlPh': { ar: 'الرابط (فارغ = إخفاء)', en: 'URL (empty = hidden)' },
+
+  // Team editor
+  'cms.team.title': { ar: 'فريق العمل', en: 'Our team' },
+  'cms.team.hint': { ar: 'الأعضاء الظاهرون في قسم "من نحن" بالصفحة الرئيسية.', en: 'Members shown in the homepage About section.' },
+  'cms.team.namePh': { ar: 'الاسم', en: 'Name' },
+  'cms.team.titleArPh': { ar: 'المسمى (عربي)', en: 'Title (Arabic)' },
+  'cms.team.titleEnPh': { ar: 'المسمى (إنجليزي)', en: 'Title (English)' },
+  'cms.team.bioArPh': { ar: 'نبذة قصيرة (عربي)', en: 'Short bio (Arabic)' },
+  'cms.team.bioEnPh': { ar: 'نبذة قصيرة (إنجليزي)', en: 'Short bio (English)' },
+  'cms.team.add': { ar: 'إضافة عضو', en: 'Add member' },
+  'cms.team.confirmDelete': { ar: 'حذف هذا العضو؟', en: 'Delete this member?' },
+  'cms.team.visible': { ar: 'ظاهر', en: 'Visible' },
+  'cms.team.empty': { ar: 'لا يوجد أعضاء بعد — تظهر القائمة الافتراضية.', en: 'No members yet — the default list shows.' },
 } as const satisfies Record<string, { ar: string; en: string }>

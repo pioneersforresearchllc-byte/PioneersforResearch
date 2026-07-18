@@ -12,6 +12,13 @@ import {
   type ContentMap,
   type SocialKey,
 } from '@/lib/content'
+import {
+  createTeamMember,
+  deleteTeamMember,
+  listAllTeamMembers,
+  updateTeamMember,
+  type TeamMember,
+} from '@/lib/team'
 
 const SOCIAL_LABELS: Record<SocialKey, string> = {
   'social.instagram': 'Instagram',
@@ -146,6 +153,114 @@ function Row({
   )
 }
 
+function TeamMemberRow({ member, onChanged }: { member: TeamMember; onChanged: () => void }) {
+  const { t } = useLanguage()
+  const [name, setName] = useState(member.name)
+  const [titleAr, setTitleAr] = useState(member.title_ar ?? '')
+  const [titleEn, setTitleEn] = useState(member.title_en ?? '')
+  const [bioAr, setBioAr] = useState(member.bio_ar ?? '')
+  const [bioEn, setBioEn] = useState(member.bio_en ?? '')
+  const [active, setActive] = useState(member.active)
+  const [busy, setBusy] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const save = async () => {
+    setBusy(true)
+    setSaved(false)
+    try {
+      await updateTeamMember(member.id, {
+        name: name.trim(),
+        title_ar: titleAr.trim() || null,
+        title_en: titleEn.trim() || null,
+        bio_ar: bioAr.trim() || null,
+        bio_en: bioEn.trim() || null,
+        active,
+      })
+      setSaved(true)
+      onChanged()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const remove = async () => {
+    if (!confirm(t('cms.team.confirmDelete'))) return
+    await deleteTeamMember(member.id)
+    onChanged()
+  }
+
+  const field = 'w-full rounded-md border border-border px-3 py-2 text-[13.5px]'
+  return (
+    <div className="rounded-lg border border-border-2 bg-bg-soft p-3.5">
+      <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('cms.team.namePh')} className={`${field} mb-2 font-semibold`} />
+      <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <input value={titleAr} onChange={(e) => setTitleAr(e.target.value)} placeholder={t('cms.team.titleArPh')} className={field} />
+        <input dir="ltr" value={titleEn} onChange={(e) => setTitleEn(e.target.value)} placeholder={t('cms.team.titleEnPh')} className={field} />
+        <textarea value={bioAr} onChange={(e) => setBioAr(e.target.value)} rows={2} placeholder={t('cms.team.bioArPh')} className={`${field} resize-y`} />
+        <textarea dir="ltr" value={bioEn} onChange={(e) => setBioEn(e.target.value)} rows={2} placeholder={t('cms.team.bioEnPh')} className={`${field} resize-y`} />
+      </div>
+      <div className="flex items-center justify-between">
+        <label className="flex items-center gap-2 text-[12.5px] text-navy">
+          <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
+          {t('cms.team.visible')}
+        </label>
+        <div className="flex items-center gap-2">
+          {saved && <span className="text-[12px] text-success">{t('homeContent.saved')}</span>}
+          <button onClick={() => void remove()} className="rounded-md border border-error px-3 py-1.5 text-[12px] text-error hover:bg-error-bg">
+            {t('dash.delete')}
+          </button>
+          <button
+            onClick={() => void save()}
+            disabled={busy}
+            className="rounded-md bg-navy px-4 py-1.75 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+          >
+            {t('homeContent.save')}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TeamEditor() {
+  const { t } = useLanguage()
+  const queryClient = useQueryClient()
+  const { data } = useQuery({ queryKey: ['team-members-admin'], queryFn: listAllTeamMembers })
+  const refresh = () => {
+    void queryClient.invalidateQueries({ queryKey: ['team-members-admin'] })
+    void queryClient.invalidateQueries({ queryKey: ['team-members'] })
+  }
+  const add = async () => {
+    await createTeamMember({
+      name: '',
+      title_ar: null,
+      title_en: null,
+      bio_ar: null,
+      bio_en: null,
+      sort_order: data?.length ?? 0,
+      active: true,
+    })
+    refresh()
+  }
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <div className="text-[14px] font-bold text-navy">{t('cms.team.title')}</div>
+        <button onClick={() => void add()} className="rounded-md bg-navy px-3.5 py-1.75 text-[12.5px] font-semibold text-white hover:bg-navy-hover">
+          {t('cms.team.add')}
+        </button>
+      </div>
+      <div className="mb-2.5 text-[12.5px] text-muted">{t('cms.team.hint')}</div>
+      <div className="flex flex-col gap-3">
+        {(data ?? []).length === 0 && <div className="text-[12.5px] text-muted">{t('cms.team.empty')}</div>}
+        {(data ?? []).map((m) => (
+          <TeamMemberRow key={m.id} member={m} onChanged={refresh} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function OwnerHomeContentPage() {
   const { t } = useLanguage()
   const queryClient = useQueryClient()
@@ -179,6 +294,7 @@ export function OwnerHomeContentPage() {
         ))}
 
         <SocialLinksEditor content={content} onSaved={refresh} />
+        <TeamEditor />
       </div>
     </div>
   )

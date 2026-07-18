@@ -6,13 +6,26 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { useContentText } from '@/lib/content'
 import { listServices, type Service } from '@/lib/services'
+import { listTeamMembers } from '@/lib/team'
 
-function useTeam(t: (key: 'team.sara.role' | 'team.khalid.role' | 'team.mona.role' | 'team.faisal.role') => string) {
+type TeamEntry = { name: string; role: string; bio: string }
+
+// Team comes from the admin-managed table; until the owner adds members, we
+// fall back to the original four so the section is never empty.
+function useTeam(lang: 'ar' | 'en', t: (key: 'team.sara.role' | 'team.khalid.role' | 'team.mona.role' | 'team.faisal.role') => string): TeamEntry[] {
+  const { data } = useQuery({ queryKey: ['team-members'], queryFn: listTeamMembers })
+  if (data && data.length > 0) {
+    return data.map((m) => ({
+      name: m.name,
+      role: (lang === 'ar' ? m.title_ar : m.title_en) ?? '',
+      bio: (lang === 'ar' ? m.bio_ar : m.bio_en) ?? '',
+    }))
+  }
   return [
-    { name: 'د. سارة العتيبي', role: t('team.sara.role') },
-    { name: 'أ. خالد الحربي', role: t('team.khalid.role') },
-    { name: 'د. منى القحطاني', role: t('team.mona.role') },
-    { name: 'أ. فيصل الزهراني', role: t('team.faisal.role') },
+    { name: 'د. سارة العتيبي', role: t('team.sara.role'), bio: '' },
+    { name: 'أ. خالد الحربي', role: t('team.khalid.role'), bio: '' },
+    { name: 'د. منى القحطاني', role: t('team.mona.role'), bio: '' },
+    { name: 'أ. فيصل الزهراني', role: t('team.faisal.role'), bio: '' },
   ]
 }
 
@@ -241,7 +254,7 @@ export function MarketingHome() {
   const { session, profile } = useAuth()
   const { t, lang } = useLanguage()
   const ct = useContentText()
-  const TEAM = useTeam(t)
+  const TEAM = useTeam(lang, t)
   const { data: courses } = useCourses()
   const { data: articles } = useArticlePreviews()
   const isTeacherSession = profile?.role === 'teacher'
@@ -333,10 +346,13 @@ export function MarketingHome() {
         </div>
         <div className="rounded-[10px] border border-border bg-bg-soft p-6 md:p-9">
           <div className="font-heading mb-4.5 text-lg font-semibold">{ct('home.about.teamTitle')}</div>
-          {TEAM.map((member) => (
-            <div key={member.name} className="flex justify-between border-b border-border py-3">
-              <span className="text-[15px] font-medium">{member.name}</span>
-              <span className="text-[13.5px] text-muted">{member.role}</span>
+          {TEAM.map((member, i) => (
+            <div key={`${member.name}-${i}`} className="border-b border-border py-3 last:border-b-0">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-[15px] font-medium">{member.name}</span>
+                <span className="shrink-0 text-[13.5px] text-muted">{member.role}</span>
+              </div>
+              {member.bio && <p className="mt-1 text-[12.5px] leading-6 text-muted">{member.bio}</p>}
             </div>
           ))}
         </div>
