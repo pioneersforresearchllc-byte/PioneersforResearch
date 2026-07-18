@@ -14,10 +14,12 @@ function PackageRow({ pkg, onSaved }: { pkg: ServicePackage; onSaved: () => void
   const [isCustom, setIsCustom] = useState(pkg.is_custom)
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
 
   const save = async () => {
     setBusy(true)
     setSaved(false)
+    setError('')
     try {
       await updatePackage(pkg.id, {
         title: title.trim(),
@@ -27,6 +29,10 @@ function PackageRow({ pkg, onSaved }: { pkg: ServicePackage; onSaved: () => void
       })
       setSaved(true)
       onSaved()
+    } catch (e) {
+      // Surface the real reason instead of silently doing nothing — most often
+      // RLS rejecting the write because the owner's OTP session has expired.
+      setError(e instanceof Error ? e.message : String(e))
     } finally {
       setBusy(false)
     }
@@ -62,6 +68,7 @@ function PackageRow({ pkg, onSaved }: { pkg: ServicePackage; onSaved: () => void
         </label>
         <div className="flex items-center gap-2">
           {saved && <span className="text-[12px] text-success">{t('adminServices.saved')}</span>}
+          {error && <span className="text-[12px] text-error">{error}</span>}
           <button
             onClick={() => void save()}
             disabled={busy}
