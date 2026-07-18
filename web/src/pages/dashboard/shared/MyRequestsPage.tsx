@@ -1,9 +1,16 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
-import { listMyServiceRequests, startServiceCheckout, type RequestStatus } from '@/lib/services'
+import {
+  canDeleteRequest,
+  deleteMyServiceRequest,
+  listMyServiceRequests,
+  markMyRequestsSeen,
+  startServiceCheckout,
+  type RequestStatus,
+} from '@/lib/services'
 
 /**
  * Stripe redirects back to a fixed /my-requests URL, but the page itself
@@ -30,14 +37,48 @@ const STATUS_STYLES: Record<RequestStatus, string> = {
 export function MyRequestsPage() {
   const { profile } = useAuth()
   const { t } = useLanguage()
+  const queryClient = useQueryClient()
   const [payingId, setPayingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [error, setError] = useState('')
+  // Ids that had an unseen development on this page load — highlighted so the
+  // requester can spot what changed, even after we clear the flag below.
+  const [highlightIds, setHighlightIds] = useState<Set<string>>(new Set())
+  const seenCleared = useRef(false)
 
   const { data: requests, isLoading } = useQuery({
     queryKey: ['my-service-requests', profile?.id],
     enabled: !!profile,
     queryFn: () => listMyServiceRequests(profile!.id),
   })
+
+  // Opening the list counts as seeing every development in it: remember which
+  // rows were new (for the highlight), then clear the flags so the tab badge
+  // resets. Runs once per mount, after the first successful load.
+  useEffect(() => {
+    if (!requests || seenCleared.current) return
+    seenCleared.current = true
+    const unseen = requests.filter((r) => r.student_unseen).map((r) => r.id)
+    if (unseen.length === 0) return
+    setHighlightIds(new Set(unseen))
+    void markMyRequestsSeen().then(() => {
+      void queryClient.invalidateQueries({ queryKey: ['my-requests-unseen', profile?.id] })
+    })
+  }, [requests, queryClient, profile?.id])
+
+  const remove = async (id: string) => {
+    if (!confirm(t('myRequests.confirmDelete'))) return
+    setDeletingId(id)
+    setError('')
+    try {
+      await deleteMyServiceRequest(id)
+      void queryClient.invalidateQueries({ queryKey: ['my-service-requests', profile?.id] })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('myRequests.deleteError'))
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   const statusLabel = (s: RequestStatus) =>
     s === 'pending'
@@ -74,10 +115,23 @@ export function MyRequestsPage() {
 
       <div className="flex flex-col gap-4">
         {(requests ?? []).map((r) => (
-          <div key={r.id} className="rounded-xl border border-border bg-white p-5">
+          <div
+            key={r.id}
+            className={`rounded-xl border bg-white p-5 ${
+              highlightIds.has(r.id) ? 'border-accent ring-1 ring-accent/30' : 'border-border'
+            }`}
+          >
             <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
               <div>
-                <div className="text-[15.5px] font-semibold text-navy">{r.subject}</div>
+                <div className="flex items-center gap-2">
+                  <div className="text-[15.5px] font-semibold text-navy">{r.subject}</div>
+                  {highlightIds.has(r.id) && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
+                      <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                      {t('myRequests.newUpdate')}
+                    </span>
+                  )}
+                </div>
                 <div className="text-[12.5px] text-muted">
                   {r.serviceTitle}
                   {r.packageTitle ? ` · ${r.packageTitle}` : ''}
@@ -114,6 +168,20 @@ export function MyRequestsPage() {
             {(r.status === 'paid' || r.status === 'in_progress') && (
               <div className="text-[13px] text-muted">{t('myRequests.paidNote')}</div>
             )}
+
+            <div className="mt-3 flex items-center justify-end border-t border-border-2 pt-3">
+              {canDeleteRequest(r.status) ? (
+                <button
+                  onClick={() => void remove(r.id)}
+                  disabled={deletingId === r.id}
+                  className="rounded-md border border-error px-3.5 py-1.5 text-[12.5px] text-error hover:bg-error-bg disabled:opacity-50"
+                >
+                  {deletingId === r.id ? '...' : t('myRequests.delete')}
+                </button>
+              ) : (
+                <span className="text-[11.5px] text-faint">{t('myRequests.cannotDeletePaid')}</span>
+              )}
+            </div>
           </div>
         ))}
       </div>

@@ -13,9 +13,20 @@ interface DashboardShellProps {
   subtitleKey: keyof typeof translations
   userName: string
   tabs: DashboardTab[]
+  /** Per-tab notification counts, keyed by tab.key. 0/undefined shows none. */
+  badges?: Record<string, number>
 }
 
-export function DashboardShell({ subtitleKey, userName, tabs }: DashboardShellProps) {
+function Badge({ count }: { count: number }) {
+  if (count <= 0) return null
+  return (
+    <span className="inline-flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-error px-1 text-[10.5px] font-bold text-white">
+      {count > 99 ? '99+' : count}
+    </span>
+  )
+}
+
+export function DashboardShell({ subtitleKey, userName, tabs, badges }: DashboardShellProps) {
   const { signOut } = useAuth()
   const { t, dir, lang, toggleLang } = useLanguage()
 
@@ -56,12 +67,13 @@ export function DashboardShell({ subtitleKey, userName, tabs }: DashboardShellPr
               to={tab.to}
               end
               className={({ isActive }) =>
-                `rounded-lg px-4 py-3 text-right text-[14.5px] ${
+                `flex items-center justify-between gap-2 rounded-lg px-4 py-3 text-right text-[14.5px] ${
                   isActive ? 'bg-navy font-semibold text-white' : 'bg-transparent font-normal text-navy'
                 }`
               }
             >
-              {t(tab.labelKey)}
+              <span>{t(tab.labelKey)}</span>
+              <Badge count={badges?.[tab.key] ?? 0} />
             </NavLink>
           ))}
         </div>
@@ -72,12 +84,13 @@ export function DashboardShell({ subtitleKey, userName, tabs }: DashboardShellPr
               to={tab.to}
               end
               className={({ isActive }) =>
-                `shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.75 text-[13px] ${
+                `flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.75 text-[13px] ${
                   isActive ? 'bg-navy font-semibold text-white' : 'bg-bg-soft font-normal text-navy'
                 }`
               }
             >
-              {t(tab.labelKey)}
+              <span>{t(tab.labelKey)}</span>
+              <Badge count={badges?.[tab.key] ?? 0} />
             </NavLink>
           ))}
         </div>

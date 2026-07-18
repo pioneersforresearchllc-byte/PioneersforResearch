@@ -1,6 +1,8 @@
 import { Route, Routes } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { MarketingLayout } from '@/layouts/MarketingLayout'
 import { DashboardShell, type DashboardTab } from '@/layouts/DashboardShell'
+import { countMyUnseenRequests } from '@/lib/services'
 import { RequireRole } from '@/routes/RequireRole'
 import { Placeholder } from '@/components/Placeholder'
 import { useAuth } from '@/context/AuthContext'
@@ -90,14 +92,32 @@ const ownerTabs: DashboardTab[] = [
   { key: 'account', labelKey: 'tab.myAccount', to: '/owner/account' },
 ]
 
+/** Unseen-requests count for the "My Requests" tab badge, kept fresh so a new
+ *  development (owner priced/updated a request) shows up without a reload. */
+function useRequestsBadge(userId: string | undefined): Record<string, number> {
+  const { data } = useQuery({
+    queryKey: ['my-requests-unseen', userId],
+    enabled: !!userId,
+    queryFn: () => countMyUnseenRequests(userId!),
+    refetchInterval: 60_000,
+  })
+  return { requests: data ?? 0 }
+}
+
 function StudentDashboard() {
   const { profile } = useAuth()
-  return <DashboardShell subtitleKey="shell.studentSubtitle" userName={profile?.name ?? ''} tabs={studentTabs} />
+  const badges = useRequestsBadge(profile?.id)
+  return (
+    <DashboardShell subtitleKey="shell.studentSubtitle" userName={profile?.name ?? ''} tabs={studentTabs} badges={badges} />
+  )
 }
 
 function TeacherDashboard() {
   const { profile } = useAuth()
-  return <DashboardShell subtitleKey="shell.teacherSubtitle" userName={profile?.name ?? ''} tabs={teacherTabs} />
+  const badges = useRequestsBadge(profile?.id)
+  return (
+    <DashboardShell subtitleKey="shell.teacherSubtitle" userName={profile?.name ?? ''} tabs={teacherTabs} badges={badges} />
+  )
 }
 
 function OwnerDashboard() {

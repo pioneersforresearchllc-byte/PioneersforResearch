@@ -120,10 +120,21 @@ export interface ServiceRequestRow extends ServiceRequestInput {
   status: RequestStatus
   final_price_cents: number | null
   assigned_teacher_id: string | null
+  student_unseen: boolean
   created_at: string
   serviceTitle: string
   packageTitle: string | null
   assigneeName: string | null
+}
+
+/**
+ * A requester may delete their own request only when nothing is owed on it:
+ * unpaid stages, or an already-delivered one. A paid request that hasn't been
+ * delivered yet ('paid'/'in_progress') can't be removed. Mirrors the RLS
+ * policy in migration 0024 so the UI hides the button the DB would reject.
+ */
+export function canDeleteRequest(status: RequestStatus): boolean {
+  return status === 'pending' || status === 'awaiting_payment' || status === 'cancelled' || status === 'done'
 }
 
 const REQUEST_SELECT =
@@ -194,6 +205,28 @@ export async function listMyServiceRequests(userId: string): Promise<ServiceRequ
     .order('created_at', { ascending: false })
   if (error) throw error
   return (data ?? []).map(mapRequest)
+}
+
+/** Deletes the caller's own request. RLS blocks paid-but-undelivered ones. */
+export async function deleteMyServiceRequest(id: string) {
+  const { error } = await supabase.from('service_requests').delete().eq('id', id)
+  if (error) throw error
+}
+
+/** Count of the caller's requests with an unseen development (for the badge). */
+export async function countMyUnseenRequests(userId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('service_requests')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('student_unseen', true)
+  if (error) return 0
+  return count ?? 0
+}
+
+/** Clears the unseen flag on all the caller's requests (they opened the list). */
+export async function markMyRequestsSeen() {
+  await supabase.rpc('mark_service_requests_seen')
 }
 
 /** Starts Stripe Checkout for a priced request; returns the hosted page URL. */
