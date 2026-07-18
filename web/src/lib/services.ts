@@ -137,6 +137,16 @@ export function canDeleteRequest(status: RequestStatus): boolean {
   return status === 'pending' || status === 'awaiting_payment' || status === 'cancelled' || status === 'done'
 }
 
+/**
+ * True once the customer has paid — 'paid' is only ever set by the Stripe
+ * webhook, and 'in_progress'/'done' come after it. In this phase the owner
+ * works the request forward (paid → in progress → done) and can't revert it
+ * to a pre-payment stage.
+ */
+export function isPaidPhase(status: RequestStatus): boolean {
+  return status === 'paid' || status === 'in_progress' || status === 'done'
+}
+
 const REQUEST_SELECT =
   '*, service:services(title), package:service_packages(title), assignee:profiles!service_requests_assigned_teacher_id_fkey(name)'
 
@@ -177,6 +187,11 @@ export async function assignRequestTeacher(id: string, teacherId: string | null)
 export async function updateRequestStatus(id: string, status: RequestStatus) {
   const { error } = await supabase.from('service_requests').update({ status }).eq('id', id)
   if (error) throw error
+}
+
+/** Emails the requester that their work is complete. Called when marked done. */
+export async function notifyRequestDone(id: string) {
+  await supabase.functions.invoke('notify-request-done', { body: { requestId: id } })
 }
 
 /**

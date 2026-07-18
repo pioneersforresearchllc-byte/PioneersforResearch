@@ -4,7 +4,9 @@ import { useLanguage } from '@/lib/i18n'
 import { listActiveTeachers } from '@/lib/courses'
 import {
   assignRequestTeacher,
+  isPaidPhase,
   listServiceRequests,
+  notifyRequestDone,
   setRequestPrice,
   signRequestFile,
   updateRequestStatus,
@@ -12,7 +14,11 @@ import {
   type ServiceRequestRow,
 } from '@/lib/services'
 
-const STATUSES: RequestStatus[] = ['pending', 'awaiting_payment', 'paid', 'in_progress', 'done', 'cancelled']
+// Before the customer pays, the owner prices/cancels; after payment they only
+// move the work forward. 'paid' itself is set by the Stripe webhook, never a
+// manual button, so it's not offered here as a settable status.
+const PRE_PAYMENT_ACTIONS: RequestStatus[] = ['pending', 'awaiting_payment', 'cancelled']
+const PAID_WORKFLOW_ACTIONS: RequestStatus[] = ['in_progress', 'done']
 
 const STATUS_STYLES: Record<RequestStatus, string> = {
   pending: 'bg-gold/15 text-gold',
@@ -94,6 +100,10 @@ export function OwnerServiceRequestsPage() {
 
   const setStatus = async (id: string, status: RequestStatus) => {
     await updateRequestStatus(id, status)
+    // Marking a request done emails the customer that their work is ready.
+    // Fire-and-forget: the status is already saved, so a mail hiccup mustn't
+    // fail the owner's action.
+    if (status === 'done') void notifyRequestDone(id)
     refresh()
   }
 
@@ -204,21 +214,44 @@ export function OwnerServiceRequestsPage() {
               </div>
             </div>
 
-            <PriceControl request={r} onSaved={refresh} />
+            {/* Pricing only matters before payment. */}
+            {!isPaidPhase(r.status) && <PriceControl request={r} onSaved={refresh} />}
 
-            <div className="flex flex-wrap gap-1.5">
-              {STATUSES.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => void setStatus(r.id, s)}
-                  disabled={r.status === s}
-                  className={`rounded-md px-3 py-1.5 text-[12px] font-semibold ${
-                    r.status === s ? 'bg-navy text-white' : 'border border-border text-navy hover:border-navy'
-                  }`}
-                >
-                  {statusLabel(s)}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {isPaidPhase(r.status) ? (
+                <>
+                  {/* Paid is locked on once the money's in — the owner just
+                      advances the work from here. */}
+                  <span className="rounded-md bg-success/10 px-3 py-1.5 text-[12px] font-semibold text-success">
+                    ✓ {statusLabel('paid')}
+                  </span>
+                  {PAID_WORKFLOW_ACTIONS.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => void setStatus(r.id, s)}
+                      disabled={r.status === s}
+                      className={`rounded-md px-3 py-1.5 text-[12px] font-semibold ${
+                        r.status === s ? 'bg-navy text-white' : 'border border-border text-navy hover:border-navy'
+                      }`}
+                    >
+                      {statusLabel(s)}
+                    </button>
+                  ))}
+                </>
+              ) : (
+                PRE_PAYMENT_ACTIONS.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => void setStatus(r.id, s)}
+                    disabled={r.status === s}
+                    className={`rounded-md px-3 py-1.5 text-[12px] font-semibold ${
+                      r.status === s ? 'bg-navy text-white' : 'border border-border text-navy hover:border-navy'
+                    }`}
+                  >
+                    {statusLabel(s)}
+                  </button>
+                ))
+              )}
             </div>
           </div>
         ))}
