@@ -119,10 +119,29 @@ export function RegisterPage() {
 
   return (
     <AuthCard>
-      <div className="mb-7 text-center">
+      <div className="mb-6 text-center">
         <img src="/logo.png" alt="" className="mx-auto mb-3 h-14 w-14" />
         <div className="font-heading text-xl font-bold text-navy">Pioneers Health Research</div>
         <div className="mt-1.5 text-sm text-muted">{t('register.title')}</div>
+      </div>
+
+      <div className="mb-5">
+        <div className="mb-1.5 text-center text-[12.5px] font-semibold text-muted">{t('register.chooseType')}</div>
+        <div className="flex rounded-lg bg-bg-soft p-1">
+          <button
+            type="button"
+            className="flex-1 rounded-md bg-navy py-2 text-[13.5px] font-semibold text-white"
+          >
+            {t('register.asIndividual')}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/register-institution')}
+            className="flex-1 rounded-md bg-transparent py-2 text-[13.5px] font-semibold text-navy hover:bg-white"
+          >
+            {t('register.asInstitution')}
+          </button>
+        </div>
       </div>
 
       <div className="mb-4">

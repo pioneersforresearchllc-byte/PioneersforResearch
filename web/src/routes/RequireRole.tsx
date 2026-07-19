@@ -37,6 +37,9 @@ export function RequireRole({ role }: { role: UserRole }) {
   if (profile.role === 'teacher' && profile.status !== 'active') {
     return <Navigate to="/teacher-pending" replace />
   }
+  if (profile.role === 'institution' && profile.status !== 'active') {
+    return <Navigate to="/institution-pending" replace />
+  }
   if (role === 'owner') {
     if (ownerVerified === null) return null
     if (!ownerVerified) return <Navigate to="/owner-otp" replace />

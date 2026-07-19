@@ -66,6 +66,11 @@ export function LoginPage() {
         return
       }
 
+      if (profile.role === 'institution') {
+        navigate(profile.status === 'active' ? '/institution' : '/institution-pending')
+        return
+      }
+
       void supabase.from('login_events').insert({ user_id: data.user.id })
       navigate(profile.role === 'student' ? '/student' : '/teacher')
     } finally {

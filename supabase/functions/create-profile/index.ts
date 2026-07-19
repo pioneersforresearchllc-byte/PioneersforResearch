@@ -45,7 +45,27 @@ interface TeacherPayload {
   cv_file_url?: string
 }
 
-type Payload = StudentPayload | TeacherPayload
+interface InstitutionPayload {
+  user_id: string
+  role: 'institution'
+  name: string
+  username: string
+  institution: {
+    name: string
+    org_type?: string
+    registration_number?: string
+    country?: string
+    city?: string
+    contact_name?: string
+    contact_title?: string
+    contact_email?: string
+    contact_phone?: string
+    consultation_type?: string
+    size?: string
+  }
+}
+
+type Payload = StudentPayload | TeacherPayload | InstitutionPayload
 
 // Browser calls to Edge Functions are cross-origin (the site runs on
 // Vercel, the function on supabase.co), so without these headers the
@@ -78,7 +98,7 @@ Deno.serve(async (req) => {
   if (!payload.user_id || !payload.name?.trim() || !payload.username?.trim()) {
     return json({ error: 'missing required fields' }, 400)
   }
-  if (payload.role !== 'student' && payload.role !== 'teacher') {
+  if (payload.role !== 'student' && payload.role !== 'teacher' && payload.role !== 'institution') {
     return json({ error: 'invalid role' }, 400)
   }
 
@@ -122,24 +142,62 @@ Deno.serve(async (req) => {
           name: payload.name.trim(),
           username: payload.username.trim(),
         }
-      : {
-          id: payload.user_id,
-          role: 'teacher' as const,
-          status: 'pending' as const,
-          name: payload.name.trim(),
-          username: payload.username.trim(),
-          specialty: payload.specialty?.trim() || null,
-          qualification: payload.qualification?.trim() || null,
-          years_experience: Number.isFinite(payload.years_experience) ? payload.years_experience : null,
-          cv_text: payload.cv_text?.trim() || null,
-          cv_file_url: payload.cv_file_url?.trim() || null,
-        }
+      : payload.role === 'teacher'
+        ? {
+            id: payload.user_id,
+            role: 'teacher' as const,
+            status: 'pending' as const,
+            name: payload.name.trim(),
+            username: payload.username.trim(),
+            specialty: payload.specialty?.trim() || null,
+            qualification: payload.qualification?.trim() || null,
+            years_experience: Number.isFinite(payload.years_experience) ? payload.years_experience : null,
+            cv_text: payload.cv_text?.trim() || null,
+            cv_file_url: payload.cv_file_url?.trim() || null,
+          }
+        : {
+            // Institution accounts start pending until an admin verifies the
+            // organisation (same gate as teacher applications).
+            id: payload.user_id,
+            role: 'institution' as const,
+            status: 'pending' as const,
+            name: payload.name.trim(),
+            username: payload.username.trim(),
+          }
 
   const { data, error } = await admin.from('profiles').insert(row).select('*').single()
   if (error) {
     // Unique violation on username is the one expected failure mode here.
     const status = error.code === '23505' ? 409 : 500
     return json({ error: error.message }, status)
+  }
+
+  // For institutions, also create the organisation record + make the
+  // registering user its admin member.
+  if (payload.role === 'institution') {
+    const inst = payload.institution || ({} as InstitutionPayload['institution'])
+    const { data: institution, error: instErr } = await admin
+      .from('institutions')
+      .insert({
+        primary_contact_user_id: payload.user_id,
+        name: (inst.name || payload.name).trim(),
+        org_type: inst.org_type?.trim() || null,
+        registration_number: inst.registration_number?.trim() || null,
+        country: inst.country?.trim() || null,
+        city: inst.city?.trim() || null,
+        contact_name: inst.contact_name?.trim() || null,
+        contact_title: inst.contact_title?.trim() || null,
+        contact_email: inst.contact_email?.trim() || null,
+        contact_phone: inst.contact_phone?.trim() || null,
+        consultation_type: inst.consultation_type?.trim() || null,
+        size: inst.size?.trim() || null,
+      })
+      .select('id')
+      .single()
+    if (instErr) return json({ error: instErr.message }, 500)
+    await admin
+      .from('institution_members')
+      .insert({ institution_id: institution.id, user_id: payload.user_id, member_role: 'admin' })
   }
 
   return json({ profile: data })

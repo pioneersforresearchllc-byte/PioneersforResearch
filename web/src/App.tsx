@@ -15,6 +15,10 @@ import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { RegisterOtpPage } from '@/pages/auth/RegisterOtpPage'
 import { TeacherApplyPage } from '@/pages/auth/TeacherApplyPage'
 import { TeacherPendingPage } from '@/pages/auth/TeacherPendingPage'
+import { InstitutionApplyPage } from '@/pages/auth/InstitutionApplyPage'
+import { InstitutionPendingPage } from '@/pages/auth/InstitutionPendingPage'
+import { InstitutionOverviewPage } from '@/pages/dashboard/institution/OverviewPage'
+import { OwnerInstitutionsPage } from '@/pages/dashboard/owner/InstitutionsPage'
 import { OwnerLoginPage } from '@/pages/auth/OwnerLoginPage'
 import { OwnerOtpPage } from '@/pages/auth/OwnerOtpPage'
 import { MarketingHome } from '@/pages/marketing/MarketingHome'
@@ -85,6 +89,7 @@ const ownerTabs: DashboardTab[] = [
   { key: 'services', labelKey: 'tab.services', to: '/owner/services' },
   { key: 'service-requests', labelKey: 'tab.serviceRequests', to: '/owner/service-requests' },
   { key: 'discounts', labelKey: 'tab.discounts', to: '/owner/discounts' },
+  { key: 'institutions', labelKey: 'tab.institutions', to: '/owner/institutions' },
   { key: 'certificates', labelKey: 'tab.certificates', to: '/owner/certificates' },
   { key: 'admins', labelKey: 'tab.admins', to: '/owner/admins' },
   { key: 'accounts', labelKey: 'tab.accounts', to: '/owner/accounts' },
@@ -122,9 +127,19 @@ function TeacherDashboard() {
   )
 }
 
+const institutionTabs: DashboardTab[] = [
+  { key: 'inst-home', labelKey: 'tab.instHome', to: '/institution' },
+  { key: 'account', labelKey: 'tab.myAccount', to: '/institution/account' },
+]
+
 function OwnerDashboard() {
   const { profile } = useAuth()
   return <DashboardShell subtitleKey="shell.ownerSubtitle" userName={profile?.name ?? ''} tabs={ownerTabs} />
+}
+
+function InstitutionDashboard() {
+  const { profile } = useAuth()
+  return <DashboardShell subtitleKey="shell.instSubtitle" userName={profile?.name ?? ''} tabs={institutionTabs} />
 }
 
 export default function App() {
@@ -148,6 +163,8 @@ export default function App() {
         <Route path="/register-otp" element={<RegisterOtpPage />} />
         <Route path="/teacher-apply" element={<TeacherApplyPage />} />
         <Route path="/teacher-pending" element={<TeacherPendingPage />} />
+        <Route path="/register-institution" element={<InstitutionApplyPage />} />
+        <Route path="/institution-pending" element={<InstitutionPendingPage />} />
         <Route path="/owner-login" element={<OwnerLoginPage />} />
         <Route path="/owner-otp" element={<OwnerOtpPage />} />
 
@@ -198,7 +215,15 @@ export default function App() {
             <Route path="/owner/contact" element={<OwnerContactPage />} />
             <Route path="/owner/home-content" element={<OwnerHomeContentPage />} />
             <Route path="/owner/discounts" element={<OwnerDiscountsPage />} />
+            <Route path="/owner/institutions" element={<OwnerInstitutionsPage />} />
             <Route path="/owner/account" element={<AccountPage />} />
+          </Route>
+        </Route>
+
+        <Route element={<RequireRole role="institution" />}>
+          <Route element={<InstitutionDashboard />}>
+            <Route path="/institution" element={<InstitutionOverviewPage />} />
+            <Route path="/institution/account" element={<AccountPage />} />
           </Route>
         </Route>
 
