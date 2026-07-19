@@ -24,6 +24,79 @@ export async function getMyInstitution(): Promise<Institution | null> {
   return (data as Institution) ?? null
 }
 
+// ── Consultations ─────────────────────────────────────────────────────────
+export type ConsultationStatus = 'pending' | 'awaiting_payment' | 'in_progress' | 'done' | 'cancelled'
+
+export interface Consultation {
+  id: string
+  institution_id: string
+  created_by: string | null
+  title: string
+  description: string | null
+  consultation_type: string | null
+  budget_estimate: string | null
+  timeline: string | null
+  attachment_url: string | null
+  final_price_cents: number | null
+  status: ConsultationStatus
+  created_at: string
+  institutionName?: string
+}
+
+export interface ConsultationInput {
+  institution_id: string
+  created_by: string
+  title: string
+  description: string | null
+  consultation_type: string | null
+  budget_estimate: string | null
+  timeline: string | null
+}
+
+export async function createConsultation(values: ConsultationInput) {
+  const { error } = await supabase.from('institution_consultations').insert(values)
+  if (error) throw error
+}
+
+/** The signed-in institution's own consultations (RLS-scoped). */
+export async function listMyConsultations(): Promise<Consultation[]> {
+  const { data, error } = await supabase
+    .from('institution_consultations')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data as Consultation[]) ?? []
+}
+
+/** Owner: every institution's consultations, with the institution name. */
+export async function listAllConsultations(): Promise<Consultation[]> {
+  const { data, error } = await supabase
+    .from('institution_consultations')
+    .select('*, institution:institutions(name)')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []).map((r) => {
+    const row = r as Record<string, unknown>
+    return {
+      ...(row as unknown as Consultation),
+      institutionName: (row.institution as { name: string } | null)?.name ?? '',
+    }
+  })
+}
+
+export async function updateConsultationStatus(id: string, status: ConsultationStatus) {
+  const { error } = await supabase.from('institution_consultations').update({ status }).eq('id', id)
+  if (error) throw error
+}
+
+export async function setConsultationPrice(id: string, finalPriceCents: number) {
+  const { error } = await supabase
+    .from('institution_consultations')
+    .update({ final_price_cents: finalPriceCents, status: 'awaiting_payment' })
+    .eq('id', id)
+  if (error) throw error
+}
+
 // ── Owner verification ────────────────────────────────────────────────────
 export async function listInstitutions(): Promise<Institution[]> {
   const { data, error } = await supabase.from('institutions').select('*').order('created_at', { ascending: false })
