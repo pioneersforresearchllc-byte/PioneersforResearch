@@ -13,6 +13,10 @@ export function AccountPage() {
   const [name, setName] = useState(profile?.name ?? '')
   const [bio, setBio] = useState(profile?.bio ?? '')
   const [isPublic, setIsPublic] = useState(profile?.profile_public ?? true)
+  const [specialty, setSpecialty] = useState(profile?.specialty ?? '')
+  const [qualification, setQualification] = useState(profile?.qualification ?? '')
+  const [years, setYears] = useState(profile?.years_experience != null ? String(profile.years_experience) : '')
+  const [certifications, setCertifications] = useState(profile?.certifications ?? '')
   const [newPassword, setNewPassword] = useState('')
   const [profileBusy, setProfileBusy] = useState(false)
   const [passBusy, setPassBusy] = useState(false)
@@ -20,6 +24,8 @@ export function AccountPage() {
   const [passMessage, setPassMessage] = useState('')
 
   if (!profile) return null
+
+  const isTeacher = profile.role === 'teacher'
 
   const saveProfile = async () => {
     if (!name.trim()) return
@@ -30,6 +36,14 @@ export function AccountPage() {
         name: name.trim(),
         bio: bio.trim() || null,
         profile_public: isPublic,
+        ...(isTeacher
+          ? {
+              specialty: specialty.trim() || null,
+              qualification: qualification.trim() || null,
+              years_experience: years.trim() ? Math.max(0, Math.round(Number(years))) : null,
+              certifications: certifications.trim() || null,
+            }
+          : {}),
       })
       await refreshProfile()
       setProfileMessage(t('account.saved'))
@@ -112,6 +126,52 @@ export function AccountPage() {
           rows={3}
           className="mb-4 w-full resize-y rounded-md border border-border px-3.5 py-2.5 text-[14px] font-[inherit]"
         />
+
+        {isTeacher && (
+          <div className="mb-4 rounded-lg border border-border-2 bg-bg-soft p-4">
+            <div className="mb-3 text-[13px] font-semibold text-navy">{t('account.teacherSection')}</div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-[12px] font-semibold text-muted">{t('account.specialtyLabel')}</label>
+                <input
+                  value={specialty}
+                  onChange={(e) => setSpecialty(e.target.value)}
+                  placeholder={t('account.specialtyPh')}
+                  className="w-full rounded-md border border-border px-3 py-2 text-[13.5px]"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[12px] font-semibold text-muted">{t('account.qualificationLabel')}</label>
+                <input
+                  value={qualification}
+                  onChange={(e) => setQualification(e.target.value)}
+                  placeholder={t('account.qualificationPh')}
+                  className="w-full rounded-md border border-border px-3 py-2 text-[13.5px]"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[12px] font-semibold text-muted">{t('account.yearsLabel')}</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={years}
+                  onChange={(e) => setYears(e.target.value)}
+                  className="w-full rounded-md border border-border px-3 py-2 text-[13.5px]"
+                />
+              </div>
+            </div>
+            <div className="mt-3">
+              <label className="mb-1 block text-[12px] font-semibold text-muted">{t('account.certificationsLabel')}</label>
+              <textarea
+                value={certifications}
+                onChange={(e) => setCertifications(e.target.value)}
+                placeholder={t('account.certificationsPh')}
+                rows={3}
+                className="w-full resize-y rounded-md border border-border px-3 py-2 text-[13.5px] font-[inherit]"
+              />
+            </div>
+          </div>
+        )}
 
         <label className="mb-1.5 flex items-center gap-2.5">
           <input

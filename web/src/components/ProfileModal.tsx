@@ -73,28 +73,35 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                     <div className="whitespace-pre-wrap text-[14px] leading-7 text-navy">{profile.bio}</div>
                   </div>
                 )}
-                {profile.role === 'teacher' && (profile.specialty || profile.qualification) && (
-                  <div className="flex flex-col gap-1.5 text-[13.5px]">
-                    {profile.specialty && (
-                      <div>
-                        <span className="text-muted">{t('profileCard.specialty')}: </span>
-                        <span className="text-navy">{profile.specialty}</span>
-                      </div>
-                    )}
-                    {profile.qualification && (
-                      <div>
-                        <span className="text-muted">{t('profileCard.qualification')}: </span>
-                        <span className="text-navy">{profile.qualification}</span>
-                      </div>
-                    )}
-                    {profile.years_experience != null && (
-                      <div>
-                        <span className="text-muted">{t('profileCard.experience')}: </span>
-                        <span className="text-navy">{profile.years_experience}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
+                {profile.role === 'teacher' &&
+                  (profile.specialty || profile.qualification || profile.years_experience != null || profile.certifications) && (
+                    <div className="flex flex-col gap-1.5 text-[13.5px]">
+                      {profile.specialty && (
+                        <div>
+                          <span className="text-muted">{t('profileCard.specialty')}: </span>
+                          <span className="text-navy">{profile.specialty}</span>
+                        </div>
+                      )}
+                      {profile.qualification && (
+                        <div>
+                          <span className="text-muted">{t('profileCard.qualification')}: </span>
+                          <span className="text-navy">{profile.qualification}</span>
+                        </div>
+                      )}
+                      {profile.years_experience != null && (
+                        <div>
+                          <span className="text-muted">{t('profileCard.experience')}: </span>
+                          <span className="text-navy">{profile.years_experience}</span>
+                        </div>
+                      )}
+                      {profile.certifications && (
+                        <div>
+                          <div className="mb-1 text-[12.5px] font-semibold text-muted">{t('profileCard.credentials')}</div>
+                          <div className="whitespace-pre-wrap leading-7 text-navy">{profile.certifications}</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 {profile.role === 'student' && (
                   <div>
                     <div className="mb-2 text-[12.5px] font-semibold text-muted">{t('profileCard.certificates')}</div>

@@ -25,7 +25,15 @@ export async function changePassword(newPassword: string) {
 
 export async function updateProfileDetails(
   userId: string,
-  fields: { name?: string; bio?: string | null; profile_public?: boolean },
+  fields: {
+    name?: string
+    bio?: string | null
+    profile_public?: boolean
+    specialty?: string | null
+    qualification?: string | null
+    years_experience?: number | null
+    certifications?: string | null
+  },
 ) {
   const { error } = await supabase.from('profiles').update(fields).eq('id', userId)
   if (error) throw error
@@ -42,6 +50,7 @@ export interface PublicProfile {
   specialty: string | null
   qualification: string | null
   years_experience: number | null
+  certifications: string | null
   certificates: { id: string; course_title: string; image_url: string | null }[]
 }
 
@@ -51,7 +60,7 @@ export interface PublicProfile {
 export async function fetchPublicProfile(userId: string): Promise<PublicProfile | null> {
   const { data: p, error } = await supabase
     .from('profiles')
-    .select('id, name, username, role, avatar_url, bio, profile_public, specialty, qualification, years_experience')
+    .select('id, name, username, role, avatar_url, bio, profile_public, specialty, qualification, years_experience, certifications')
     .eq('id', userId)
     .maybeSingle()
   if (error || !p) return null

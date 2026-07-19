@@ -13,6 +13,7 @@ export interface Profile {
   specialty: string | null
   qualification: string | null
   years_experience: number | null
+  certifications: string | null
   cv_text: string | null
   cv_file_url: string | null
   is_temp_admin: boolean
