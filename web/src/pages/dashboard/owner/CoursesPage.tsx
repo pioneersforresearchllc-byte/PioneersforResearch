@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import {
@@ -6,8 +6,10 @@ import {
   createCourse,
   deleteCourse,
   deleteSession,
+  getCourseAccessCode,
   listActiveTeachers,
   listCoursesWithMeta,
+  setCourseAccessCode,
   updateCourse,
   uploadCourseImage,
   type CourseFormValues,
@@ -60,8 +62,14 @@ function CourseEditor({
   )
   const { t } = useLanguage()
   const [selectedTeachers, setSelectedTeachers] = useState<string[]>(course?.teacherIds ?? [])
+  const [accessCode, setAccessCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+
+  // Load the course's private access code when editing.
+  useEffect(() => {
+    if (course) void getCourseAccessCode(course.id).then(setAccessCode)
+  }, [course])
 
   const [sessionTitle, setSessionTitle] = useState('')
   const [sessionDate, setSessionDate] = useState('')
@@ -92,11 +100,8 @@ function CourseEditor({
     setBusy(true)
     setError('')
     try {
-      if (course) {
-        await updateCourse(course.id, form, selectedTeachers)
-      } else {
-        await createCourse(form, selectedTeachers)
-      }
+      const courseId = course ? (await updateCourse(course.id, form, selectedTeachers), course.id) : await createCourse(form, selectedTeachers)
+      await setCourseAccessCode(courseId, accessCode)
       onSaved()
       onClose()
     } catch (e) {
@@ -194,6 +199,17 @@ function CourseEditor({
             <input type="checkbox" checked={form.completed} onChange={(e) => set('completed', e.target.checked)} />
             {t('oCourses.completedLabel')}
           </label>
+
+          <div>
+            <label className="mb-1 block text-[13px] font-semibold text-navy">{t('oCourses.accessCode')}</label>
+            <input
+              value={accessCode}
+              onChange={(e) => setAccessCode(e.target.value)}
+              placeholder={t('oCourses.accessCodePh')}
+              className="w-full rounded-md border border-border px-3.5 py-2.5 text-[14px]"
+            />
+            <div className="mt-1 text-[11.5px] text-muted">{t('oCourses.accessCodeHint')}</div>
+          </div>
 
           <div>
             <div className="mb-1.5 text-[13px] font-semibold text-navy">{t('oCourses.assignedTeachers')}</div>

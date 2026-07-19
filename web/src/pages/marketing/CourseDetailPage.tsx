@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
-import { enrollFree } from '@/lib/courses'
+import { enrollFree, redeemCourseCode } from '@/lib/courses'
 import { validateDiscount, type DiscountPreview } from '@/lib/discounts'
 import { useLanguage } from '@/lib/i18n'
 
@@ -107,6 +107,10 @@ export function CourseDetailPage() {
   const [applied, setApplied] = useState<DiscountPreview | null>(null)
   const [checking, setChecking] = useState(false)
   const [codeMsg, setCodeMsg] = useState('')
+  const [showAccessCode, setShowAccessCode] = useState(false)
+  const [accessCode, setAccessCode] = useState('')
+  const [redeeming, setRedeeming] = useState(false)
+  const [accessMsg, setAccessMsg] = useState('')
   const paymentStatus = searchParams.get('payment')
   const studentId = profile?.role === 'student' ? profile.id : undefined
 
@@ -191,6 +195,26 @@ export function CourseDetailPage() {
       : reason === 'first_purchase_only'
         ? t('checkout.reasonFirstPurchase')
         : t('checkout.invalidCode')
+
+  const redeem = async () => {
+    if (!session) {
+      navigate('/login', { state: { resumeSubscribeCourseId: id } })
+      return
+    }
+    if (!course || !accessCode.trim()) return
+    setRedeeming(true)
+    setAccessMsg('')
+    try {
+      await redeemCourseCode(course.id, accessCode.trim())
+      await queryClient.invalidateQueries({ queryKey: ['course-my-enrollment', id, studentId] })
+      await queryClient.invalidateQueries({ queryKey: ['course-detail', id] })
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : ''
+      setAccessMsg(msg.includes('invalid_code') ? t('course.redeemInvalid') : msg || t('course.redeemInvalid'))
+    } finally {
+      setRedeeming(false)
+    }
+  }
 
   const applyCode = async () => {
     if (!session) {
@@ -339,6 +363,35 @@ export function CourseDetailPage() {
                           })}
                 </button>
               </>
+            )}
+
+            {!alreadyEnrolled && !isFull && (
+              <div className="mt-3 border-t border-border pt-3">
+                {!showAccessCode ? (
+                  <button onClick={() => setShowAccessCode(true)} className="text-[13px] font-semibold text-navy hover:underline">
+                    {t('course.haveCode')}
+                  </button>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <input
+                        value={accessCode}
+                        onChange={(e) => setAccessCode(e.target.value)}
+                        placeholder={t('course.codePh')}
+                        className="min-w-0 flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
+                      />
+                      <button
+                        onClick={() => void redeem()}
+                        disabled={!accessCode.trim() || redeeming}
+                        className="shrink-0 rounded-md bg-navy px-4 py-2.5 text-[13.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+                      >
+                        {redeeming ? t('course.redeeming') : t('course.redeem')}
+                      </button>
+                    </div>
+                    {accessMsg && <div className="text-[13px] text-error">{accessMsg}</div>}
+                  </div>
+                )}
+              </div>
             )}
           </>
         )}

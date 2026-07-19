@@ -137,6 +137,46 @@ export async function deleteCourse(id: string) {
   if (error) throw error
 }
 
+// ── Private-course access codes ────────────────────────────────────────────
+/** Owner: the current access code for a course ('' if none). */
+export async function getCourseAccessCode(courseId: string): Promise<string> {
+  const { data } = await supabase.from('course_access_codes').select('code').eq('course_id', courseId).maybeSingle()
+  return data?.code ?? ''
+}
+
+/** Owner: set (or clear, when empty) a course's private access code. */
+export async function setCourseAccessCode(courseId: string, code: string) {
+  const trimmed = code.trim()
+  if (!trimmed) {
+    const { error } = await supabase.from('course_access_codes').delete().eq('course_id', courseId)
+    if (error) throw error
+    return
+  }
+  const { error } = await supabase
+    .from('course_access_codes')
+    .upsert({ course_id: courseId, code: trimmed }, { onConflict: 'course_id' })
+  if (error) throw error
+}
+
+/** Student: redeem a course access code to enrol for free. */
+export async function redeemCourseCode(courseId: string, code: string): Promise<void> {
+  const { data, error } = await supabase.functions.invoke('redeem-course-code', { body: { courseId, code: code.trim() } })
+  if (error) {
+    const ctx = (error as { context?: Response }).context
+    if (ctx && typeof ctx.text === 'function') {
+      try {
+        const parsed = JSON.parse(await ctx.text()) as { error?: string }
+        throw new Error(parsed.error || error.message)
+      } catch (e) {
+        if (e instanceof Error && e.message) throw e
+      }
+    }
+    throw error
+  }
+  const result = data as { enrolled?: boolean; error?: string }
+  if (result.error || !result.enrolled) throw new Error(result.error || 'redeem failed')
+}
+
 export async function uploadCourseImage(file: File): Promise<string> {
   const path = `${crypto.randomUUID()}-${file.name}`
   const { error } = await supabase.storage.from('course-images').upload(path, file)
