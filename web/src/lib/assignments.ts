@@ -26,7 +26,7 @@ export interface Submission {
 }
 
 export async function uploadAssignmentFile(courseId: string, file: File): Promise<string> {
-  const path = `${courseId}/${Date.now()}-${file.name}`
+  const path = `${courseId}/${crypto.randomUUID()}.${(file.name.split('.').pop() || 'bin').replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}`
   const { error } = await supabase.storage.from('assignment-files').upload(path, file)
   if (error) throw error
   const { data } = supabase.storage.from('assignment-files').getPublicUrl(path)
@@ -34,7 +34,7 @@ export async function uploadAssignmentFile(courseId: string, file: File): Promis
 }
 
 export async function uploadSubmissionFile(studentId: string, file: File): Promise<string> {
-  const path = `${studentId}/${Date.now()}-${file.name}`
+  const path = `${studentId}/${crypto.randomUUID()}.${(file.name.split('.').pop() || 'bin').replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}`
   const { error } = await supabase.storage.from('submission-files').upload(path, file)
   if (error) throw error
   const { data } = supabase.storage.from('submission-files').getPublicUrl(path)
