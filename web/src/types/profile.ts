@@ -1,4 +1,4 @@
-export type UserRole = 'student' | 'teacher' | 'owner'
+export type UserRole = 'student' | 'teacher' | 'owner' | 'institution'
 export type UserStatus = 'active' | 'pending' | 'rejected'
 
 export interface Profile {
