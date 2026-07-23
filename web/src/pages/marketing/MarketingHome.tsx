@@ -299,9 +299,22 @@ export function MarketingHome() {
           </h1>
           <p className="mb-8.5 text-base leading-[1.9] text-muted md:text-lg">{ct('home.hero.subtitle')}</p>
           <div className="flex flex-wrap gap-4">
-            <Link
-              to={session ? (profile?.role === 'student' ? '/student' : '/register') : '/register'}
+                        <Link
+              to={
+                session
+                  ? profile?.role === 'teacher'
+                    ? '/teacher'
+                    : profile?.role === 'owner'
+                      ? '/owner'
+                      : profile?.role === 'institution'
+                        ? '/institution'
+                        : '/student'
+                  : '/login'
+              }
               className="rounded-md bg-navy px-7.5 py-3.5 text-[15px] text-white no-underline hover:bg-navy-hover"
+            >
+              {session ? t('nav.backToDashboard') : t('nav.login')}
+            </Link>
             >
               {ct('home.hero.createAccount')}
             </Link>
