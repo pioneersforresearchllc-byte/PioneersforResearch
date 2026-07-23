@@ -315,9 +315,6 @@ export function MarketingHome() {
             >
               {session ? t('nav.backToDashboard') : t('nav.login')}
             </Link>
-            >
-              {ct('home.hero.createAccount')}
-            </Link>
             {!isTeacherSession && (
               <a
                 href="#courses"
