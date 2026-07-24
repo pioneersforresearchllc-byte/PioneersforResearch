@@ -24,6 +24,72 @@ export async function getMyInstitution(): Promise<Institution | null> {
   return (data as Institution) ?? null
 }
 
+// ── Team members ──────────────────────────────────────────────────────────
+export type MemberRole = 'admin' | 'coordinator' | 'member'
+
+export interface InstitutionMember {
+  id: string
+  institution_id: string
+  user_id: string
+  member_role: MemberRole
+  created_at: string
+  name: string
+  username: string
+}
+
+/** True when the signed-in user may manage their institution's team. */
+export async function amInstitutionAdmin(): Promise<boolean> {
+  const { data } = await supabase.rpc('is_institution_admin')
+  return Boolean(data)
+}
+
+export async function listInstitutionMembers(): Promise<InstitutionMember[]> {
+  const { data, error } = await supabase
+    .from('institution_members')
+    .select('*, profile:profiles(name, username)')
+    .order('created_at')
+  if (error) throw error
+  return (data ?? []).map((r) => {
+    const row = r as Record<string, unknown>
+    const p = row.profile as { name: string; username: string } | null
+    return {
+      ...(row as unknown as InstitutionMember),
+      name: p?.name ?? '',
+      username: p?.username ?? '',
+    }
+  })
+}
+
+export async function createInstitutionMember(input: {
+  name: string
+  username: string
+  email: string
+  password: string
+  memberRole: MemberRole
+}) {
+  const { data, error } = await supabase.functions.invoke('create-institution-member', { body: input })
+  if (error) {
+    const ctx = (error as { context?: Response }).context
+    if (ctx && typeof ctx.text === 'function') {
+      try {
+        const raw = await ctx.text()
+        const parsed = JSON.parse(raw) as { error?: string }
+        throw new Error(parsed.error || raw)
+      } catch (e) {
+        if (e instanceof Error && e.message) throw e
+      }
+    }
+    throw error
+  }
+  const result = data as { created?: boolean; error?: string }
+  if (result?.error) throw new Error(result.error)
+}
+
+export async function removeInstitutionMember(id: string) {
+  const { error } = await supabase.from('institution_members').delete().eq('id', id)
+  if (error) throw error
+}
+
 // ── Consultations ─────────────────────────────────────────────────────────
 export type ConsultationStatus = 'pending' | 'awaiting_payment' | 'in_progress' | 'done' | 'cancelled'
 

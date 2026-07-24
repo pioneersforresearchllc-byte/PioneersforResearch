@@ -19,6 +19,7 @@ import { InstitutionApplyPage } from '@/pages/auth/InstitutionApplyPage'
 import { InstitutionPendingPage } from '@/pages/auth/InstitutionPendingPage'
 import { InstitutionOverviewPage } from '@/pages/dashboard/institution/OverviewPage'
 import { InstitutionConsultationsPage } from '@/pages/dashboard/institution/ConsultationsPage'
+import { InstitutionTeamPage } from '@/pages/dashboard/institution/TeamPage'
 import { OwnerInstitutionsPage } from '@/pages/dashboard/owner/InstitutionsPage'
 import { OwnerInstitutionConsultationsPage } from '@/pages/dashboard/owner/InstitutionConsultationsPage'
 import { OwnerLoginPage } from '@/pages/auth/OwnerLoginPage'
@@ -133,6 +134,7 @@ function TeacherDashboard() {
 const institutionTabs: DashboardTab[] = [
   { key: 'inst-home', labelKey: 'tab.instHome', to: '/institution' },
   { key: 'inst-consult', labelKey: 'tab.instConsult', to: '/institution/consultations' },
+  { key: 'inst-team', labelKey: 'tab.instTeam', to: '/institution/team' },
   { key: 'account', labelKey: 'tab.myAccount', to: '/institution/account' },
 ]
 
@@ -229,6 +231,7 @@ export default function App() {
           <Route element={<InstitutionDashboard />}>
             <Route path="/institution" element={<InstitutionOverviewPage />} />
             <Route path="/institution/consultations" element={<InstitutionConsultationsPage />} />
+            <Route path="/institution/team" element={<InstitutionTeamPage />} />
             <Route path="/institution/account" element={<AccountPage />} />
           </Route>
         </Route>
