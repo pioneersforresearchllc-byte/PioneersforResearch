@@ -150,6 +150,64 @@ export async function listAllConsultations(): Promise<Consultation[]> {
   })
 }
 
+/** Starts Stripe Checkout for a priced consultation; returns the hosted URL. */
+export async function startConsultationCheckout(consultationId: string): Promise<string> {
+  const { data, error } = await supabase.functions.invoke('create-consultation-checkout', {
+    body: { consultationId },
+  })
+  if (error) {
+    const ctx = (error as { context?: Response }).context
+    if (ctx && typeof ctx.text === 'function') {
+      try {
+        const raw = await ctx.text()
+        const parsed = JSON.parse(raw) as { error?: string }
+        throw new Error(parsed.error || raw)
+      } catch (e) {
+        if (e instanceof Error && e.message) throw e
+      }
+    }
+    throw error
+  }
+  const result = data as { url?: string; error?: string }
+  if (result.error || !result.url) throw new Error(result.error || 'checkout failed')
+  return result.url
+}
+
+export interface Invoice {
+  id: string
+  consultation_id: string | null
+  amount_cents: number
+  method: 'stripe' | 'bank'
+  status: 'unpaid' | 'paid'
+  created_at: string
+}
+
+export async function listMyInvoices(): Promise<Invoice[]> {
+  const { data, error } = await supabase
+    .from('institution_invoices')
+    .select('id, consultation_id, amount_cents, method, status, created_at')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data as Invoice[]) ?? []
+}
+
+/** Owner marks a bank-transfer consultation paid once the transfer lands. */
+export async function markConsultationPaid(consultationId: string, amountCents: number, institutionId: string) {
+  const { error } = await supabase.from('institution_invoices').insert({
+    institution_id: institutionId,
+    consultation_id: consultationId,
+    amount_cents: amountCents,
+    method: 'bank',
+    status: 'paid',
+  })
+  if (error) throw error
+  const { error: cErr } = await supabase
+    .from('institution_consultations')
+    .update({ status: 'in_progress' })
+    .eq('id', consultationId)
+  if (cErr) throw cErr
+}
+
 export async function updateConsultationStatus(id: string, status: ConsultationStatus) {
   const { error } = await supabase.from('institution_consultations').update({ status }).eq('id', id)
   if (error) throw error

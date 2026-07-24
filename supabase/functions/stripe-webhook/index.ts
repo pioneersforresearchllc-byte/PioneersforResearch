@@ -53,6 +53,7 @@ Deno.serve(async (req) => {
     const courseId = session.metadata?.course_id
     const studentId = session.metadata?.student_id
     const serviceRequestId = session.metadata?.service_request_id
+    const consultationId = session.metadata?.consultation_id
 
     if (courseId && studentId) {
       await admin.from('payments').update({ status: 'completed' }).eq('provider_ref', session.id)
@@ -75,6 +76,20 @@ Deno.serve(async (req) => {
         .eq('id', serviceRequestId)
         .eq('status', 'awaiting_payment')
       if (statusErr) console.error('service request status update failed', statusErr)
+    } else if (consultationId) {
+      // Institution consultation paid by card — mark the invoice paid and move
+      // the consultation into delivery. Same rule: only here, never client-side.
+      await admin
+        .from('institution_invoices')
+        .update({ status: 'paid' })
+        .eq('provider_ref', session.id)
+
+      const { error: consultErr } = await admin
+        .from('institution_consultations')
+        .update({ status: 'in_progress' })
+        .eq('id', consultationId)
+        .eq('status', 'awaiting_payment')
+      if (consultErr) console.error('consultation status update failed', consultErr)
     }
   } else if (event.type === 'checkout.session.expired') {
     const session = event.data.object as Stripe.Checkout.Session

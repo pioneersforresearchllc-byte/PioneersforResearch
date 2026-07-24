@@ -2,10 +2,14 @@ import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
+import { useSearchParams } from 'react-router-dom'
+import { fetchSiteContent } from '@/lib/content'
 import {
   createConsultation,
   getMyInstitution,
   listMyConsultations,
+  listMyInvoices,
+  startConsultationCheckout,
   type ConsultationStatus,
 } from '@/lib/institutions'
 
@@ -21,8 +25,28 @@ export function InstitutionConsultationsPage() {
   const { profile } = useAuth()
   const { t, lang } = useLanguage()
   const queryClient = useQueryClient()
+  const [searchParams] = useSearchParams()
   const { data: institution } = useQuery({ queryKey: ['my-institution'], queryFn: getMyInstitution })
   const { data: consultations } = useQuery({ queryKey: ['my-consultations'], queryFn: listMyConsultations })
+  const { data: invoices } = useQuery({ queryKey: ['my-invoices'], queryFn: listMyInvoices })
+  const { data: siteContent } = useQuery({ queryKey: ['site-content'], queryFn: fetchSiteContent })
+  const [payingId, setPayingId] = useState<string | null>(null)
+  const [payError, setPayError] = useState('')
+
+  const bankDetails = (lang === 'ar' ? siteContent?.['bank.details']?.ar : siteContent?.['bank.details']?.en) ?? ''
+  const paymentSuccess = searchParams.get('payment') === 'success'
+
+  const pay = async (id: string) => {
+    setPayingId(id)
+    setPayError('')
+    try {
+      const url = await startConsultationCheckout(id)
+      window.location.href = url
+    } catch (e) {
+      setPayError(e instanceof Error ? e.message : t('instPay.error'))
+      setPayingId(null)
+    }
+  }
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -78,6 +102,13 @@ export function InstitutionConsultationsPage() {
     <div className="max-w-160">
       <div className="mb-5 font-heading text-xl font-bold text-navy">{t('instConsult.title')}</div>
 
+      {paymentSuccess && (
+        <div className="mb-5 rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-[13.5px] text-success">
+          {t('instPay.paidSuccess')}
+        </div>
+      )}
+      {payError && <div className="mb-4 text-[13.5px] text-error">{payError}</div>}
+
       <div className="mb-8 rounded-xl border border-border bg-bg-soft p-4">
         <div className="mb-3 text-[14px] font-semibold text-navy">{t('instConsult.newTitle')}</div>
         <div className="flex flex-col gap-2.5">
@@ -119,13 +150,59 @@ export function InstitutionConsultationsPage() {
             {c.consultation_type && <div className="mb-1 text-[12.5px] text-muted">{c.consultation_type}</div>}
             {c.description && <p className="whitespace-pre-wrap text-[13px] leading-6 text-muted-2">{c.description}</p>}
             {c.status === 'awaiting_payment' && c.final_price_cents != null && (
-              <div className="mt-2 text-[13.5px] text-navy">
-                {t('instConsult.amountDue')}:{' '}
-                <span className="font-bold">
-                  {(c.final_price_cents / 100).toLocaleString(lang === 'ar' ? 'ar-SA' : 'en-US')} {t('course.currency')}
-                </span>
+              <div className="mt-3 rounded-lg bg-gold/10 p-3.5">
+                <div className="mb-2.5 text-[14px] text-navy">
+                  {t('instConsult.amountDue')}:{' '}
+                  <span className="font-bold">
+                    {(c.final_price_cents / 100).toLocaleString(lang === 'ar' ? 'ar-SA' : 'en-US')}{' '}
+                    {t('course.currency')}
+                  </span>
+                </div>
+                <button
+                  onClick={() => void pay(c.id)}
+                  disabled={payingId === c.id}
+                  className="rounded-md bg-navy px-5 py-2.25 text-[13.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-60"
+                >
+                  {payingId === c.id ? t('instPay.redirecting') : t('instPay.payCard')}
+                </button>
+                {bankDetails.trim() && (
+                  <div className="mt-3 border-t border-gold/30 pt-3">
+                    <div className="mb-1 text-[12.5px] font-semibold text-navy">{t('instPay.bankTransfer')}</div>
+                    <div className="whitespace-pre-wrap text-[12.5px] leading-6 text-muted-2">{bankDetails}</div>
+                    <div className="mt-1.5 text-[12px] text-muted">{t('instPay.bankHint')}</div>
+                  </div>
+                )}
               </div>
             )}
+          </div>
+        ))}
+      </div>
+
+      <div className="mb-3 mt-8 text-[15px] font-semibold text-navy">{t('instPay.invoicesTitle')}</div>
+      {invoices && invoices.length === 0 && <div className="text-muted">{t('instPay.invoicesEmpty')}</div>}
+      <div className="flex flex-col gap-2">
+        {(invoices ?? []).map((inv) => (
+          <div key={inv.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-white p-3.5">
+            <div className="text-[13.5px] text-navy">
+              <span className="font-bold">
+                {(inv.amount_cents / 100).toLocaleString(lang === 'ar' ? 'ar-SA' : 'en-US')} {t('course.currency')}
+              </span>
+              <span className="ms-2 text-[12px] text-muted">
+                {inv.method === 'stripe' ? t('instPay.methodStripe') : t('instPay.methodBank')}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-[12px] text-faint">
+                {new Date(inv.created_at).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}
+              </span>
+              <span
+                className={`rounded-full px-2.5 py-1 text-[11.5px] font-semibold ${
+                  inv.status === 'paid' ? 'bg-success/10 text-success' : 'bg-gold/15 text-gold'
+                }`}
+              >
+                {inv.status === 'paid' ? t('instPay.statusPaid') : t('instPay.statusUnpaid')}
+              </span>
+            </div>
           </div>
         ))}
       </div>

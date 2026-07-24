@@ -996,6 +996,27 @@ export const translations = {
   'instTeam.confirmRemove': { ar: 'إزالة هذا العضو من المؤسسة؟', en: 'Remove this member from the institution?' },
   'instTeam.notAdmin': { ar: 'إدارة الفريق متاحة لمدير المؤسسة فقط.', en: 'Only the institution admin can manage the team.' },
 
+  // Institution payment / invoices
+  'instPay.payCard': { ar: 'ادفع بالبطاقة', en: 'Pay by card' },
+  'instPay.redirecting': { ar: 'جارٍ التحويل...', en: 'Redirecting…' },
+  'instPay.bankTransfer': { ar: 'أو حوّل بنكيًا', en: 'Or pay by bank transfer' },
+  'instPay.bankHint': { ar: 'بعد التحويل أرسل الإيصال، وسنفعّل الطلب فور وصوله.', en: 'After transferring, send us the receipt and we activate the request once it arrives.' },
+  'instPay.error': { ar: 'تعذّر بدء الدفع، حاول مجددًا.', en: 'Could not start payment, try again.' },
+  'instPay.paidSuccess': { ar: 'تم استلام الدفع — طلبك قيد التنفيذ الآن.', en: 'Payment received — your request is now in progress.' },
+  'instPay.invoicesTitle': { ar: 'الفواتير', en: 'Invoices' },
+  'instPay.invoicesEmpty': { ar: 'لا توجد فواتير بعد.', en: 'No invoices yet.' },
+  'instPay.methodStripe': { ar: 'بطاقة', en: 'Card' },
+  'instPay.methodBank': { ar: 'تحويل بنكي', en: 'Bank transfer' },
+  'instPay.statusPaid': { ar: 'مدفوعة', en: 'Paid' },
+  'instPay.statusUnpaid': { ar: 'غير مدفوعة', en: 'Unpaid' },
+  'oConsult.markPaid': { ar: 'تأكيد استلام التحويل', en: 'Confirm transfer received' },
+  'oConsult.confirmPaid': { ar: 'تأكيد أن المبلغ وصل وتفعيل الطلب؟', en: 'Confirm the transfer arrived and activate the request?' },
+  // Bank details (admin-editable)
+  'cms.bank.title': { ar: 'بيانات التحويل البنكي', en: 'Bank transfer details' },
+  'cms.bank.hint': { ar: 'تظهر للمؤسسات عند اختيار الدفع بالتحويل البنكي.', en: 'Shown to institutions when they choose bank transfer.' },
+  'cms.bank.arPh': { ar: 'بيانات الحساب البنكي (عربي)', en: 'Bank account details (Arabic)' },
+  'cms.bank.enPh': { ar: 'بيانات الحساب البنكي (إنجليزي)', en: 'Bank account details (English)' },
+
   // Discounts (owner)
   'tab.discounts': { ar: 'التخفيضات', en: 'Promotions' },
   'disc.title': { ar: 'أكواد التخفيض', en: 'Discount codes' },

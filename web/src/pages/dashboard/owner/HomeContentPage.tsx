@@ -261,6 +261,50 @@ function TeamEditor() {
   )
 }
 
+function BankDetailsEditor({ content, onSaved }: { content: ContentMap | undefined; onSaved: () => void }) {
+  const { t } = useLanguage()
+  const [ar, setAr] = useState(content?.['bank.details']?.ar ?? '')
+  const [en, setEn] = useState(content?.['bank.details']?.en ?? '')
+  const [busy, setBusy] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const save = async () => {
+    setBusy(true)
+    setSaved(false)
+    try {
+      await saveSiteContent('bank.details', ar.trim(), en.trim())
+      setSaved(true)
+      onSaved()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const field = 'w-full resize-y rounded-md border border-border px-3 py-2 text-[13.5px] font-[inherit]'
+  return (
+    <div>
+      <div className="mb-1 text-[14px] font-bold text-navy">{t('cms.bank.title')}</div>
+      <div className="mb-2.5 text-[12.5px] text-muted">{t('cms.bank.hint')}</div>
+      <div className="rounded-lg border border-border-2 bg-bg-soft p-3.5">
+        <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <textarea value={ar} onChange={(e) => setAr(e.target.value)} rows={4} placeholder={t('cms.bank.arPh')} className={field} />
+          <textarea dir="ltr" value={en} onChange={(e) => setEn(e.target.value)} rows={4} placeholder={t('cms.bank.enPh')} className={field} />
+        </div>
+        <div className="flex items-center justify-end gap-2">
+          {saved && <span className="text-[12px] text-success">{t('homeContent.saved')}</span>}
+          <button
+            onClick={() => void save()}
+            disabled={busy}
+            className="rounded-md bg-navy px-4 py-1.75 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+          >
+            {t('homeContent.save')}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function AnnouncementEditor({ content, onSaved }: { content: ContentMap | undefined; onSaved: () => void }) {
   const { t } = useLanguage()
   const [enabled, setEnabled] = useState(!!content?.['announce.enabled']?.en)
@@ -350,6 +394,7 @@ export function OwnerHomeContentPage() {
 
         <SocialLinksEditor content={content} onSaved={refresh} />
         <AnnouncementEditor key={content ? 'loaded' : 'loading'} content={content} onSaved={refresh} />
+        <BankDetailsEditor key={content ? 'bank-loaded' : 'bank-loading'} content={content} onSaved={refresh} />
         <TeamEditor />
       </div>
     </div>

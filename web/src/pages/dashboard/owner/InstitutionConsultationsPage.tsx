@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import {
   listAllConsultations,
+  markConsultationPaid,
   setConsultationPrice,
   updateConsultationStatus,
   type Consultation,
@@ -68,6 +69,15 @@ export function OwnerInstitutionConsultationsPage() {
     refresh()
   }
 
+  // Bank transfers land outside Stripe, so the owner confirms receipt here;
+  // that records a paid invoice and moves the consultation into delivery.
+  const confirmBankPaid = async (c: Consultation) => {
+    if (!c.final_price_cents) return
+    if (!confirm(t('oConsult.confirmPaid'))) return
+    await markConsultationPaid(c.id, c.final_price_cents, c.institution_id)
+    refresh()
+  }
+
   const statusLabel = (s: ConsultationStatus) =>
     s === 'pending'
       ? t('consultStatus.pending')
@@ -110,6 +120,15 @@ export function OwnerInstitutionConsultationsPage() {
             </div>
 
             {c.status !== 'done' && c.status !== 'cancelled' && <PriceControl c={c} onSaved={refresh} />}
+
+            {c.status === 'awaiting_payment' && c.final_price_cents != null && (
+              <button
+                onClick={() => void confirmBankPaid(c)}
+                className="mb-3 rounded-md border border-success px-4 py-2 text-[12.5px] font-semibold text-success hover:bg-success/10"
+              >
+                {t('oConsult.markPaid')}
+              </button>
+            )}
 
             <div className="flex flex-wrap gap-1.5">
               {WORKFLOW.map((s) => (
