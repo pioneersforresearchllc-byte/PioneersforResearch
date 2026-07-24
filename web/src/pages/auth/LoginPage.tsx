@@ -10,7 +10,7 @@ export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { t } = useLanguage()
-  const [role, setRole] = useState<'student' | 'teacher'>('student')
+  const [role, setRole] = useState<'student' | 'teacher' | 'institution'>('student')
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -120,6 +120,15 @@ export function LoginPage() {
         >
           {t('login.teacher')}
         </button>
+        <button
+          type="button"
+          onClick={() => setRole('institution')}
+          className={`flex-1 rounded-md border-none py-2.25 text-[13.5px] font-semibold ${
+            role === 'institution' ? 'bg-navy text-white' : 'bg-transparent text-navy'
+          }`}
+        >
+          {t('login.institution')}
+        </button>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
@@ -157,6 +166,15 @@ export function LoginPage() {
           {t('login.notTeacherYet')}{' '}
           <Link to="/teacher-apply" className="font-semibold text-navy no-underline">
             {t('login.applyAsTeacher')}
+          </Link>
+        </div>
+      )}
+
+      {role === 'institution' && (
+        <div className="mt-4 text-center text-[13.5px]">
+          {t('login.notInstitutionYet')}{' '}
+          <Link to="/register-institution" className="font-semibold text-navy no-underline">
+            {t('login.registerInstitution')}
           </Link>
         </div>
       )}
