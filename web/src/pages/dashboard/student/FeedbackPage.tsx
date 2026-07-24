@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { listMyGrades } from '@/lib/account'
 import { EmptyState } from '@/components/EmptyState'
+import { LoadingState } from '@/components/LoadingState'
 
 export function StudentFeedbackPage() {
   const { profile } = useAuth()
@@ -19,7 +20,7 @@ export function StudentFeedbackPage() {
     <div>
       <div className="mb-5 font-heading text-xl font-bold text-navy">{t('sFeedback.title')}</div>
 
-      {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
+      {isLoading && <LoadingState />}
       {withFeedback.length === 0 && !isLoading && <EmptyState title={t('sFeedback.none')} />}
 
       <div className="flex flex-col gap-2.5">

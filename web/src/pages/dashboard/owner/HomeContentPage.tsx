@@ -19,6 +19,7 @@ import {
   updateTeamMember,
   type TeamMember,
 } from '@/lib/team'
+import { LoadingState } from '@/components/LoadingState'
 
 const SOCIAL_LABELS: Record<SocialKey, string> = {
   'social.instagram': 'Instagram',
@@ -371,7 +372,7 @@ export function OwnerHomeContentPage() {
       <div className="mb-1.5 font-heading text-xl font-bold text-navy">{t('homeContent.title')}</div>
       <div className="mb-5 text-[13.5px] text-muted">{t('homeContent.subtitle')}</div>
 
-      {isLoading && <div className="text-muted">...</div>}
+      {isLoading && <LoadingState />}
 
       <div className="flex flex-col gap-6">
         {EDITABLE_CONTENT.map((section) => (

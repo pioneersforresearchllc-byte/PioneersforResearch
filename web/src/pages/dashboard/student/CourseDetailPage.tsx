@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { getEnrolledCourseDetail } from '@/lib/courses'
+import { LoadingState } from '@/components/LoadingState'
 
 export function StudentCourseDetailPage() {
   const { id } = useParams()
@@ -14,7 +15,7 @@ export function StudentCourseDetailPage() {
     queryFn: () => getEnrolledCourseDetail(id!, profile!.id),
   })
 
-  if (isLoading) return <div className="text-muted">{t('dash.loading')}</div>
+  if (isLoading) return <LoadingState />
   if (!data) {
     return (
       <div>

@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import { listContactMessages, markContactMessageRead } from '@/lib/owner'
 import { EmptyState } from '@/components/EmptyState'
+import { LoadingState } from '@/components/LoadingState'
 
 export function OwnerContactPage() {
   const { t } = useLanguage()
@@ -17,7 +18,7 @@ export function OwnerContactPage() {
     <div>
       <div className="mb-5 font-heading text-xl font-bold text-navy">{t('oContact.title')}</div>
 
-      {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
+      {isLoading && <LoadingState />}
       {data && data.length === 0 && <EmptyState title={t('oContact.none')} />}
 
       <div className="flex flex-col gap-2.5">

@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { listMyStudents } from '@/lib/courses'
 import { EmptyState } from '@/components/EmptyState'
+import { LoadingState } from '@/components/LoadingState'
 
 export function TeacherStudentsPage() {
   const { profile } = useAuth()
@@ -17,7 +18,7 @@ export function TeacherStudentsPage() {
     <div>
       <div className="mb-5 font-heading text-xl font-bold text-navy">{t('tStudents.title')}</div>
 
-      {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
+      {isLoading && <LoadingState />}
       {data && data.length === 0 && <EmptyState title={t('tStudents.none')} />}
 
       <div className="flex flex-col gap-2.5">

@@ -16,6 +16,7 @@ import {
   type ServiceRequestRow,
 } from '@/lib/services'
 import { EmptyState } from '@/components/EmptyState'
+import { LoadingState } from '@/components/LoadingState'
 
 // Before the customer pays, the owner prices/cancels; after payment they only
 // move the work forward. 'paid' itself is set by the Stripe webhook, never a
@@ -148,7 +149,7 @@ export function OwnerServiceRequestsPage() {
     <div>
       <div className="mb-5 font-heading text-xl font-bold text-navy">{t('adminRequests.title')}</div>
 
-      {isLoading && <div className="text-muted">...</div>}
+      {isLoading && <LoadingState />}
       {requests && requests.length === 0 && <EmptyState title={t('adminRequests.empty')} />}
       {error && <div className="mb-3 text-[13.5px] text-error">{error}</div>}
 

@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import { approveTeacher, listPendingTeachers, rejectTeacher, signCvFile } from '@/lib/teachers'
 import { EmptyState } from '@/components/EmptyState'
+import { LoadingState } from '@/components/LoadingState'
 
 export function OwnerApplicationsPage() {
   const { t } = useLanguage()
@@ -28,7 +29,7 @@ export function OwnerApplicationsPage() {
     <div>
       <div className="mb-5 font-heading text-xl font-bold text-navy">{t('oApps.title')}</div>
 
-      {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
+      {isLoading && <LoadingState />}
       {data && data.length === 0 && <EmptyState title={t('oApps.none')} />}
 
       <div className="flex flex-col gap-4">

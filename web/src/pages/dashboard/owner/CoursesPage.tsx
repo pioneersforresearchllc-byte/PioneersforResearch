@@ -17,6 +17,7 @@ import {
   type TeacherOption,
 } from '@/lib/courses'
 import { EmptyState } from '@/components/EmptyState'
+import { LoadingState } from '@/components/LoadingState'
 
 function formatSar(cents: number, t: ReturnType<typeof useLanguage>['t']) {
   if (cents === 0) return t('course.free')
@@ -339,7 +340,7 @@ export function OwnerCoursesPage() {
         </button>
       </div>
 
-      {coursesQuery.isLoading && <div className="text-muted">{t('dash.loading')}</div>}
+      {coursesQuery.isLoading && <LoadingState />}
       {coursesQuery.data && coursesQuery.data.length === 0 && <EmptyState title={t('oCourses.none')} />}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

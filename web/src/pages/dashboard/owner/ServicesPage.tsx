@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import { listAllServicesForOwner, updatePackage, type ServicePackage } from '@/lib/services'
+import { LoadingState } from '@/components/LoadingState'
 
 const inputClass = 'w-full box-border rounded-md border border-border px-3 py-2 text-[13.5px]'
 
@@ -92,7 +93,7 @@ export function OwnerServicesPage() {
       <div className="mb-1.5 font-heading text-xl font-bold text-navy">{t('adminServices.title')}</div>
       <div className="mb-5 text-[13.5px] text-muted">{t('adminServices.subtitle')}</div>
 
-      {isLoading && <div className="text-muted">...</div>}
+      {isLoading && <LoadingState />}
 
       <div className="flex flex-col gap-5">
         {(services ?? []).map((s) => (

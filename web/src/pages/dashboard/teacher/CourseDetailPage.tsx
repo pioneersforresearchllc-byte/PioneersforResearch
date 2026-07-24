@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { getTaughtCourseDetail } from '@/lib/courses'
 import { createAssignment, listAssignmentsForCourse, uploadAssignmentFile } from '@/lib/assignments'
+import { LoadingState } from '@/components/LoadingState'
 
 function NewAssignmentModal({
   courseId,
@@ -146,7 +147,7 @@ export function TeacherCourseDetailPage() {
     queryFn: () => listAssignmentsForCourse(id!),
   })
 
-  if (isLoading) return <div className="text-muted">{t('dash.loading')}</div>
+  if (isLoading) return <LoadingState />
   if (!data) {
     return (
       <div>

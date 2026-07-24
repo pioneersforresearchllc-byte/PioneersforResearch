@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { listAssignedRequests, signRequestFile, updateRequestStatus, type RequestStatus } from '@/lib/services'
 import { EmptyState } from '@/components/EmptyState'
+import { LoadingState } from '@/components/LoadingState'
 
 const STATUS_STYLES: Record<RequestStatus, string> = {
   pending: 'bg-bg-soft text-muted',
@@ -62,7 +63,7 @@ export function TeacherAssignedRequestsPage() {
       <div className="mb-1.5 font-heading text-xl font-bold text-navy">{t('assignedRequests.title')}</div>
       <div className="mb-5 text-[13.5px] text-muted">{t('assignedRequests.subtitle')}</div>
 
-      {isLoading && <div className="text-muted">...</div>}
+      {isLoading && <LoadingState />}
       {requests && requests.length === 0 && <EmptyState title={t('assignedRequests.empty')} />}
 
       <div className="flex flex-col gap-4">

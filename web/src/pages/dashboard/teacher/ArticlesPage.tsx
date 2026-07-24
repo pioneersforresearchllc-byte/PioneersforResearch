@@ -11,6 +11,7 @@ import {
   type Article,
 } from '@/lib/articles'
 import { EmptyState } from '@/components/EmptyState'
+import { LoadingState } from '@/components/LoadingState'
 
 function ArticleForm({
   authorId,
@@ -136,7 +137,7 @@ export function TeacherArticlesPage() {
         </button>
       </div>
 
-      {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
+      {isLoading && <LoadingState />}
       {data && data.length === 0 && <EmptyState title={t('tArticles.none')} />}
 
       <div className="flex flex-col gap-2.5">

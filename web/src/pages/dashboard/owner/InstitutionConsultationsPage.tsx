@@ -10,6 +10,7 @@ import {
   type ConsultationStatus,
 } from '@/lib/institutions'
 import { EmptyState } from '@/components/EmptyState'
+import { LoadingState } from '@/components/LoadingState'
 
 const STATUS_STYLES: Record<ConsultationStatus, string> = {
   pending: 'bg-gold/15 text-gold',
@@ -93,7 +94,7 @@ export function OwnerInstitutionConsultationsPage() {
   return (
     <div>
       <div className="mb-5 font-heading text-xl font-bold text-navy">{t('oConsult.title')}</div>
-      {isLoading && <div className="text-muted">...</div>}
+      {isLoading && <LoadingState />}
       {data && data.length === 0 && <EmptyState title={t('oConsult.empty')} />}
 
       <div className="flex flex-col gap-4">

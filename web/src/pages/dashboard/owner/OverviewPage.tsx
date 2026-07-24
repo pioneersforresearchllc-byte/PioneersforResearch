@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import { getOverviewStats } from '@/lib/owner'
+import { LoadingState } from '@/components/LoadingState'
 
 export function OwnerOverviewPage() {
   const { t } = useLanguage()
@@ -23,7 +24,7 @@ export function OwnerOverviewPage() {
   return (
     <div>
       <div className="mb-5 font-heading text-xl font-bold text-navy">{t('oOverview.title')}</div>
-      {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
+      {isLoading && <LoadingState />}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {cards.map((c) => (
           <div key={c.label} className="rounded-xl border border-border bg-white p-5 text-center">

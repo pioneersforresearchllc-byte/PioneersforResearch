@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createAdmin, listAdmins, removeAdmin } from '@/lib/owner'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
+import { LoadingState } from '@/components/LoadingState'
 
 function NewAdminModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const { t } = useLanguage()
@@ -115,7 +116,7 @@ export function OwnerAdminsPage() {
         </button>
       </div>
 
-      {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
+      {isLoading && <LoadingState />}
 
       <div className="flex flex-col gap-2.5">
         {(data ?? []).map((a) => (

@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { listMyCertificates } from '@/lib/certificates'
 import { EmptyState } from '@/components/EmptyState'
+import { LoadingState } from '@/components/LoadingState'
 
 export function StudentCertificatesPage() {
   const { profile } = useAuth()
@@ -17,7 +18,7 @@ export function StudentCertificatesPage() {
     <div>
       <div className="mb-5 font-heading text-xl font-bold text-navy">{t('sCerts.title')}</div>
 
-      {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
+      {isLoading && <LoadingState />}
       {data && data.length === 0 && <EmptyState title={t('sCerts.none')} />}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

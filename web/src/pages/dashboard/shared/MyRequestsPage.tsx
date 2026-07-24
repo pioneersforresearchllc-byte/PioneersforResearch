@@ -6,6 +6,7 @@ import { useLanguage } from '@/lib/i18n'
 import { listMyServiceRequests, markMyRequestsSeen, startServiceCheckout, type RequestStatus } from '@/lib/services'
 import { validateDiscount, type DiscountPreview } from '@/lib/discounts'
 import { EmptyState } from '@/components/EmptyState'
+import { LoadingState } from '@/components/LoadingState'
 
 /**
  * Stripe redirects back to a fixed /my-requests URL, but the page itself
@@ -121,7 +122,7 @@ export function MyRequestsPage() {
     <div>
       <div className="mb-5 font-heading text-xl font-bold text-navy">{t('myRequests.title')}</div>
 
-      {isLoading && <div className="text-muted">...</div>}
+      {isLoading && <LoadingState />}
       {requests && requests.length === 0 && (
         <EmptyState title={t('myRequests.empty')} description={t('myRequests.emptyHint')} />
       )}

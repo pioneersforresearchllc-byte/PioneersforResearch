@@ -84,10 +84,11 @@ export function AccountPage() {
   }
 
   return (
-    <div className="max-w-140">
+    <div className="mx-auto max-w-5xl">
       <div className="mb-5 font-heading text-xl font-bold text-navy">{t('account.title')}</div>
 
-      <div className="mb-6 rounded-xl border border-border bg-white p-5 md:p-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+      <div className="rounded-xl border border-border bg-white p-5 md:p-6 lg:col-span-2">
         <div className="mb-4 text-[14px] font-semibold text-navy">{t('account.profileSection')}</div>
 
         <div className="mb-5 flex items-center gap-4">
@@ -215,6 +216,7 @@ export function AccountPage() {
           </button>
         </div>
         {passMessage && <div className="mt-2 text-[13px] text-navy">{passMessage}</div>}
+      </div>
       </div>
     </div>
   )
