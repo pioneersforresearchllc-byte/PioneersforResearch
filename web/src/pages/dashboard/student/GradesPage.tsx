@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { listMyGrades } from '@/lib/account'
 import { listMyEnrolledCourses } from '@/lib/courses'
+import { EmptyState } from '@/components/EmptyState'
 
 export function StudentGradesPage() {
   const { profile } = useAuth()
@@ -25,7 +26,7 @@ export function StudentGradesPage() {
       <div className="mb-6">
         <div className="mb-2.5 text-[15px] font-semibold text-navy">{t('sGrades.progressTitle')}</div>
         {coursesQuery.data && coursesQuery.data.length === 0 && (
-          <div className="text-[13.5px] text-muted">{t('sGrades.noCourses')}</div>
+          <EmptyState title={t('sGrades.noCourses')} />
         )}
         <div className="flex flex-col gap-2">
           {(coursesQuery.data ?? []).map((c) => (
@@ -45,7 +46,7 @@ export function StudentGradesPage() {
       <div>
         <div className="mb-2.5 text-[15px] font-semibold text-navy">{t('sGrades.assignmentGrades')}</div>
         {gradesQuery.data && gradesQuery.data.length === 0 && (
-          <div className="text-[13.5px] text-muted">{t('sGrades.noGraded')}</div>
+          <EmptyState title={t('sGrades.noGraded')} />
         )}
         <div className="flex flex-col gap-2">
           {(gradesQuery.data ?? []).map((g) => (

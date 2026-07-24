@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { listMyEnrolledCourses } from '@/lib/courses'
+import { EmptyState } from '@/components/EmptyState'
 
 export function StudentCoursesPage() {
   const { profile } = useAuth()
@@ -19,12 +20,17 @@ export function StudentCoursesPage() {
 
       {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
       {data && data.length === 0 && (
-        <div className="text-muted">
-          {t('sCourses.emptyPrefix')}{' '}
-          <Link to="/#courses" className="font-semibold text-navy">
-            {t('sCourses.browse')}
-          </Link>
-        </div>
+        <EmptyState
+          title={t('sCourses.emptyPrefix')}
+          action={
+            <Link
+              to="/#courses"
+              className="inline-flex items-center rounded-lg bg-navy px-4 py-2 text-[13px] font-semibold text-white no-underline transition-colors hover:bg-navy-hover"
+            >
+              {t('sCourses.browse')}
+            </Link>
+          }
+        />
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

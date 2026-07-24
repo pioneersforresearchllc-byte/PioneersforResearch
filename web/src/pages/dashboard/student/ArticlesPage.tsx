@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import { listAllArticles } from '@/lib/articles'
+import { EmptyState } from '@/components/EmptyState'
 
 export function StudentArticlesPage() {
   const { t } = useLanguage()
@@ -12,7 +13,7 @@ export function StudentArticlesPage() {
       <div className="mb-5 font-heading text-xl font-bold text-navy">{t('sArticles.title')}</div>
 
       {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
-      {data && data.length === 0 && <div className="text-muted">{t('sArticles.none')}</div>}
+      {data && data.length === 0 && <EmptyState title={t('sArticles.none')} />}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {(data ?? []).map((a) => (
