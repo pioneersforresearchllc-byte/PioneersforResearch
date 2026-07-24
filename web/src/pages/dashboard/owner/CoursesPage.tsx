@@ -16,6 +16,7 @@ import {
   type CourseWithMeta,
   type TeacherOption,
 } from '@/lib/courses'
+import { EmptyState } from '@/components/EmptyState'
 
 function formatSar(cents: number, t: ReturnType<typeof useLanguage>['t']) {
   if (cents === 0) return t('course.free')
@@ -339,7 +340,7 @@ export function OwnerCoursesPage() {
       </div>
 
       {coursesQuery.isLoading && <div className="text-muted">{t('dash.loading')}</div>}
-      {coursesQuery.data && coursesQuery.data.length === 0 && <div className="text-muted">{t('oCourses.none')}</div>}
+      {coursesQuery.data && coursesQuery.data.length === 0 && <EmptyState title={t('oCourses.none')} />}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {(coursesQuery.data ?? []).map((c) => (

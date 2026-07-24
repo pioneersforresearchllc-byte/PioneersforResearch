@@ -9,6 +9,7 @@ import {
   type InstitutionMember,
   type MemberRole,
 } from '@/lib/institutions'
+import { EmptyState } from '@/components/EmptyState'
 
 export function InstitutionTeamPage() {
   const { t } = useLanguage()
@@ -108,7 +109,7 @@ export function InstitutionTeamPage() {
       )}
 
       <div className="mb-3 text-[15px] font-semibold text-navy">{t('instTeam.membersTitle')}</div>
-      {members && members.length === 0 && <div className="text-muted">{t('instTeam.empty')}</div>}
+      {members && members.length === 0 && <EmptyState title={t('instTeam.empty')} />}
       <div className="flex flex-col gap-2.5">
         {(members ?? []).map((m) => (
           <div key={m.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-white p-4">

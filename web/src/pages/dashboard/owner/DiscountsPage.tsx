@@ -10,6 +10,7 @@ import {
   updateDiscountCode,
   type DiscountCode,
 } from '@/lib/discounts'
+import { EmptyState } from '@/components/EmptyState'
 
 export function OwnerDiscountsPage() {
   const { t, lang } = useLanguage()
@@ -173,7 +174,7 @@ export function OwnerDiscountsPage() {
         </button>
       </div>
 
-      {codes && codes.length === 0 && <div className="text-muted">{t('disc.empty')}</div>}
+      {codes && codes.length === 0 && <EmptyState title={t('disc.empty')} />}
       <div className="flex flex-col gap-2.5">
         {(codes ?? []).map((dc) => (
           <div key={dc.id} className="rounded-lg border border-border bg-white p-4">

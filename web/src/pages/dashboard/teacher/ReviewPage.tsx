@@ -11,6 +11,7 @@ import {
   type SubmissionWithStudent,
 } from '@/lib/assignments'
 import { SignedFileLink } from '@/components/SignedFileLink'
+import { EmptyState } from '@/components/EmptyState'
 
 function GradeForm({ submission, onGraded }: { submission: SubmissionWithStudent; onGraded: () => void }) {
   const { t } = useLanguage()
@@ -142,7 +143,7 @@ export function TeacherReviewPage() {
       <div className="mb-5 font-heading text-xl font-bold text-navy">{t('tReview.title')}</div>
 
       {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
-      {data && data.length === 0 && <div className="text-muted">{t('tReview.noAssignments')}</div>}
+      {data && data.length === 0 && <EmptyState title={t('tReview.noAssignments')} />}
 
       <div className="flex flex-col gap-2.5">
         {(data ?? []).map((a) => (

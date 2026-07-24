@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { listAssignedRequests, signRequestFile, updateRequestStatus, type RequestStatus } from '@/lib/services'
+import { EmptyState } from '@/components/EmptyState'
 
 const STATUS_STYLES: Record<RequestStatus, string> = {
   pending: 'bg-bg-soft text-muted',
@@ -62,7 +63,7 @@ export function TeacherAssignedRequestsPage() {
       <div className="mb-5 text-[13.5px] text-muted">{t('assignedRequests.subtitle')}</div>
 
       {isLoading && <div className="text-muted">...</div>}
-      {requests && requests.length === 0 && <div className="text-muted">{t('assignedRequests.empty')}</div>}
+      {requests && requests.length === 0 && <EmptyState title={t('assignedRequests.empty')} />}
 
       <div className="flex flex-col gap-4">
         {(requests ?? []).map((r) => (

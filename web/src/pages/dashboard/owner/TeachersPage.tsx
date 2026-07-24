@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import { dismissTeacher, listAllTeachers } from '@/lib/teachers'
+import { EmptyState } from '@/components/EmptyState'
 
 const statusClass: Record<string, string> = {
   active: 'bg-success-bg text-success',
@@ -26,7 +27,7 @@ export function OwnerTeachersPage() {
       <div className="mb-5 font-heading text-xl font-bold text-navy">{t('oTeachers.title')}</div>
 
       {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
-      {data && data.length === 0 && <div className="text-muted">{t('oTeachers.none')}</div>}
+      {data && data.length === 0 && <EmptyState title={t('oTeachers.none')} />}
 
       <div className="flex flex-col gap-2.5">
         {(data ?? []).map((tc) => (

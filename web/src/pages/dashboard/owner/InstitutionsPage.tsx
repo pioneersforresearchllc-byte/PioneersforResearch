@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import { listInstitutions, rejectInstitution, verifyInstitution, type Institution } from '@/lib/institutions'
+import { EmptyState } from '@/components/EmptyState'
 
 export function OwnerInstitutionsPage() {
   const { t, lang } = useLanguage()
@@ -42,7 +43,7 @@ export function OwnerInstitutionsPage() {
     <div>
       <div className="mb-5 font-heading text-xl font-bold text-navy">{t('oInst.title')}</div>
       {isLoading && <div className="text-muted">...</div>}
-      {data && data.length === 0 && <div className="text-muted">{t('oInst.empty')}</div>}
+      {data && data.length === 0 && <EmptyState title={t('oInst.empty')} />}
 
       <div className="flex flex-col gap-3">
         {(data ?? []).map((inst) => (

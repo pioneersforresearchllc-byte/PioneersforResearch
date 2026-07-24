@@ -10,6 +10,7 @@ import {
   uploadArticleImage,
   type Article,
 } from '@/lib/articles'
+import { EmptyState } from '@/components/EmptyState'
 
 function ArticleForm({
   authorId,
@@ -136,7 +137,7 @@ export function TeacherArticlesPage() {
       </div>
 
       {isLoading && <div className="text-muted">{t('dash.loading')}</div>}
-      {data && data.length === 0 && <div className="text-muted">{t('tArticles.none')}</div>}
+      {data && data.length === 0 && <EmptyState title={t('tArticles.none')} />}
 
       <div className="flex flex-col gap-2.5">
         {(data ?? []).map((a) => (
