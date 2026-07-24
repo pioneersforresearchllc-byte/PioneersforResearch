@@ -159,7 +159,10 @@ function OfferingSection({
       {items.length > 0 ? (
         <div className="grid grid-cols-1 gap-6.5 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((c) => (
-            <div key={c.id} className="rounded-[10px] border border-border bg-white p-7">
+            <div
+              key={c.id}
+              className="rounded-[10px] border border-border bg-white p-7 transition-all duration-200 hover:-translate-y-1 hover:border-navy hover:shadow-[0_14px_32px_rgba(11,31,58,0.12)]"
+            >
               <h3 className="mb-3 text-lg text-navy">{lang === 'en' ? c.title_en || c.title : c.title}</h3>
               <p className="mb-4 text-[14.5px] leading-[1.9] text-muted">
                 {lang === 'en' ? c.description_en || c.description : c.description}
@@ -220,7 +223,10 @@ function ServicesSection() {
           {services.map((s) => {
             const min = fromPrice(s)
             return (
-              <div key={s.id} className="flex flex-col rounded-[10px] border border-border bg-white p-7">
+              <div
+                key={s.id}
+                className="flex flex-col rounded-[10px] border border-border bg-white p-7 transition-all duration-200 hover:-translate-y-1 hover:border-navy hover:shadow-[0_14px_32px_rgba(11,31,58,0.12)]"
+              >
                 <h3 className="mb-3 text-lg text-navy">{lang === 'en' ? s.title_en || s.title : s.title}</h3>
                 <p className="mb-4 flex-1 text-[14.5px] leading-[1.9] text-muted">
                   {lang === 'en' ? s.description_en || s.description : s.description}
@@ -393,7 +399,10 @@ export function MarketingHome() {
         {articles && articles.length > 0 ? (
           <div className="grid grid-cols-1 gap-6.5 sm:grid-cols-2 lg:grid-cols-3">
             {articles.map((a) => (
-              <div key={a.id} className="flex flex-col rounded-[10px] border border-border p-6.5">
+              <div
+                key={a.id}
+                className="flex flex-col rounded-[10px] border border-border p-6.5 transition-all duration-200 hover:-translate-y-1 hover:border-navy hover:shadow-[0_14px_32px_rgba(11,31,58,0.12)]"
+              >
                 {a.image_url && (
                   <img src={a.image_url} className="mb-4 block aspect-[1.8] w-full rounded-lg object-cover" alt="" />
                 )}
