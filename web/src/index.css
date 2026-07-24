@@ -37,6 +37,11 @@
 
   a {
     color: var(--color-navy);
+    transition:
+      color 0.15s ease,
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      opacity 0.15s ease;
   }
   a:hover {
     color: var(--color-gold);
@@ -50,6 +55,32 @@
   input:focus,
   textarea:focus {
     border-color: var(--color-navy);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Site-wide button polish: smooth colour changes + a subtle tactile press.
+     Buttons that already carry Tailwind transition utilities keep those
+     (utilities layer wins); this is just a sensible default for the rest. */
+  button {
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease,
+      box-shadow 0.15s ease,
+      transform 0.06s ease;
+  }
+  button:not(:disabled):active {
+    transform: translateY(1px);
+  }
+
+  /* Clear keyboard-focus ring (only shows for keyboard users, not mouse
+     clicks) — accessibility without visual noise. */
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
   }
 }
 
