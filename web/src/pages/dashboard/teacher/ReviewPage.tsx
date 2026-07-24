@@ -6,9 +6,11 @@ import {
   gradeSubmission,
   listAssignmentsForTeacher,
   listSubmissionsForAssignment,
+  signSubmissionFile,
   type AssignmentForReview,
   type SubmissionWithStudent,
 } from '@/lib/assignments'
+import { SignedFileLink } from '@/components/SignedFileLink'
 
 function GradeForm({ submission, onGraded }: { submission: SubmissionWithStudent; onGraded: () => void }) {
   const { t } = useLanguage()
@@ -104,14 +106,9 @@ function AssignmentPanel({ assignment, onClose }: { assignment: AssignmentForRev
                 </div>
               )}
               {s.file_url && (
-                <a
-                  href={s.file_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mb-1.5 inline-block text-[12.5px] text-navy"
-                >
-                  {t('tReview.studentFile')}
-                </a>
+                <div className="mb-1.5">
+                  <SignedFileLink sign={() => signSubmissionFile(s.file_url!)} label={t('tReview.studentFile')} />
+                </div>
               )}
               {s.status === 'pending' ? (
                 <div className="text-[12.5px] text-faint">{t('tReview.notSubmitted')}</div>

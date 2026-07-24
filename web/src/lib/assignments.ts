@@ -25,20 +25,66 @@ export interface Submission {
   graded_at: string | null
 }
 
+const ASSIGNMENT_BUCKET = 'assignment-files'
+const SUBMISSION_BUCKET = 'submission-files'
+
+// Supabase Storage rejects object keys with non-ASCII characters or spaces, so
+// the stored key is a UUID plus a sanitised extension — never the human name.
+function safeExt(fileName: string): string {
+  const dot = fileName.lastIndexOf('.')
+  const ext = dot > -1 ? fileName.slice(dot + 1).replace(/[^a-zA-Z0-9]/g, '').toLowerCase() : ''
+  return ext ? `${crypto.randomUUID()}.${ext}` : crypto.randomUUID()
+}
+
+/**
+ * Both buckets are PRIVATE, so we store only the object path and hand out a
+ * short-lived signed URL on demand (see signAssignmentFile / signSubmissionFile).
+ * A public URL for a private bucket 404s with "Bucket not found".
+ */
 export async function uploadAssignmentFile(courseId: string, file: File): Promise<string> {
-  const path = `${courseId}/${crypto.randomUUID()}.${(file.name.split('.').pop() || 'bin').replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}`
-  const { error } = await supabase.storage.from('assignment-files').upload(path, file)
+  const path = `${courseId}/${safeExt(file.name)}`
+  const { error } = await supabase.storage.from(ASSIGNMENT_BUCKET).upload(path, file)
   if (error) throw error
-  const { data } = supabase.storage.from('assignment-files').getPublicUrl(path)
-  return data.publicUrl
+  return path
 }
 
 export async function uploadSubmissionFile(studentId: string, file: File): Promise<string> {
-  const path = `${studentId}/${crypto.randomUUID()}.${(file.name.split('.').pop() || 'bin').replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}`
-  const { error } = await supabase.storage.from('submission-files').upload(path, file)
+  const path = `${studentId}/${safeExt(file.name)}`
+  const { error } = await supabase.storage.from(SUBMISSION_BUCKET).upload(path, file)
   if (error) throw error
-  const { data } = supabase.storage.from('submission-files').getPublicUrl(path)
-  return data.publicUrl
+  return path
+}
+
+/**
+ * Accepts either a bare object path (new records) or a full Supabase Storage
+ * URL (older records saved before we switched to signed URLs) and returns the
+ * object path relative to the bucket.
+ */
+function toObjectPath(bucket: string, stored: string): string {
+  const marker = '/storage/v1/object/'
+  const idx = stored.indexOf(marker)
+  if (idx === -1) return stored
+  let rest = stored.slice(idx + marker.length).replace(/^public\//, '').replace(/^sign\//, '')
+  if (rest.startsWith(`${bucket}/`)) rest = rest.slice(bucket.length + 1)
+  const q = rest.indexOf('?')
+  if (q > -1) rest = rest.slice(0, q)
+  return decodeURIComponent(rest)
+}
+
+/** Short-lived signed URL to open a teacher-authored assignment file. */
+export async function signAssignmentFile(stored: string): Promise<string | null> {
+  const { data } = await supabase.storage
+    .from(ASSIGNMENT_BUCKET)
+    .createSignedUrl(toObjectPath(ASSIGNMENT_BUCKET, stored), 600)
+  return data?.signedUrl ?? null
+}
+
+/** Short-lived signed URL to open a student's submission file. */
+export async function signSubmissionFile(stored: string): Promise<string | null> {
+  const { data } = await supabase.storage
+    .from(SUBMISSION_BUCKET)
+    .createSignedUrl(toObjectPath(SUBMISSION_BUCKET, stored), 600)
+  return data?.signedUrl ?? null
 }
 
 export async function createAssignment(params: {

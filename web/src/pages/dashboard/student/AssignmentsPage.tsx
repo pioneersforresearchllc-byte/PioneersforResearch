@@ -4,10 +4,13 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import {
   listMyAssignments,
+  signAssignmentFile,
+  signSubmissionFile,
   submitAnswer,
   uploadSubmissionFile,
   type MyAssignment,
 } from '@/lib/assignments'
+import { SignedFileLink } from '@/components/SignedFileLink'
 import { PaperclipIcon } from '@/pages/dashboard/chat/Icons'
 
 function statusLabel(a: MyAssignment, t: ReturnType<typeof useLanguage>['t']) {
@@ -133,9 +136,9 @@ export function StudentAssignmentsPage() {
                 <div className="mt-3 border-t border-border-2 pt-3">
                   {a.details && <p className="mb-2 text-[13.5px] leading-7 text-muted-2">{a.details}</p>}
                   {a.file_url && (
-                    <a href={a.file_url} target="_blank" rel="noreferrer" className="mb-2 inline-block text-[12.5px] text-navy">
-                      {t('sAssign.teacherFile')}
-                    </a>
+                    <div className="mb-2">
+                      <SignedFileLink sign={() => signAssignmentFile(a.file_url!)} label={t('sAssign.teacherFile')} />
+                    </div>
                   )}
 
                   {a.submission ? (
@@ -144,14 +147,9 @@ export function StudentAssignmentsPage() {
                         <p className="mb-1.5 whitespace-pre-wrap text-[13px] text-muted-2">{a.submission.answer_text}</p>
                       )}
                       {a.submission.file_url && (
-                        <a
-                          href={a.submission.file_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mb-1.5 inline-block text-[12.5px] text-navy"
-                        >
-                          {t('sAssign.yourFile')}
-                        </a>
+                        <div className="mb-1.5">
+                          <SignedFileLink sign={() => signSubmissionFile(a.submission!.file_url!)} label={t('sAssign.yourFile')} />
+                        </div>
                       )}
                       {graded && a.submission.feedback && (
                         <div className="mt-1.5 rounded-md bg-success-bg p-2 text-[13px] text-success">
