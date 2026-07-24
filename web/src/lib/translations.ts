@@ -930,6 +930,11 @@ export const translations = {
   'shell.instSubtitle': { ar: 'بوابة المؤسسات', en: 'Institutions portal' },
   'inst.welcome': { ar: 'مرحبًا، {name}', en: 'Welcome, {name}' },
   'inst.overviewSoon': { ar: 'نظام طلب الاستشارات وإدارة الفريق والفواتير سيظهر هنا قريبًا.', en: 'Consultation requests, team, and invoices will appear here soon.' },
+  'inst.quickActions': { ar: 'إجراءات سريعة', en: 'Quick actions' },
+  'inst.consultCardDesc': { ar: 'أرسل وتابع طلبات الاستشارة والفواتير.', en: 'Submit and track consultation requests and invoices.' },
+  'inst.teamCardDesc': { ar: 'أضف أعضاء فريقك وحدّد صلاحياتهم.', en: 'Add team members and set their permissions.' },
+  'inst.accountCardDesc': { ar: 'بيانات المؤسسة وكلمة المرور.', en: 'Institution details and password.' },
+  'inst.intro': { ar: 'أهلًا بك في بوابة مؤسستك. من هنا تطلب الاستشارات المتخصصة وتدير فريقك ومدفوعاتك.', en: 'Welcome to your institution portal. Request expert consultations and manage your team and payments here.' },
   'tab.instHome': { ar: 'الرئيسية', en: 'Home' },
   // Owner: institutions verification
   'tab.institutions': { ar: 'المؤسسات', en: 'Institutions' },
