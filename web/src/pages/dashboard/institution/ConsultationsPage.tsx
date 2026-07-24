@@ -12,6 +12,7 @@ import {
   startConsultationCheckout,
   type ConsultationStatus,
 } from '@/lib/institutions'
+import { EmptyState } from '@/components/EmptyState'
 
 const STATUS_STYLES: Record<ConsultationStatus, string> = {
   pending: 'bg-bg-soft text-muted',
@@ -137,7 +138,9 @@ export function InstitutionConsultationsPage() {
       </div>
 
       <div className="mb-3 text-[15px] font-semibold text-navy">{t('instConsult.myTitle')}</div>
-      {consultations && consultations.length === 0 && <div className="text-muted">{t('instConsult.empty')}</div>}
+      {consultations && consultations.length === 0 && (
+        <EmptyState title={t('instConsult.empty')} description={t('instConsult.emptyHint')} />
+      )}
       <div className="flex flex-col gap-3">
         {(consultations ?? []).map((c) => (
           <div key={c.id} className="rounded-xl border border-border bg-white p-4">

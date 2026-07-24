@@ -543,6 +543,10 @@ export const translations = {
 
   'myRequests.title': { ar: 'طلباتي', en: 'My Requests' },
   'myRequests.empty': { ar: 'لم ترسل أي طلب خدمة بعد.', en: "You haven't submitted any service request yet." },
+  'myRequests.emptyHint': {
+    ar: 'تصفّح خدماتنا وأرسل طلبك، وستظهر تحديثاته هنا.',
+    en: 'Browse our services and submit a request — its updates will appear here.',
+  },
   'myRequests.status.pending': { ar: 'قيد المراجعة', en: 'Under review' },
   'myRequests.status.awaiting_payment': { ar: 'بانتظار الدفع', en: 'Awaiting payment' },
   'myRequests.status.paid': { ar: 'تم الدفع', en: 'Paid' },
@@ -963,6 +967,10 @@ export const translations = {
   'instConsult.submitting': { ar: 'جارٍ الإرسال...', en: 'Submitting…' },
   'instConsult.myTitle': { ar: 'طلبات الاستشارة', en: 'Consultation requests' },
   'instConsult.empty': { ar: 'لا توجد طلبات بعد.', en: 'No requests yet.' },
+  'instConsult.emptyHint': {
+    ar: 'أرسل أول طلب استشارة من الأعلى وسنتواصل معك.',
+    en: 'Submit your first consultation request above and we’ll get back to you.',
+  },
   'instConsult.required': { ar: 'أدخل عنوان الطلب على الأقل.', en: 'Enter at least a title.' },
   'instConsult.error': { ar: 'تعذّر إرسال الطلب، حاول مجددًا.', en: 'Could not submit, try again.' },
   'instConsult.amountDue': { ar: 'المبلغ المطلوب', en: 'Amount due' },
