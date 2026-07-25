@@ -11,17 +11,28 @@ export function Reveal({ children, className, delay = 0 }: { children: ReactNode
   useEffect(() => {
     const el = ref.current
     if (!el) return
+    const show = () => el.classList.add('is-visible')
+    if (typeof IntersectionObserver === 'undefined') {
+      show()
+      return
+    }
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          el.classList.add('is-visible')
+          show()
           io.disconnect()
         }
       },
       { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
     )
     io.observe(el)
-    return () => io.disconnect()
+    // Safety net: never let content stay invisible if the observer never fires
+    // (e.g. a tab that isn't compositing). Reveal anyway after a short delay.
+    const fallback = window.setTimeout(show, 1500)
+    return () => {
+      io.disconnect()
+      window.clearTimeout(fallback)
+    }
   }, [])
 
   return (
