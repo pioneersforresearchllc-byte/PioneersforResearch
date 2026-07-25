@@ -110,7 +110,20 @@ export function ChatPage() {
       />
 
       {!activeConversation && (
-        <div className="hidden flex-1 items-center justify-center text-[14px] text-muted md:flex">{t('chat.emptyState')}</div>
+        <div className="hidden flex-1 flex-col items-center justify-center gap-4 bg-bg-soft/40 px-6 text-center md:flex">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-navy/[0.06] text-navy">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z" />
+            </svg>
+          </div>
+          <div className="max-w-xs text-[14px] leading-7 text-muted">{t('chat.emptyState')}</div>
+          <button
+            onClick={() => setShowNew(true)}
+            className="rounded-lg bg-navy px-5 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-navy-hover"
+          >
+            {t('chat.newConversation')}
+          </button>
+        </div>
       )}
 
       {activeConversation && (

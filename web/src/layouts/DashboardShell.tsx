@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import type { translations } from '@/lib/translations'
+import { navIcon } from './navIcons'
 
 export interface DashboardTab {
   key: string
@@ -60,20 +61,29 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
         </div>
       </div>
       <div className="flex flex-1 flex-col md:flex-row">
-        <div className="hidden w-[230px] shrink-0 flex-col gap-1 border-l border-border p-3.5 md:flex">
+        <div className="hidden w-[236px] shrink-0 flex-col gap-0.5 border-l border-border bg-white p-3 md:flex">
           {tabs.map((tab) => (
             <NavLink
               key={tab.key}
               to={tab.to}
               end
               className={({ isActive }) =>
-                `flex items-center justify-between gap-2 rounded-lg px-4 py-3 text-right text-[14.5px] ${
-                  isActive ? 'bg-navy font-semibold text-white' : 'bg-transparent font-normal text-navy'
+                `group flex items-center gap-3 rounded-xl px-3.5 py-2.75 text-[14px] transition-all duration-150 ${
+                  isActive
+                    ? 'bg-gradient-to-l from-navy to-[#14335c] font-semibold text-white shadow-[0_6px_16px_-6px_rgba(11,31,58,0.5)]'
+                    : 'font-normal text-navy/80 hover:bg-navy/[0.055] hover:text-navy'
                 }`
               }
             >
-              <span>{t(tab.labelKey)}</span>
-              <Badge count={badges?.[tab.key] ?? 0} />
+              {({ isActive }) => (
+                <>
+                  <span className={isActive ? 'text-gold' : 'text-navy/45 transition-colors group-hover:text-navy'}>
+                    {navIcon(tab.key)}
+                  </span>
+                  <span className="flex-1">{t(tab.labelKey)}</span>
+                  <Badge count={badges?.[tab.key] ?? 0} />
+                </>
+              )}
             </NavLink>
           ))}
         </div>
@@ -84,13 +94,18 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
               to={tab.to}
               end
               className={({ isActive }) =>
-                `flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.75 text-[13px] ${
+                `flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.75 text-[13px] transition-colors ${
                   isActive ? 'bg-navy font-semibold text-white' : 'bg-bg-soft font-normal text-navy'
                 }`
               }
             >
-              <span>{t(tab.labelKey)}</span>
-              <Badge count={badges?.[tab.key] ?? 0} />
+              {({ isActive }) => (
+                <>
+                  <span className={isActive ? 'text-gold' : 'text-navy/50'}>{navIcon(tab.key)}</span>
+                  <span>{t(tab.labelKey)}</span>
+                  <Badge count={badges?.[tab.key] ?? 0} />
+                </>
+              )}
             </NavLink>
           ))}
         </div>

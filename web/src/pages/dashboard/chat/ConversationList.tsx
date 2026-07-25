@@ -72,10 +72,13 @@ export function ConversationList({ conversations, activeId, onSelect, onStartNew
           <button
             key={c.id}
             onClick={() => onSelect(c.id)}
-            className={`flex w-full items-center gap-3 border-b border-border-2 p-3.5 text-right ${
-              activeId === c.id ? 'bg-bg-soft' : 'bg-white hover:bg-bg-soft'
+            className={`relative flex w-full items-center gap-3 border-b border-border-2 p-3.5 text-right transition-colors ${
+              activeId === c.id ? 'bg-navy/[0.06]' : 'bg-white hover:bg-bg-soft'
             }`}
           >
+            {activeId === c.id && (
+              <span className="absolute inset-y-2 w-1 rounded-full bg-gold ltr:left-0 rtl:right-0" />
+            )}
             {c.type === 'group' ? (
               <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-[#eef1f5] text-navy">
                 <UsersIcon />
