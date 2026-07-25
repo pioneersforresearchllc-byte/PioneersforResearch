@@ -95,7 +95,9 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
           ))}
         </div>
         <div className="flex-1 overflow-x-hidden bg-bg-soft px-4 py-5 md:px-10 md:py-8">
-          <Outlet />
+          <div className="mx-auto w-full max-w-6xl">
+            <Outlet />
+          </div>
         </div>
       </div>
     </div>
