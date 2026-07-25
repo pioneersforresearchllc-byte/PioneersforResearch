@@ -1,4 +1,11 @@
+import QRCode from 'qrcode'
 import { supabase } from '@/lib/supabase'
+
+/** Public verification URL a certificate's QR code points to. */
+export function certificateVerifyUrl(issuanceId: string): string {
+  const base = typeof window !== 'undefined' ? window.location.origin : 'https://pioneersresearch.com'
+  return `${base}/verify/${issuanceId}`
+}
 
 export interface CertificateTemplate {
   id: string
@@ -82,18 +89,24 @@ export async function setCourseTemplates(courseId: string, templateIds: string[]
 // title baked in at the template's configured position, then returns a PNG
 // blob ready to upload — done client-side via canvas so no server-side
 // image processing is needed.
-async function compositeCertificate(
-  template: CertificateTemplate,
-  studentName: string,
-  courseTitle: string,
-): Promise<Blob> {
+async function loadImage(src: string, errMsg: string): Promise<HTMLImageElement> {
   const img = new Image()
   img.crossOrigin = 'anonymous'
   await new Promise<void>((resolve, reject) => {
     img.onload = () => resolve()
-    img.onerror = () => reject(new Error('تعذر تحميل صورة القالب'))
-    img.src = template.image_url
+    img.onerror = () => reject(new Error(errMsg))
+    img.src = src
   })
+  return img
+}
+
+async function compositeCertificate(
+  template: CertificateTemplate,
+  studentName: string,
+  courseTitle: string,
+  verifyUrl: string,
+): Promise<Blob> {
+  const img = await loadImage(template.image_url, 'تعذر تحميل صورة القالب')
 
   const canvas = document.createElement('canvas')
   canvas.width = img.naturalWidth
@@ -113,6 +126,25 @@ async function compositeCertificate(
   const courseFontSize = Math.round(canvas.width * 0.024)
   ctx.font = `400 ${courseFontSize}px "IBM Plex Sans Arabic", sans-serif`
   ctx.fillText(courseTitle, (template.course_x / 100) * canvas.width, (template.course_y / 100) * canvas.height)
+
+  // Verification QR — generated locally (no network, so the canvas stays
+  // untainted) and drawn on a white pad in the bottom-start corner.
+  try {
+    const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
+      margin: 1,
+      width: 640,
+      color: { dark: '#0b1f3a', light: '#ffffff' },
+    })
+    const qrImg = await loadImage(qrDataUrl, 'تعذر توليد رمز التحقق')
+    const qrSize = Math.round(canvas.width * 0.13)
+    const pad = Math.round(canvas.width * 0.025)
+    const box = qrSize + pad * 0.6
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(pad - pad * 0.3, canvas.height - box - pad * 0.7, box, box)
+    ctx.drawImage(qrImg, pad, canvas.height - qrSize - pad, qrSize, qrSize)
+  } catch {
+    // If QR generation fails, still issue the certificate without it.
+  }
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('تعذر تحويل الشهادة لصورة'))), 'image/png')
@@ -143,7 +175,10 @@ export async function issueCertificatesForCourse(courseId: string, courseTitle: 
       const template = templatesById.get(templateId)
       if (!template) continue
 
-      const blob = await compositeCertificate(template, studentName, courseTitle)
+      // Generate the issuance id up front so the QR code can encode this
+      // certificate's real verification URL before the image is baked.
+      const issuanceId = crypto.randomUUID()
+      const blob = await compositeCertificate(template, studentName, courseTitle, certificateVerifyUrl(issuanceId))
       const path = `${enrollment.student_id}/${courseId}-${templateId}.png`
       const { error: uploadErr } = await supabase.storage.from('certificate-issuances').upload(path, blob, {
         upsert: true,
@@ -152,6 +187,7 @@ export async function issueCertificatesForCourse(courseId: string, courseTitle: 
       const { data: signed } = await supabase.storage.from('certificate-issuances').createSignedUrl(path, 60 * 60 * 24 * 365)
 
       const { error: insertErr } = await supabase.from('certificate_issuances').insert({
+        id: issuanceId,
         course_id: courseId,
         student_id: enrollment.student_id,
         template_id: templateId,
@@ -170,6 +206,23 @@ export interface IssuedCertificate {
   template_title: string
   image_url: string | null
   issued_at: string
+}
+
+export interface CertificateVerification {
+  valid: boolean
+  student_name: string
+  course_title: string
+  template_title: string
+  issued_at: string
+}
+
+/** Public authenticity check for a scanned certificate QR (no login needed). */
+export async function verifyCertificate(id: string): Promise<CertificateVerification | null> {
+  const { data, error } = await supabase.rpc('verify_certificate', { p_id: id })
+  if (error) throw error
+  const row = Array.isArray(data) ? data[0] : data
+  if (!row || !row.valid) return null
+  return row as CertificateVerification
 }
 
 export async function listMyCertificates(studentId: string): Promise<IssuedCertificate[]> {

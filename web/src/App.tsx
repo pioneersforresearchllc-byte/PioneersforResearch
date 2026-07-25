@@ -4,6 +4,7 @@ import { MarketingLayout } from '@/layouts/MarketingLayout'
 import { DashboardShell, type DashboardTab } from '@/layouts/DashboardShell'
 import { countMyUnseenRequests } from '@/lib/services'
 import { countMyStudentUnseen, countMyTeacherUnseen } from '@/lib/assignments'
+import { VerifyCertificatePage } from '@/pages/marketing/VerifyCertificatePage'
 import { RequireRole } from '@/routes/RequireRole'
 import { Placeholder } from '@/components/Placeholder'
 import { useAuth } from '@/context/AuthContext'
@@ -182,6 +183,7 @@ export default function App() {
           <Route path="/article/:id" element={<ArticleDetailPage />} />
         </Route>
 
+        <Route path="/verify/:id" element={<VerifyCertificatePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
