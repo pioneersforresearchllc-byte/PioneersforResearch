@@ -225,15 +225,66 @@ export async function listMyEnrolledCourses(studentId: string): Promise<Enrolled
     .select('course_id, teacher:profiles(name)')
     .in('course_id', courseIds)
 
+  // Progress is computed live from assignments (submitted or graded ÷ the
+  // assignments actually visible to this student per course) — the stored
+  // enrollments.progress column is never written, so we ignore it.
+  const progressByCourse = await computeAssignmentProgress(studentId, courseIds)
+
   return rows.map((r) => ({
     ...r.course,
-    progress: r.progress,
+    progress: progressByCourse.get(r.course.id) ?? 0,
     status: r.status,
     teacherNames: (teacherLinks ?? [])
       .filter((t) => t.course_id === r.course.id)
       .map((t) => (t.teacher as unknown as { name: string } | null)?.name ?? '')
       .filter(Boolean),
   }))
+}
+
+/**
+ * Percentage of each course's assignments the student has turned in. Mirrors
+ * the visibility rule in listMyAssignments: an assignment counts toward a
+ * course's total when it targets everyone or targets this student. A course
+ * with no assignments yet reports 0.
+ */
+async function computeAssignmentProgress(
+  studentId: string,
+  courseIds: string[],
+): Promise<Map<string, number>> {
+  const result = new Map<string, number>()
+  if (courseIds.length === 0) return result
+
+  const { data: assignments } = await supabase
+    .from('assignments')
+    .select('id, course_id, target_all')
+    .in('course_id', courseIds)
+  const all = (assignments ?? []) as { id: string; course_id: string; target_all: boolean }[]
+  const assignmentIds = all.map((a) => a.id)
+
+  const { data: targeted } = await supabase
+    .from('assignment_targets')
+    .select('assignment_id')
+    .eq('student_id', studentId)
+  const targetedIds = new Set((targeted ?? []).map((t) => t.assignment_id))
+
+  const submittedIds = new Set<string>()
+  if (assignmentIds.length > 0) {
+    const { data: submissions } = await supabase
+      .from('submissions')
+      .select('assignment_id, status')
+      .eq('student_id', studentId)
+      .in('assignment_id', assignmentIds)
+    for (const s of submissions ?? []) {
+      if (s.status === 'submitted' || s.status === 'graded') submittedIds.add(s.assignment_id)
+    }
+  }
+
+  for (const courseId of courseIds) {
+    const visible = all.filter((a) => a.course_id === courseId && (a.target_all || targetedIds.has(a.id)))
+    const done = visible.filter((a) => submittedIds.has(a.id)).length
+    result.set(courseId, visible.length > 0 ? Math.round((done / visible.length) * 100) : 0)
+  }
+  return result
 }
 
 export async function getEnrolledCourseDetail(
