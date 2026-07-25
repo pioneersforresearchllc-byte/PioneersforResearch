@@ -440,8 +440,18 @@ export function MarketingHome() {
       </div>
 
       {/* CONTACT */}
-      <div id="contact" className="bg-navy px-4 py-12 text-white md:px-16 md:py-20">
-        <div className="mx-auto max-w-130">
+      <div id="contact" className="relative overflow-hidden bg-[#0a1c34] px-4 py-12 text-white md:px-16 md:py-20">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#0d2748] via-[#0a1c34] to-[#050e1a]" />
+        <div className="pointer-events-none absolute -top-24 h-80 w-80 rounded-full bg-gold/15 blur-[90px] ltr:right-[-4rem] rtl:left-[-4rem]" />
+        <div className="pointer-events-none absolute bottom-[-8rem] h-96 w-96 rounded-full bg-[#1a3f6e]/50 blur-[110px] ltr:left-[-5rem] rtl:right-[-5rem]" />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage: 'radial-gradient(circle at 1px 1px, #ffffff 1px, transparent 0)',
+            backgroundSize: '22px 22px',
+          }}
+        />
+        <div className="relative mx-auto max-w-130">
           <div className="mb-9 text-center">
             <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-gold">{ct('home.contact.eyebrow')}</div>
             <h2 className="font-heading text-2xl font-bold md:text-[28px]">{ct('home.contact.title')}</h2>
