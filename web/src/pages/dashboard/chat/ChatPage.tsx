@@ -100,7 +100,7 @@ export function ChatPage() {
   if (!profile) return null
 
   return (
-    <div className="flex h-[calc(100vh-100px)] overflow-hidden rounded-xl border border-border bg-white">
+    <div className="flex h-[calc(100vh-120px)] overflow-hidden rounded-2xl border border-border bg-white shadow-[0_12px_44px_-26px_rgba(11,31,58,0.3)]">
       <ConversationList
         conversations={conversations}
         activeId={activeId}
@@ -111,8 +111,8 @@ export function ChatPage() {
 
       {!activeConversation && (
         <div className="hidden flex-1 flex-col items-center justify-center gap-4 bg-bg-soft/40 px-6 text-center md:flex">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-navy/[0.06] text-navy">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[#0d2748] to-[#0a1c34] text-gold shadow-[0_12px_30px_-12px_rgba(11,31,58,0.5)]">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z" />
             </svg>
           </div>

@@ -46,21 +46,32 @@ export function ConversationList({ conversations, activeId, onSelect, onStartNew
 
   return (
     <div
-      className={`${activeId ? 'hidden' : 'flex'} w-full shrink-0 flex-col border-l border-border md:flex md:w-[300px]`}
+      className={`${activeId ? 'hidden' : 'flex'} w-full shrink-0 flex-col border-l border-border bg-bg-soft/30 md:flex md:w-[320px]`}
     >
-      <div className="flex items-center gap-2 border-b border-border p-3.5">
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t('chat.searchByName')}
-          className="w-full box-border rounded-md border border-border px-3 py-2 text-[13.5px]"
-        />
+      <div className="flex items-center gap-2 border-b border-border bg-white p-3.5">
+        <div className="relative flex-1">
+          <span className="pointer-events-none absolute inset-y-0 flex items-center text-muted ltr:left-3 rtl:right-3">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+          </span>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('chat.searchByName')}
+            className="w-full box-border rounded-lg border border-border bg-bg-soft px-3 py-2 text-[13.5px] transition-colors focus:border-navy focus:bg-white focus:outline-none ltr:pl-9 rtl:pr-9"
+          />
+        </div>
         <button
           onClick={onStartNew}
           title={t('chat.newConversation')}
-          className="shrink-0 rounded-md bg-navy px-3 py-2 text-[13px] font-semibold text-white hover:bg-navy-hover"
+          aria-label={t('chat.newConversation')}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-navy text-white transition-colors hover:bg-navy-hover"
         >
-          +
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
         </button>
       </div>
       <div className="flex-1 overflow-y-auto">
@@ -88,9 +99,13 @@ export function ConversationList({ conversations, activeId, onSelect, onStartNew
             )}
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-2">
-                <span className="truncate text-[14px] font-semibold text-navy">{labelFor(c, t)}</span>
+                <span className={`truncate text-[14px] text-navy ${c.unreadCount > 0 ? 'font-bold' : 'font-semibold'}`}>
+                  {labelFor(c, t)}
+                </span>
               </div>
-              <div className="truncate text-[12.5px] text-muted">{previewFor(c, t)}</div>
+              <div className={`truncate text-[12.5px] ${c.unreadCount > 0 ? 'font-medium text-navy/75' : 'text-muted'}`}>
+                {previewFor(c, t)}
+              </div>
             </div>
             {c.unreadCount > 0 && (
               <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-error px-1.5 text-[11px] font-bold text-white">
