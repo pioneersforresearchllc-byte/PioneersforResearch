@@ -1,8 +1,26 @@
 import { useEffect, useState } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/lib/i18n'
 import { supabase } from '@/lib/supabase'
 import type { UserRole } from '@/types/profile'
+
+function SuspendedNotice() {
+  const { t } = useLanguage()
+  const { signOut } = useAuth()
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-bg-soft px-6 text-center">
+      <div className="font-heading text-xl font-bold text-navy">{t('login.suspendedTitle')}</div>
+      <div className="max-w-sm text-[14px] leading-7 text-muted">{t('login.suspended')}</div>
+      <button
+        onClick={() => void signOut()}
+        className="rounded-lg bg-navy px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-navy-hover"
+      >
+        {t('shell.signOut')}
+      </button>
+    </div>
+  )
+}
 
 /**
  * Client-side route guard. RLS is the real enforcement layer (a user who
@@ -33,6 +51,7 @@ export function RequireRole({ role }: { role: UserRole }) {
 
   if (loading) return null
   if (!session || !profile) return <Navigate to="/login" replace />
+  if (profile.suspended) return <SuspendedNotice />
   if (profile.role !== role) return <Navigate to="/" replace />
   if (profile.role === 'teacher' && profile.status !== 'active') {
     return <Navigate to="/teacher-pending" replace />

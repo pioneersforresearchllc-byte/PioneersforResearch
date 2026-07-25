@@ -50,6 +50,12 @@ export function LoginPage() {
         return
       }
 
+      if (profile.suspended) {
+        await supabase.auth.signOut()
+        setError(t('login.suspended'))
+        return
+      }
+
       if (profile.role === 'owner') {
         await supabase.auth.signOut()
         setError(t('login.useAdminPortal'))

@@ -18,5 +18,7 @@ export interface Profile {
   cv_text: string | null
   cv_file_url: string | null
   is_temp_admin: boolean
+  suspended: boolean
+  restrictions: string[]
   created_at: string
 }

@@ -23,10 +23,48 @@ export interface AccountRow {
   role: 'student' | 'teacher' | 'owner'
   status: 'active' | 'pending' | 'rejected'
   is_temp_admin: boolean
+  suspended: boolean
+  restrictions: string[]
   email: string | null
   last_sign_in_at: string | null
   created_at: string
 }
+
+/** Capabilities an admin can ban a user from (must match the edge function). */
+export const RESTRICTION_CAPS = ['chat', 'requests', 'comments', 'submissions'] as const
+export type RestrictionCap = (typeof RESTRICTION_CAPS)[number]
+
+async function adminAction(body: Record<string, unknown>): Promise<void> {
+  const { data, error } = await supabase.functions.invoke('admin-accounts', { body })
+  if (error) {
+    const ctx = (error as { context?: Response }).context
+    if (ctx && typeof ctx.text === 'function') {
+      try {
+        const parsed = JSON.parse(await ctx.text()) as { error?: string }
+        if (parsed.error) throw new Error(parsed.error)
+      } catch (e) {
+        if (e instanceof Error && e.message) throw e
+      }
+    }
+    throw error
+  }
+  const result = data as { error?: string }
+  if (result?.error) throw new Error(result.error)
+}
+
+export const setUserSuspended = (userId: string, suspended: boolean) =>
+  adminAction({ action: 'set_suspended', userId, suspended })
+
+export const setUserRestrictions = (userId: string, restrictions: string[]) =>
+  adminAction({ action: 'set_restrictions', userId, restrictions })
+
+export const deleteUserAccount = (userId: string) => adminAction({ action: 'delete_user', userId })
+
+export const enrollStudent = (userId: string, courseId: string) =>
+  adminAction({ action: 'enroll', userId, courseId })
+
+export const unenrollStudent = (userId: string, courseId: string) =>
+  adminAction({ action: 'unenroll', userId, courseId })
 
 export async function listAllAccounts(): Promise<AccountRow[]> {
   const { data, error } = await supabase.functions.invoke('admin-accounts', { body: { action: 'list' } })
