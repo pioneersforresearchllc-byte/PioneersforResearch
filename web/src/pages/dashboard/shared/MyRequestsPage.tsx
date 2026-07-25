@@ -17,6 +17,8 @@ export function MyRequestsRedirect() {
   const { profile, loading } = useAuth()
   if (loading) return null
   if (!profile) return <Navigate to="/login" replace />
+  // Institutions have no service-requests page — send them to their dashboard.
+  if (profile.role === 'institution') return <Navigate to="/institution" replace />
   const base = profile.role === 'teacher' ? '/teacher' : profile.role === 'owner' ? '/owner' : '/student'
   return <Navigate to={`${base}/requests`} replace />
 }

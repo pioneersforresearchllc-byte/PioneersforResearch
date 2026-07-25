@@ -7,7 +7,13 @@ import { fetchSiteContent, resolveSocialLink } from '@/lib/content'
 import { AnnouncementPopup } from '@/components/AnnouncementPopup'
 
 const dashboardPathFor = (role: string) =>
-  role === 'student' ? '/student' : role === 'teacher' ? '/teacher' : '/owner'
+  role === 'student'
+    ? '/student'
+    : role === 'teacher'
+      ? '/teacher'
+      : role === 'institution'
+        ? '/institution'
+        : '/owner'
 
 const InstagramIcon = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

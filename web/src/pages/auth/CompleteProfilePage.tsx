@@ -28,7 +28,21 @@ export function CompleteProfilePage() {
 
   if (loading) return null
   if (!session) return <Navigate to="/login" replace />
-  if (profile) return <Navigate to={profile.role === 'teacher' ? '/teacher' : profile.role === 'owner' ? '/owner' : '/student'} replace />
+  if (profile)
+    return (
+      <Navigate
+        to={
+          profile.role === 'teacher'
+            ? '/teacher'
+            : profile.role === 'owner'
+              ? '/owner'
+              : profile.role === 'institution'
+                ? '/institution'
+                : '/student'
+        }
+        replace
+      />
+    )
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()

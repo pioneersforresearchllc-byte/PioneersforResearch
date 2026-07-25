@@ -3,7 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 
 const dashboardPathFor = (role: string) =>
-  role === 'student' ? '/student' : role === 'teacher' ? '/teacher' : '/owner'
+  role === 'student'
+    ? '/student'
+    : role === 'teacher'
+      ? '/teacher'
+      : role === 'institution'
+        ? '/institution'
+        : '/owner'
 
 /**
  * Landing route after an OAuth (Google) redirect. Supabase has already set
