@@ -7,6 +7,7 @@ import { useLanguage } from '@/lib/i18n'
 import { useContentText } from '@/lib/content'
 import { listServices, type Service } from '@/lib/services'
 import { listTeamMembers } from '@/lib/team'
+import { Reveal } from '@/components/Reveal'
 
 type TeamEntry = { name: string; role: string; bio: string }
 
@@ -293,10 +294,15 @@ export function MarketingHome() {
   return (
     <div>
       {/* HERO */}
-      <div className="relative overflow-hidden px-4 pb-12 pt-14 md:px-16 md:pb-17.5 md:pt-22.5">
+      <div className="relative overflow-hidden bg-gradient-to-b from-bg-soft/60 to-white px-4 pb-12 pt-14 md:px-16 md:pb-17.5 md:pt-22.5">
+        {/* Animated depth: soft gradient orbs drifting behind the content. */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+          <div className="animate-gradient absolute -top-32 h-[26rem] w-[26rem] rounded-full bg-gradient-to-br from-gold/25 via-gold/10 to-transparent blur-3xl ltr:-right-24 rtl:-left-24" />
+          <div className="animate-float absolute bottom-[-6rem] h-72 w-72 rounded-full bg-gradient-to-tr from-navy/12 to-gold/10 blur-3xl ltr:left-[-4rem] rtl:right-[-4rem]" />
+        </div>
         <div className="absolute -left-10 top-10 hidden h-0.5 w-85 rotate-[-18deg] bg-navy opacity-15 md:block" />
-        <div className="absolute left-67.5 top-3.5 hidden h-2.5 w-2.5 rounded-full bg-gold md:block" />
-        <div className="relative max-w-165">
+        <div className="animate-float absolute left-67.5 top-3.5 hidden h-2.5 w-2.5 rounded-full bg-gold md:block" />
+        <Reveal className="relative max-w-165">
           <div className="mb-4 text-[13px] font-semibold tracking-[2px] text-accent">
             TRAIN · RESEARCH · PUBLISH
           </div>
@@ -330,7 +336,7 @@ export function MarketingHome() {
               </a>
             )}
           </div>
-        </div>
+        </Reveal>
       </div>
 
       {/* STATS */}
