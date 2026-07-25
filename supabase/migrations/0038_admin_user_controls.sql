@@ -45,21 +45,21 @@ create trigger trg_guard_profile_privileged
 
 -- ── Restrictive write backstops (added, not replacing existing policies) ────
 drop policy if exists messages_not_restricted on messages;
-create policy messages_not_restricted as restrictive on messages
-  for insert to authenticated
+create policy messages_not_restricted on messages
+  as restrictive for insert to authenticated
   with check (not public.is_suspended() and not public.has_restriction('chat'));
 
 drop policy if exists service_requests_not_restricted on service_requests;
-create policy service_requests_not_restricted as restrictive on service_requests
-  for insert to authenticated
+create policy service_requests_not_restricted on service_requests
+  as restrictive for insert to authenticated
   with check (not public.is_suspended() and not public.has_restriction('requests'));
 
 drop policy if exists article_comments_not_restricted on article_comments;
-create policy article_comments_not_restricted as restrictive on article_comments
-  for insert to authenticated
+create policy article_comments_not_restricted on article_comments
+  as restrictive for insert to authenticated
   with check (not public.is_suspended() and not public.has_restriction('comments'));
 
 drop policy if exists submission_messages_not_restricted on submission_messages;
-create policy submission_messages_not_restricted as restrictive on submission_messages
-  for insert to authenticated
+create policy submission_messages_not_restricted on submission_messages
+  as restrictive for insert to authenticated
   with check (not public.is_suspended() and not public.has_restriction('submissions'));
