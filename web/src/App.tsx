@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { MarketingLayout } from '@/layouts/MarketingLayout'
 import { DashboardShell, type DashboardTab } from '@/layouts/DashboardShell'
 import { countMyUnseenRequests } from '@/lib/services'
+import { countMyStudentUnseen, countMyTeacherUnseen } from '@/lib/assignments'
 import { RequireRole } from '@/routes/RequireRole'
 import { Placeholder } from '@/components/Placeholder'
 import { useAuth } from '@/context/AuthContext'
@@ -118,16 +119,38 @@ function useRequestsBadge(userId: string | undefined): Record<string, number> {
 function StudentDashboard() {
   const { profile } = useAuth()
   const badges = useRequestsBadge(profile?.id)
+  const { data: unseenSubs } = useQuery({
+    queryKey: ['student-unseen-subs', profile?.id],
+    enabled: !!profile,
+    queryFn: countMyStudentUnseen,
+    refetchInterval: 60_000,
+  })
   return (
-    <DashboardShell subtitleKey="shell.studentSubtitle" userName={profile?.name ?? ''} tabs={studentTabs} badges={badges} />
+    <DashboardShell
+      subtitleKey="shell.studentSubtitle"
+      userName={profile?.name ?? ''}
+      tabs={studentTabs}
+      badges={{ ...badges, assignments: unseenSubs ?? 0 }}
+    />
   )
 }
 
 function TeacherDashboard() {
   const { profile } = useAuth()
   const badges = useRequestsBadge(profile?.id)
+  const { data: unseenSubs } = useQuery({
+    queryKey: ['teacher-unseen-subs', profile?.id],
+    enabled: !!profile,
+    queryFn: countMyTeacherUnseen,
+    refetchInterval: 60_000,
+  })
   return (
-    <DashboardShell subtitleKey="shell.teacherSubtitle" userName={profile?.name ?? ''} tabs={teacherTabs} badges={badges} />
+    <DashboardShell
+      subtitleKey="shell.teacherSubtitle"
+      userName={profile?.name ?? ''}
+      tabs={teacherTabs}
+      badges={{ ...badges, review: unseenSubs ?? 0 }}
+    />
   )
 }
 

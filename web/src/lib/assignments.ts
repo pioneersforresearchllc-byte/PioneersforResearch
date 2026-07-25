@@ -87,6 +87,78 @@ export async function signSubmissionFile(stored: string): Promise<string | null>
   return data?.signedUrl ?? null
 }
 
+// ── Submission thread (teacher ↔ student back-and-forth with files) ─────────
+export interface SubmissionMessage {
+  id: string
+  submission_id: string
+  sender_id: string
+  body: string | null
+  file_url: string | null
+  file_name: string | null
+  created_at: string
+  senderName: string
+}
+
+export async function listSubmissionMessages(submissionId: string): Promise<SubmissionMessage[]> {
+  const { data, error } = await supabase
+    .from('submission_messages')
+    .select('*, sender:profiles(name)')
+    .eq('submission_id', submissionId)
+    .order('created_at')
+  if (error) throw error
+  return (data ?? []).map((r) => {
+    const row = r as Record<string, unknown>
+    return {
+      ...(row as unknown as SubmissionMessage),
+      senderName: (row.sender as { name: string } | null)?.name ?? '',
+    }
+  })
+}
+
+/** Attachments go under thread/<submission>/… so both parties can read them. */
+async function uploadThreadFile(submissionId: string, file: File): Promise<string> {
+  const path = `thread/${submissionId}/${safeExt(file.name)}`
+  const { error } = await supabase.storage.from(SUBMISSION_BUCKET).upload(path, file)
+  if (error) throw error
+  return path
+}
+
+export async function sendSubmissionMessage(params: {
+  submissionId: string
+  senderId: string
+  body: string | null
+  file: File | null
+}) {
+  let fileUrl: string | null = null
+  let fileName: string | null = null
+  if (params.file) {
+    fileUrl = await uploadThreadFile(params.submissionId, params.file)
+    fileName = params.file.name
+  }
+  const { error } = await supabase.from('submission_messages').insert({
+    submission_id: params.submissionId,
+    sender_id: params.senderId,
+    body: params.body,
+    file_url: fileUrl,
+    file_name: fileName,
+  })
+  if (error) throw error
+}
+
+export async function markSubmissionThreadSeen(submissionId: string) {
+  await supabase.rpc('mark_submission_thread_seen', { p_submission: submissionId })
+}
+
+export async function countMyStudentUnseen(): Promise<number> {
+  const { data } = await supabase.rpc('my_student_unseen_submissions')
+  return Number(data ?? 0)
+}
+
+export async function countMyTeacherUnseen(): Promise<number> {
+  const { data } = await supabase.rpc('my_teacher_unseen_submissions')
+  return Number(data ?? 0)
+}
+
 export async function createAssignment(params: {
   courseId: string
   teacherId: string

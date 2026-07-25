@@ -242,11 +242,14 @@ export async function listMyEnrolledCourses(studentId: string): Promise<Enrolled
 }
 
 /**
- * Percentage of each course's assignments the student has turned in. Mirrors
- * the visibility rule in listMyAssignments: an assignment counts toward a
- * course's total when it targets everyone or targets this student. A course
- * with no assignments yet reports 0.
+ * Course progress driven by the teacher's grades: every graded assignment
+ * contributes up to 10 percentage points, scaled by its grade — so one
+ * assignment scored 100/100 = 10% progress, and ten full-mark assignments
+ * fill the bar. Ungraded or unsubmitted work contributes nothing. Capped at
+ * 100%. A course with no graded work yet reports 0.
  */
+const POINTS_PER_ASSIGNMENT = 10
+
 async function computeAssignmentProgress(
   studentId: string,
   courseIds: string[],
@@ -256,33 +259,32 @@ async function computeAssignmentProgress(
 
   const { data: assignments } = await supabase
     .from('assignments')
-    .select('id, course_id, target_all')
+    .select('id, course_id')
     .in('course_id', courseIds)
-  const all = (assignments ?? []) as { id: string; course_id: string; target_all: boolean }[]
+  const all = (assignments ?? []) as { id: string; course_id: string }[]
   const assignmentIds = all.map((a) => a.id)
+  const courseByAssignment = new Map(all.map((a) => [a.id, a.course_id]))
 
-  const { data: targeted } = await supabase
-    .from('assignment_targets')
-    .select('assignment_id')
-    .eq('student_id', studentId)
-  const targetedIds = new Set((targeted ?? []).map((t) => t.assignment_id))
-
-  const submittedIds = new Set<string>()
+  const gradeByCourse = new Map<string, number>()
   if (assignmentIds.length > 0) {
     const { data: submissions } = await supabase
       .from('submissions')
-      .select('assignment_id, status')
+      .select('assignment_id, status, grade')
       .eq('student_id', studentId)
+      .eq('status', 'graded')
       .in('assignment_id', assignmentIds)
     for (const s of submissions ?? []) {
-      if (s.status === 'submitted' || s.status === 'graded') submittedIds.add(s.assignment_id)
+      if (s.grade == null) continue
+      const courseId = courseByAssignment.get(s.assignment_id)
+      if (!courseId) continue
+      // grade is 0–100 → grade/100 * 10 points.
+      const points = (Math.max(0, Math.min(100, s.grade)) / 100) * POINTS_PER_ASSIGNMENT
+      gradeByCourse.set(courseId, (gradeByCourse.get(courseId) ?? 0) + points)
     }
   }
 
   for (const courseId of courseIds) {
-    const visible = all.filter((a) => a.course_id === courseId && (a.target_all || targetedIds.has(a.id)))
-    const done = visible.filter((a) => submittedIds.has(a.id)).length
-    result.set(courseId, visible.length > 0 ? Math.round((done / visible.length) * 100) : 0)
+    result.set(courseId, Math.min(100, Math.round(gradeByCourse.get(courseId) ?? 0)))
   }
   return result
 }

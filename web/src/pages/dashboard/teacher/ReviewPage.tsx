@@ -12,6 +12,7 @@ import {
 } from '@/lib/assignments'
 import { SignedFileLink } from '@/components/SignedFileLink'
 import { EmptyState } from '@/components/EmptyState'
+import { SubmissionThread } from '@/pages/dashboard/shared/SubmissionThread'
 import { LoadingState } from '@/components/LoadingState'
 
 function GradeForm({ submission, onGraded }: { submission: SubmissionWithStudent; onGraded: () => void }) {
@@ -72,6 +73,7 @@ function GradeForm({ submission, onGraded }: { submission: SubmissionWithStudent
 
 function AssignmentPanel({ assignment, onClose }: { assignment: AssignmentForReview; onClose: () => void }) {
   const { t } = useLanguage()
+  const { profile } = useAuth()
   const queryClient = useQueryClient()
   const { data } = useQuery({
     queryKey: ['assignment-submissions', assignment.id],
@@ -115,7 +117,10 @@ function AssignmentPanel({ assignment, onClose }: { assignment: AssignmentForRev
               {s.status === 'pending' ? (
                 <div className="text-[12.5px] text-faint">{t('tReview.notSubmitted')}</div>
               ) : (
-                <GradeForm submission={s} onGraded={refresh} />
+                <div className="flex flex-col gap-3">
+                  <GradeForm submission={s} onGraded={refresh} />
+                  {profile && <SubmissionThread submissionId={s.id} myUserId={profile.id} />}
+                </div>
               )}
             </div>
           ))}

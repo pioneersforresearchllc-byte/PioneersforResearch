@@ -13,6 +13,7 @@ import {
 import { SignedFileLink } from '@/components/SignedFileLink'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
+import { SubmissionThread } from '@/pages/dashboard/shared/SubmissionThread'
 import { PaperclipIcon } from '@/pages/dashboard/chat/Icons'
 
 function statusLabel(a: MyAssignment, t: ReturnType<typeof useLanguage>['t']) {
@@ -144,23 +145,31 @@ export function StudentAssignmentsPage() {
                   )}
 
                   {a.submission ? (
-                    <div className="rounded-md bg-bg-soft p-2.5">
-                      {a.submission.answer_text && (
-                        <p className="mb-1.5 whitespace-pre-wrap text-[13px] text-muted-2">{a.submission.answer_text}</p>
-                      )}
-                      {a.submission.file_url && (
-                        <div className="mb-1.5">
-                          <SignedFileLink sign={() => signSubmissionFile(a.submission!.file_url!)} label={t('sAssign.yourFile')} />
-                        </div>
-                      )}
-                      {graded && a.submission.feedback && (
-                        <div className="mt-1.5 rounded-md bg-success-bg p-2 text-[13px] text-success">
-                          {t('sAssign.feedbackLabel', { text: a.submission.feedback })}
-                        </div>
-                      )}
-                      {!graded && (
-                        <div className="text-[12.5px] text-muted">{t('sAssign.submittedWaiting')}</div>
-                      )}
+                    <div className="flex flex-col gap-3">
+                      <div className="rounded-md bg-bg-soft p-2.5">
+                        {a.submission.answer_text && (
+                          <p className="mb-1.5 whitespace-pre-wrap text-[13px] text-muted-2">{a.submission.answer_text}</p>
+                        )}
+                        {a.submission.file_url && (
+                          <div className="mb-1.5">
+                            <SignedFileLink sign={() => signSubmissionFile(a.submission!.file_url!)} label={t('sAssign.yourFile')} />
+                          </div>
+                        )}
+                        {graded && a.submission.grade != null && (
+                          <div className="mt-1.5 rounded-md bg-navy/[0.06] p-2 text-[13px] font-semibold text-navy">
+                            {t('sAssign.gradeLabel', { grade: String(a.submission.grade) })}
+                          </div>
+                        )}
+                        {graded && a.submission.feedback && (
+                          <div className="mt-1.5 rounded-md bg-success-bg p-2 text-[13px] text-success">
+                            {t('sAssign.feedbackLabel', { text: a.submission.feedback })}
+                          </div>
+                        )}
+                        {!graded && (
+                          <div className="text-[12.5px] text-muted">{t('sAssign.submittedWaiting')}</div>
+                        )}
+                      </div>
+                      {profile && <SubmissionThread submissionId={a.submission.id} myUserId={profile.id} />}
                     </div>
                   ) : (
                     <SubmitForm assignment={a} onSubmitted={refresh} />
