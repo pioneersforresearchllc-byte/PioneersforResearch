@@ -11,8 +11,10 @@ returns text language sql volatile security definer set search_path = public as 
 $$;
 grant execute on function public.next_certificate_number() to authenticated;
 
--- Verification now also returns the readable number.
-create or replace function public.verify_certificate(p_id uuid)
+-- Verification now also returns the readable number. Drop first: the return
+-- type (OUT params) changed, which create-or-replace can't do.
+drop function if exists public.verify_certificate(uuid);
+create function public.verify_certificate(p_id uuid)
 returns table (
   valid boolean,
   student_name text,
