@@ -25,3 +25,14 @@ createRoot(document.getElementById('root')!).render(
     </QueryClientProvider>
   </StrictMode>,
 )
+
+// Register the PWA service worker (installable app + offline + push). Only in
+// production builds — a service worker in `vite dev` interferes with HMR.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // registration failing (e.g. unsupported context) just means no offline
+      // / push — the site still works as a normal web app.
+    })
+  })
+}
