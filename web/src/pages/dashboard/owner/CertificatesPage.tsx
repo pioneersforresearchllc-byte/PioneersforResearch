@@ -14,6 +14,8 @@ import {
 import { listCoursesWithMeta } from '@/lib/courses'
 import { useLanguage } from '@/lib/i18n'
 
+type Marker = 'name' | 'course' | 'qr' | 'date'
+
 function TemplateEditor({ template, onClose, onSaved }: { template: CertificateTemplate; onClose: () => void; onSaved: () => void }) {
   const { t } = useLanguage()
   const [pos, setPos] = useState({
@@ -21,8 +23,12 @@ function TemplateEditor({ template, onClose, onSaved }: { template: CertificateT
     name_y: template.name_y,
     course_x: template.course_x,
     course_y: template.course_y,
+    qr_x: template.qr_x,
+    qr_y: template.qr_y,
+    date_x: template.date_x,
+    date_y: template.date_y,
   })
-  const [dragging, setDragging] = useState<'name' | 'course' | null>(null)
+  const [dragging, setDragging] = useState<Marker | null>(null)
   const imgRef = useRef<HTMLDivElement>(null)
   const [busy, setBusy] = useState(false)
 
@@ -31,7 +37,7 @@ function TemplateEditor({ template, onClose, onSaved }: { template: CertificateT
     const rect = imgRef.current.getBoundingClientRect()
     const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100))
     const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100))
-    setPos((p) => (dragging === 'name' ? { ...p, name_x: x, name_y: y } : { ...p, course_x: x, course_y: y }))
+    setPos((p) => ({ ...p, [`${dragging}_x`]: x, [`${dragging}_y`]: y }))
   }
 
   const save = async () => {
@@ -70,6 +76,27 @@ function TemplateEditor({ template, onClose, onSaved }: { template: CertificateT
             style={{ left: `${pos.course_x}%`, top: `${pos.course_y}%` }}
             title={t('oCerts.courseDotTitle')}
           />
+          <div
+            onMouseDown={() => setDragging('date')}
+            className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full border-2 border-white bg-accent shadow"
+            style={{ left: `${pos.date_x}%`, top: `${pos.date_y}%` }}
+            title={t('oCerts.dateDotTitle')}
+          />
+          <div
+            onMouseDown={() => setDragging('qr')}
+            className="absolute flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 cursor-grab items-center justify-center rounded border-2 border-white bg-navy text-[9px] font-bold text-white shadow"
+            style={{ left: `${pos.qr_x}%`, top: `${pos.qr_y}%` }}
+            title={t('oCerts.qrDotTitle')}
+          >
+            QR
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11.5px] text-muted">
+          <span className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 rounded-full bg-gold" /> {t('oCerts.nameDotTitle')}</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 rounded-full bg-muted" /> {t('oCerts.courseDotTitle')}</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 rounded-full bg-accent" /> {t('oCerts.dateDotTitle')}</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 rounded-sm bg-navy" /> {t('oCerts.qrDotTitle')}</span>
         </div>
         <div className="mt-4 flex gap-2.5">
           <button

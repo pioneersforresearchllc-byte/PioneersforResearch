@@ -844,6 +844,8 @@ export const translations = {
   },
   'oCerts.nameDotTitle': { ar: 'موضع اسم الطالب', en: 'Student name position' },
   'oCerts.courseDotTitle': { ar: 'موضع اسم الدورة', en: 'Course name position' },
+  'oCerts.qrDotTitle': { ar: 'موضع رمز التحقق QR', en: 'Verification QR position' },
+  'oCerts.dateDotTitle': { ar: 'موضع تاريخ الإصدار', en: 'Issue date position' },
   'oCerts.savePosition': { ar: 'حفظ الموضع', en: 'Save position' },
   'oCerts.issued': { ar: 'تم إصدار {count} شهادة.', en: 'Issued {count} certificate(s).' },
   'oCerts.noneEligible': { ar: 'لا يوجد طلاب جدد يستحقون شهادة (أو لا يوجد قالب مرتبط).', en: 'No new eligible students (or no linked template).' },

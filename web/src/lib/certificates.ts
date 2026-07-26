@@ -15,6 +15,21 @@ export interface CertificateTemplate {
   name_y: number
   course_x: number
   course_y: number
+  qr_x: number
+  qr_y: number
+  date_x: number
+  date_y: number
+}
+
+export interface TemplatePositions {
+  name_x: number
+  name_y: number
+  course_x: number
+  course_y: number
+  qr_x: number
+  qr_y: number
+  date_x: number
+  date_y: number
 }
 
 export async function uploadTemplateImage(file: File): Promise<string> {
@@ -42,10 +57,7 @@ export async function listTemplates(): Promise<CertificateTemplate[]> {
   return data ?? []
 }
 
-export async function updateTemplatePosition(
-  id: string,
-  pos: { name_x: number; name_y: number; course_x: number; course_y: number },
-) {
+export async function updateTemplatePosition(id: string, pos: TemplatePositions) {
   const { error } = await supabase.from('certificate_templates').update(pos).eq('id', id)
   if (error) throw error
 }
@@ -105,6 +117,7 @@ async function compositeCertificate(
   studentName: string,
   courseTitle: string,
   verifyUrl: string,
+  dateText: string,
 ): Promise<Blob> {
   const img = await loadImage(template.image_url, 'تعذر تحميل صورة القالب')
 
@@ -127,8 +140,13 @@ async function compositeCertificate(
   ctx.font = `400 ${courseFontSize}px "IBM Plex Sans Arabic", sans-serif`
   ctx.fillText(courseTitle, (template.course_x / 100) * canvas.width, (template.course_y / 100) * canvas.height)
 
+  // Issue date at the admin-chosen position.
+  const dateFontSize = Math.round(canvas.width * 0.018)
+  ctx.font = `500 ${dateFontSize}px "IBM Plex Sans Arabic", sans-serif`
+  ctx.fillText(dateText, (template.date_x / 100) * canvas.width, (template.date_y / 100) * canvas.height)
+
   // Verification QR — generated locally (no network, so the canvas stays
-  // untainted) and drawn on a white pad in the bottom-start corner.
+  // untainted). (qr_x, qr_y) is the CENTRE, matching the draggable dot.
   try {
     const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
       margin: 1,
@@ -137,11 +155,13 @@ async function compositeCertificate(
     })
     const qrImg = await loadImage(qrDataUrl, 'تعذر توليد رمز التحقق')
     const qrSize = Math.round(canvas.width * 0.13)
-    const pad = Math.round(canvas.width * 0.025)
-    const box = qrSize + pad * 0.6
+    const cx = (template.qr_x / 100) * canvas.width
+    const cy = (template.qr_y / 100) * canvas.height
+    const boxPad = Math.round(qrSize * 0.08)
+    const box = qrSize + boxPad * 2
     ctx.fillStyle = '#ffffff'
-    ctx.fillRect(pad - pad * 0.3, canvas.height - box - pad * 0.7, box, box)
-    ctx.drawImage(qrImg, pad, canvas.height - qrSize - pad, qrSize, qrSize)
+    ctx.fillRect(cx - box / 2, cy - box / 2, box, box)
+    ctx.drawImage(qrImg, cx - qrSize / 2, cy - qrSize / 2, qrSize, qrSize)
   } catch {
     // If QR generation fails, still issue the certificate without it.
   }
@@ -178,7 +198,14 @@ export async function issueCertificatesForCourse(courseId: string, courseTitle: 
       // Generate the issuance id up front so the QR code can encode this
       // certificate's real verification URL before the image is baked.
       const issuanceId = crypto.randomUUID()
-      const blob = await compositeCertificate(template, studentName, courseTitle, certificateVerifyUrl(issuanceId))
+      const dateText = new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })
+      const blob = await compositeCertificate(
+        template,
+        studentName,
+        courseTitle,
+        certificateVerifyUrl(issuanceId),
+        dateText,
+      )
       const path = `${enrollment.student_id}/${courseId}-${templateId}.png`
       const { error: uploadErr } = await supabase.storage.from('certificate-issuances').upload(path, blob, {
         upsert: true,
