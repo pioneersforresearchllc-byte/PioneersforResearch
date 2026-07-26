@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { triggerPush } from '@/lib/push'
 import type { UserRole } from '@/types/profile'
 import type {
   AttachmentKind,
@@ -295,6 +296,9 @@ export async function sendMessage(params: {
   // Fire-and-forget: if the AI assistant is in this conversation, ask it to
   // reply. Never blocks the sender's own message from showing immediately.
   void maybeTriggerAiReply(params.conversationId)
+
+  // Fire-and-forget push to the other participant(s) (send-push resolves who).
+  triggerPush('chat', params.conversationId)
 
   return data as Message
 }

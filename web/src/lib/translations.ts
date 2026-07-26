@@ -452,6 +452,24 @@ export const translations = {
   'tab.contactMessages': { ar: 'رسائل التواصل', en: 'Contact Messages' },
   'tab.broadcast': { ar: 'إرسال جماعي', en: 'Broadcast' },
 
+  'notif.title': { ar: 'الإشعارات', en: 'Notifications' },
+  'notif.subtitle': {
+    ar: 'فعّل الإشعارات لتصلك تنبيهات فورية عند وصول رسالة، أو رصد درجة، أو إصدار شهادة، أو تحديث حالة طلبك — حتى والتطبيق مغلق.',
+    en: 'Turn on notifications to get instant alerts for new messages, grades, certificates, and request updates — even when the app is closed.',
+  },
+  'notif.enable': { ar: 'تفعيل الإشعارات', en: 'Enable notifications' },
+  'notif.enabling': { ar: 'جارِ التفعيل…', en: 'Enabling…' },
+  'notif.on': { ar: 'الإشعارات مفعّلة على هذا الجهاز', en: 'On for this device' },
+  'notif.turnOff': { ar: 'إيقاف', en: 'Turn off' },
+  'notif.denied': {
+    ar: 'الإشعارات محظورة في إعدادات المتصفح. اسمح بالإشعارات لهذا الموقع من إعدادات المتصفح ثم أعد المحاولة.',
+    en: 'Notifications are blocked in your browser settings. Allow notifications for this site, then try again.',
+  },
+  'notif.unsupported': {
+    ar: 'هذا المتصفح لا يدعم الإشعارات. على آيفون، أضف التطبيق إلى الشاشة الرئيسية أولًا.',
+    en: 'This browser does not support notifications. On iPhone, add the app to your Home Screen first.',
+  },
+
   'oBroadcast.title': { ar: 'إرسال رسالة جماعية', en: 'Send a Broadcast' },
   'oBroadcast.subtitle': {
     ar: 'اكتب عنوانًا ونصًا، وحدّد المستقبِلين، وستصل الرسالة تلقائيًا بالبريد الإلكتروني إلى جميع الحسابات المحددة.',

@@ -1,10 +1,87 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { changePassword, updateAvatarUrl, updateProfileDetails, uploadAvatar } from '@/lib/account'
+import { disablePush, enablePush, getPushState, type PushState } from '@/lib/push'
 
 function initials(name: string) {
   return name.trim().slice(0, 2) || '?'
+}
+
+/** Enable/disable Web Push notifications on this device. */
+function NotificationsCard({ userId }: { userId: string }) {
+  const { t } = useLanguage()
+  const [state, setState] = useState<PushState | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    void getPushState().then(setState)
+  }, [])
+
+  const enable = async () => {
+    setBusy(true)
+    setError('')
+    try {
+      setState(await enablePush(userId))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const disable = async () => {
+    setBusy(true)
+    try {
+      await disablePush()
+      setState('default')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-white p-5 md:p-6">
+      <div className="mb-1.5 text-[14px] font-semibold text-navy">{t('notif.title')}</div>
+      <p className="mb-4 text-[12.5px] leading-6 text-muted">{t('notif.subtitle')}</p>
+
+      {state === 'unsupported' && <div className="text-[13px] text-muted">{t('notif.unsupported')}</div>}
+
+      {state === 'denied' && (
+        <div className="rounded-lg border border-border bg-bg-soft px-3.5 py-3 text-[12.5px] leading-6 text-muted-2">
+          {t('notif.denied')}
+        </div>
+      )}
+
+      {state === 'subscribed' && (
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-[12.5px] font-medium text-green-700">
+            ● {t('notif.on')}
+          </span>
+          <button
+            onClick={() => void disable()}
+            disabled={busy}
+            className="rounded-md border border-border px-3.5 py-1.5 text-[12.5px] text-navy hover:border-navy disabled:opacity-50"
+          >
+            {t('notif.turnOff')}
+          </button>
+        </div>
+      )}
+
+      {state === 'default' && (
+        <button
+          onClick={() => void enable()}
+          disabled={busy}
+          className="rounded-lg bg-navy px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+        >
+          {busy ? t('notif.enabling') : t('notif.enable')}
+        </button>
+      )}
+
+      {error && <div className="mt-2 text-[12.5px] text-red-600">{error}</div>}
+    </div>
+  )
 }
 
 export function AccountPage() {
@@ -234,6 +311,8 @@ export function AccountPage() {
         </div>
         {passMessage && <div className="mt-2 text-[13px] text-navy">{passMessage}</div>}
       </div>
+
+      <NotificationsCard userId={profile.id} />
       </div>
     </div>
   )

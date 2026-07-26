@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { triggerPush } from '@/lib/push'
 
 export interface Assignment {
   id: string
@@ -283,6 +284,8 @@ export async function gradeSubmission(submissionId: string, grade: number, feedb
     .update({ grade, feedback, status: 'graded', graded_at: new Date().toISOString() })
     .eq('id', submissionId)
   if (error) throw error
+  // Fire-and-forget push to the student that their submission was graded.
+  triggerPush('grade', submissionId)
 }
 
 export interface MyAssignment extends Assignment {

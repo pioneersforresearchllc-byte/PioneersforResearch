@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { triggerPush } from '@/lib/push'
 
 export interface ServicePackage {
   id: string
@@ -192,11 +193,13 @@ export async function assignRequestTeacher(id: string, teacherId: string | null)
 export async function updateRequestStatus(id: string, status: RequestStatus) {
   const { error } = await supabase.from('service_requests').update({ status }).eq('id', id)
   if (error) throw error
+  triggerPush('service_request', id)
 }
 
 /** Emails the requester that their work is complete. Called when marked done. */
 export async function notifyRequestDone(id: string) {
   await supabase.functions.invoke('notify-request-done', { body: { requestId: id } })
+  triggerPush('service_request', id)
 }
 
 /**
@@ -214,6 +217,7 @@ export async function setRequestPrice(id: string, finalPriceCents: number) {
   // Fire-and-forget: the price is already saved, so a mail hiccup shouldn't
   // fail the owner's action — the customer still sees it in "My Requests".
   void supabase.functions.invoke('notify-payment-request', { body: { requestId: id } })
+  triggerPush('service_request', id)
 }
 
 /** The signed-in user's own requests (RLS scopes this to user_id = auth.uid()). */

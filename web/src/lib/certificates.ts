@@ -1,5 +1,6 @@
 import QRCode from 'qrcode'
 import { supabase } from '@/lib/supabase'
+import { triggerPush } from '@/lib/push'
 
 /** Public verification URL a certificate's QR code points to. */
 export function certificateVerifyUrl(issuanceId: string): string {
@@ -266,6 +267,8 @@ export async function issueCertificatesForCourse(
         })
         if (insertErr) throw insertErr
       }
+      // Fire-and-forget push to the student that a certificate is ready.
+      triggerPush('certificate', issuanceId)
       issuedCount += 1
     }
   }
