@@ -59,6 +59,7 @@ interface CourseCard {
   price_cents: number
   original_price_cents: number | null
   kind: 'course' | 'program'
+  code_only: boolean
   avg_rating: number
   rating_count: number
 }
@@ -69,7 +70,10 @@ function useCourses() {
     queryFn: async (): Promise<CourseCard[]> => {
       const { data: courses, error } = await supabase
         .from('courses')
-        .select('id, title, description, title_en, description_en, duration_label, price_cents, original_price_cents, kind')
+        // select('*') (not an explicit column list) so a not-yet-migrated
+        // `code_only` column can never break this query on the live site — it's
+        // simply absent (→ treated as a normal priced course) until 0045 runs.
+        .select('*')
         .order('created_at', { ascending: false })
       if (error) throw error
       if (!courses?.length) return []
@@ -178,12 +182,20 @@ function OfferingSection({
               <div className="mb-4 flex items-center justify-between">
                 <div className="text-[13px] font-semibold text-accent">{c.duration_label}</div>
                 <div>
-                  {c.original_price_cents && c.original_price_cents > c.price_cents && (
-                    <span className="ml-2 text-[13px] text-faint line-through">
-                      {formatSar(c.original_price_cents, t)}
+                  {c.code_only ? (
+                    <span className="rounded-full bg-navy/10 px-2.5 py-1 text-[12px] font-semibold text-navy">
+                      {t('course.codeOnlyBadge')}
                     </span>
+                  ) : (
+                    <>
+                      {c.original_price_cents && c.original_price_cents > c.price_cents && (
+                        <span className="ml-2 text-[13px] text-faint line-through">
+                          {formatSar(c.original_price_cents, t)}
+                        </span>
+                      )}
+                      <span className="text-[15px] font-bold text-navy">{formatSar(c.price_cents, t)}</span>
+                    </>
                   )}
-                  <span className="text-[15px] font-bold text-navy">{formatSar(c.price_cents, t)}</span>
                 </div>
               </div>
               <Link

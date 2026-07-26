@@ -24,6 +24,7 @@ interface CourseDetail {
   image_url: string | null
   capacity: number | null
   kind: 'course' | 'program'
+  code_only: boolean
   avg_rating: number
   rating_count: number
   enrolledCount: number
@@ -36,9 +37,9 @@ function useCourseDetail(id: string | undefined) {
     queryFn: async (): Promise<CourseDetail | null> => {
       const { data: course, error } = await supabase
         .from('courses')
-        .select(
-          'id, title, description, title_en, description_en, duration_label, price_cents, original_price_cents, image_url, capacity, kind',
-        )
+        // select('*') so the not-yet-migrated `code_only` column can't break
+        // this query on the live site before migration 0045 is applied.
+        .select('*')
         .eq('id', id!)
         .maybeSingle()
       if (error) throw error
@@ -283,12 +284,20 @@ export function CourseDetailPage() {
                 {t('course.seatsLeft', { count: String(Math.max(course.capacity - course.enrolledCount, 0)) })}
               </span>
             )}
-            {course.original_price_cents && course.original_price_cents > course.price_cents && (
-              <span className="ml-2.5 text-sm text-faint line-through">
-                {formatSar(course.original_price_cents, t)}
+            {course.code_only ? (
+              <span className="rounded-full bg-navy/10 px-3 py-1 text-[13px] font-semibold text-navy">
+                {t('course.codeOnlyBadge')}
               </span>
+            ) : (
+              <>
+                {course.original_price_cents && course.original_price_cents > course.price_cents && (
+                  <span className="ml-2.5 text-sm text-faint line-through">
+                    {formatSar(course.original_price_cents, t)}
+                  </span>
+                )}
+                <span className="text-xl font-bold text-navy">{formatSar(course.price_cents, t)}</span>
+              </>
             )}
-            <span className="text-xl font-bold text-navy">{formatSar(course.price_cents, t)}</span>
           </div>
         </div>
         <div className="mb-5.5 flex gap-1.5">
@@ -345,34 +354,39 @@ export function CourseDetailPage() {
                     {codeMsg && <div className="mt-2 text-[13px] text-error">{codeMsg}</div>}
                   </div>
                 )}
-                <button
-                  onClick={() => void subscribe()}
-                  disabled={enrollBusy || isFull}
-                  className="w-full rounded-md bg-navy py-4 text-[15px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
-                >
-                  {isFull
-                    ? t('course.full')
-                    : enrollBusy
-                      ? course.price_cents === 0
-                        ? t('course.enrolling')
-                        : t('course.redirectingToPayment')
-                      : course.price_cents === 0
-                        ? t('course.enrollFree')
-                        : t('course.subscribeAndPay', {
-                            price: formatSar(applied?.valid ? applied.discounted_cents ?? 0 : course.price_cents, t),
-                          })}
-                </button>
+                {!course.code_only && (
+                  <button
+                    onClick={() => void subscribe()}
+                    disabled={enrollBusy || isFull}
+                    className="w-full rounded-md bg-navy py-4 text-[15px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+                  >
+                    {isFull
+                      ? t('course.full')
+                      : enrollBusy
+                        ? course.price_cents === 0
+                          ? t('course.enrolling')
+                          : t('course.redirectingToPayment')
+                        : course.price_cents === 0
+                          ? t('course.enrollFree')
+                          : t('course.subscribeAndPay', {
+                              price: formatSar(applied?.valid ? applied.discounted_cents ?? 0 : course.price_cents, t),
+                            })}
+                  </button>
+                )}
               </>
             )}
 
             {!alreadyEnrolled && !isFull && (
-              <div className="mt-3 border-t border-border pt-3">
-                {!showAccessCode ? (
+              <div className={course.code_only ? '' : 'mt-3 border-t border-border pt-3'}>
+                {!course.code_only && !showAccessCode ? (
                   <button onClick={() => setShowAccessCode(true)} className="text-[13px] font-semibold text-navy hover:underline">
                     {t('course.haveCode')}
                   </button>
                 ) : (
                   <div className="flex flex-col gap-2">
+                    {course.code_only && (
+                      <div className="text-[13px] leading-6 text-muted">{t('course.codeOnlyNote')}</div>
+                    )}
                     <div className="flex gap-2">
                       <input
                         value={accessCode}

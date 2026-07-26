@@ -34,6 +34,7 @@ const emptyForm: CourseFormValues = {
   completed: false,
   capacity: null,
   kind: 'course',
+  code_only: false,
 }
 
 function CourseEditor({
@@ -59,6 +60,7 @@ function CourseEditor({
           completed: course.completed,
           capacity: course.capacity,
           kind: course.kind,
+          code_only: course.code_only,
         }
       : emptyForm,
   )
@@ -97,6 +99,10 @@ function CourseEditor({
   const save = async () => {
     if (!form.title.trim()) {
       setError(t('oCourses.nameRequired'))
+      return
+    }
+    if (form.code_only && !accessCode.trim()) {
+      setError(t('oCourses.codeOnlyNeedsCode'))
       return
     }
     setBusy(true)
@@ -158,33 +164,55 @@ function CourseEditor({
             placeholder={t('oCourses.durationPh')}
             className="rounded-md border border-border px-3.5 py-2.5 text-[14px]"
           />
-          <div className="flex gap-3">
-            <input
-              type="number"
-              value={form.price_cents / 100}
-              disabled={form.price_cents === 0 && form.original_price_cents === null}
-              onChange={(e) => set('price_cents', Math.round(Number(e.target.value) * 100))}
-              placeholder={t('oCourses.pricePh')}
-              className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px] disabled:bg-bg-soft"
-            />
-            <input
-              type="number"
-              value={form.original_price_cents ? form.original_price_cents / 100 : ''}
-              onChange={(e) =>
-                set('original_price_cents', e.target.value ? Math.round(Number(e.target.value) * 100) : null)
-              }
-              placeholder={t('oCourses.originalPricePh')}
-              className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
-            />
-          </div>
-          <label className="flex items-center gap-2 text-[13.5px] text-navy">
+          <label className="flex items-center gap-2 rounded-md border border-border-2 bg-bg-soft px-3 py-2.5 text-[13.5px] font-semibold text-navy">
             <input
               type="checkbox"
-              checked={form.price_cents === 0}
-              onChange={(e) => set('price_cents', e.target.checked ? 0 : form.original_price_cents || 100)}
+              checked={form.code_only}
+              onChange={(e) => {
+                const on = e.target.checked
+                // Code-only courses have no price and can't be free-joined.
+                setForm((f) => ({
+                  ...f,
+                  code_only: on,
+                  ...(on ? { price_cents: 0, original_price_cents: null } : {}),
+                }))
+              }}
             />
-            {t('oCourses.freeLabel')}
+            {t('oCourses.codeOnlyLabel')}
           </label>
+          {form.code_only && <div className="-mt-1 text-[11.5px] text-muted">{t('oCourses.codeOnlyHint')}</div>}
+
+          {!form.code_only && (
+            <>
+              <div className="flex gap-3">
+                <input
+                  type="number"
+                  value={form.price_cents / 100}
+                  disabled={form.price_cents === 0 && form.original_price_cents === null}
+                  onChange={(e) => set('price_cents', Math.round(Number(e.target.value) * 100))}
+                  placeholder={t('oCourses.pricePh')}
+                  className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px] disabled:bg-bg-soft"
+                />
+                <input
+                  type="number"
+                  value={form.original_price_cents ? form.original_price_cents / 100 : ''}
+                  onChange={(e) =>
+                    set('original_price_cents', e.target.value ? Math.round(Number(e.target.value) * 100) : null)
+                  }
+                  placeholder={t('oCourses.originalPricePh')}
+                  className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
+                />
+              </div>
+              <label className="flex items-center gap-2 text-[13.5px] text-navy">
+                <input
+                  type="checkbox"
+                  checked={form.price_cents === 0}
+                  onChange={(e) => set('price_cents', e.target.checked ? 0 : form.original_price_cents || 100)}
+                />
+                {t('oCourses.freeLabel')}
+              </label>
+            </>
+          )}
           <input
             type="number"
             min={0}
@@ -203,14 +231,21 @@ function CourseEditor({
           </label>
 
           <div>
-            <label className="mb-1 block text-[13px] font-semibold text-navy">{t('oCourses.accessCode')}</label>
+            <label className="mb-1 block text-[13px] font-semibold text-navy">
+              {t('oCourses.accessCode')}
+              {form.code_only && <span className="text-error"> *</span>}
+            </label>
             <input
               value={accessCode}
               onChange={(e) => setAccessCode(e.target.value)}
               placeholder={t('oCourses.accessCodePh')}
-              className="w-full rounded-md border border-border px-3.5 py-2.5 text-[14px]"
+              className={`w-full rounded-md border px-3.5 py-2.5 text-[14px] ${
+                form.code_only && !accessCode.trim() ? 'border-error' : 'border-border'
+              }`}
             />
-            <div className="mt-1 text-[11.5px] text-muted">{t('oCourses.accessCodeHint')}</div>
+            <div className="mt-1 text-[11.5px] text-muted">
+              {form.code_only ? t('oCourses.accessCodeHintRequired') : t('oCourses.accessCodeHint')}
+            </div>
           </div>
 
           <div>

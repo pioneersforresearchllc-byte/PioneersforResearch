@@ -16,6 +16,7 @@ export interface Course {
   completed: boolean
   capacity: number | null
   kind: CourseKind
+  code_only: boolean
   created_at: string
 }
 
@@ -89,6 +90,7 @@ export interface CourseFormValues {
   completed: boolean
   capacity: number | null
   kind: CourseKind
+  code_only: boolean
 }
 
 // Free courses (price_cents = 0) skip payment entirely — RLS
