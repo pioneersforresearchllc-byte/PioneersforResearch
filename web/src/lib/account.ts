@@ -33,6 +33,7 @@ export async function updateProfileDetails(
     qualification?: string | null
     years_experience?: number | null
     certifications?: string | null
+    certificate_name?: string | null
   },
 ) {
   const { error } = await supabase.from('profiles').update(fields).eq('id', userId)

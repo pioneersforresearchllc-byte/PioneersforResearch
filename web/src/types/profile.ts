@@ -15,6 +15,7 @@ export interface Profile {
   qualification: string | null
   years_experience: number | null
   certifications: string | null
+  certificate_name: string | null
   cv_text: string | null
   cv_file_url: string | null
   is_temp_admin: boolean

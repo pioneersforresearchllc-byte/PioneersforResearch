@@ -171,9 +171,21 @@ async function compositeCertificate(
   })
 }
 
-export async function issueCertificatesForCourse(courseId: string, courseTitle: string): Promise<number> {
+/**
+ * Issues certificates for a course. By default only students who don't yet
+ * have one get issued. Pass `{ reissue: true }` to regenerate EVERY student's
+ * certificate — used to "re-send" after a student fixes their certificate name;
+ * the existing verification id (and thus the QR link) is preserved so old scans
+ * keep working. The printed name prefers the student's `certificate_name`,
+ * falling back to their account name.
+ */
+export async function issueCertificatesForCourse(
+  courseId: string,
+  courseTitle: string,
+  opts: { reissue?: boolean } = {},
+): Promise<number> {
   const [{ data: enrollments }, templateIds] = await Promise.all([
-    supabase.from('enrollments').select('student_id, student:profiles(name)').eq('course_id', courseId),
+    supabase.from('enrollments').select('student_id, student:profiles(name, certificate_name)').eq('course_id', courseId),
     listCourseTemplateIds(courseId),
   ])
   if (!enrollments?.length || templateIds.length === 0) return 0
@@ -183,25 +195,27 @@ export async function issueCertificatesForCourse(courseId: string, courseTitle: 
 
   const { data: existing } = await supabase
     .from('certificate_issuances')
-    .select('student_id, template_id')
+    .select('id, student_id, template_id')
     .eq('course_id', courseId)
-  const existingKeys = new Set((existing ?? []).map((e) => `${e.student_id}:${e.template_id}`))
+  const existingIdByKey = new Map((existing ?? []).map((e) => [`${e.student_id}:${e.template_id}`, e.id as string]))
 
   let issuedCount = 0
   for (const enrollment of enrollments) {
-    const studentName = (enrollment.student as unknown as { name: string } | null)?.name ?? ''
+    const student = enrollment.student as unknown as { name: string; certificate_name: string | null } | null
+    const printedName = (student?.certificate_name?.trim() || student?.name || '').trim()
     for (const templateId of templateIds) {
-      if (existingKeys.has(`${enrollment.student_id}:${templateId}`)) continue
+      const key = `${enrollment.student_id}:${templateId}`
+      const existingId = existingIdByKey.get(key)
+      if (existingId && !opts.reissue) continue
       const template = templatesById.get(templateId)
       if (!template) continue
 
-      // Generate the issuance id up front so the QR code can encode this
-      // certificate's real verification URL before the image is baked.
-      const issuanceId = crypto.randomUUID()
+      // Reuse the existing id on re-issue so its QR verification link stays valid.
+      const issuanceId = existingId ?? crypto.randomUUID()
       const dateText = new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })
       const blob = await compositeCertificate(
         template,
-        studentName,
+        printedName,
         courseTitle,
         certificateVerifyUrl(issuanceId),
         dateText,
@@ -213,14 +227,22 @@ export async function issueCertificatesForCourse(courseId: string, courseTitle: 
       if (uploadErr) throw uploadErr
       const { data: signed } = await supabase.storage.from('certificate-issuances').createSignedUrl(path, 60 * 60 * 24 * 365)
 
-      const { error: insertErr } = await supabase.from('certificate_issuances').insert({
-        id: issuanceId,
-        course_id: courseId,
-        student_id: enrollment.student_id,
-        template_id: templateId,
-        image_url: signed?.signedUrl ?? null,
-      })
-      if (insertErr) throw insertErr
+      if (existingId) {
+        const { error: updErr } = await supabase
+          .from('certificate_issuances')
+          .update({ image_url: signed?.signedUrl ?? null })
+          .eq('id', existingId)
+        if (updErr) throw updErr
+      } else {
+        const { error: insertErr } = await supabase.from('certificate_issuances').insert({
+          id: issuanceId,
+          course_id: courseId,
+          student_id: enrollment.student_id,
+          template_id: templateId,
+          image_url: signed?.signedUrl ?? null,
+        })
+        if (insertErr) throw insertErr
+      }
       issuedCount += 1
     }
   }

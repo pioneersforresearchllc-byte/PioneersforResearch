@@ -362,6 +362,12 @@ export const translations = {
   'account.changePhoto': { ar: 'تغيير الصورة', en: 'Change photo' },
   'account.namePh': { ar: 'الاسم الكامل', en: 'Full name' },
   'account.bioLabel': { ar: 'نبذة تعريفية', en: 'Bio' },
+  'account.certNameLabel': { ar: 'الاسم كما يظهر في الشهادة', en: 'Name as it appears on the certificate' },
+  'account.certNamePh': { ar: 'اكتب اسمك الكامل الرسمي…', en: 'Enter your full official name…' },
+  'account.certNameHint': {
+    ar: 'يُطبع هذا الاسم على شهاداتك — يُفضَّل مطابقته لاسمك في الهوية/جواز السفر بالضبط. إن تُرك فارغًا يُستخدم اسم حسابك.',
+    en: 'This name is printed on your certificates — match it to your ID/passport exactly. If left empty, your account name is used.',
+  },
   'account.bioPh': { ar: 'اكتب نبذة قصيرة عنك تظهر في ملفك الشخصي...', en: 'Write a short bio shown on your profile…' },
   'account.publicToggle': { ar: 'السماح للآخرين برؤية ملفي الشخصي', en: 'Let others view my profile' },
   'account.publicHint': {
@@ -846,6 +852,15 @@ export const translations = {
   'oCerts.courseDotTitle': { ar: 'موضع اسم الدورة', en: 'Course name position' },
   'oCerts.qrDotTitle': { ar: 'موضع رمز التحقق QR', en: 'Verification QR position' },
   'oCerts.dateDotTitle': { ar: 'موضع تاريخ الإصدار', en: 'Issue date position' },
+  'oCerts.reissueAll': { ar: 'إعادة إصدار وإرسال للجميع', en: 'Re-issue & re-send to all' },
+  'oCerts.reissueHint': {
+    ar: 'يعيد توليد شهادات كل الطلاب بالاسم المحدّث، مع الحفاظ على رمز التحقّق نفسه.',
+    en: 'Regenerates every student’s certificate with the updated name, keeping the same verification code.',
+  },
+  'oCerts.reissueConfirm': {
+    ar: 'إعادة إصدار شهادات كل الطلاب في هذه الدورة؟',
+    en: 'Re-issue certificates for every student in this course?',
+  },
   'oCerts.savePosition': { ar: 'حفظ الموضع', en: 'Save position' },
   'oCerts.issued': { ar: 'تم إصدار {count} شهادة.', en: 'Issued {count} certificate(s).' },
   'oCerts.noneEligible': { ar: 'لا يوجد طلاب جدد يستحقون شهادة (أو لا يوجد قالب مرتبط).', en: 'No new eligible students (or no linked template).' },

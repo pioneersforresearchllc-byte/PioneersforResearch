@@ -130,11 +130,12 @@ function CourseCertPanel({ courseId, courseTitle, onClose }: { courseId: string;
     void queryClient.invalidateQueries({ queryKey: ['course-cert-templates', courseId] })
   }
 
-  const issue = async () => {
+  const issue = async (reissue = false) => {
+    if (reissue && !confirm(t('oCerts.reissueConfirm'))) return
     setBusy(true)
     setMessage('')
     try {
-      const count = await issueCertificatesForCourse(courseId, courseTitle)
+      const count = await issueCertificatesForCourse(courseId, courseTitle, { reissue })
       setMessage(count > 0 ? t('oCerts.issued', { count: String(count) }) : t('oCerts.noneEligible'))
     } catch (e) {
       setMessage(e instanceof Error ? e.message : t('oCerts.issueError'))
@@ -164,17 +165,27 @@ function CourseCertPanel({ courseId, courseTitle, onClose }: { courseId: string;
           )}
         </div>
         {message && <div className="mb-3 text-[13px] text-navy">{message}</div>}
-        <div className="flex gap-2.5">
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2.5">
+            <button
+              onClick={() => void issue(false)}
+              disabled={busy}
+              className="flex-1 rounded-md bg-navy py-2.75 text-[14px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+            >
+              {busy ? t('oCerts.issuing') : t('oCerts.issueNow')}
+            </button>
+            <button onClick={onClose} className="rounded-md border border-border px-5 py-2.75 text-[14px] text-navy">
+              {t('dash.close')}
+            </button>
+          </div>
           <button
-            onClick={() => void issue()}
+            onClick={() => void issue(true)}
             disabled={busy}
-            className="flex-1 rounded-md bg-navy py-2.75 text-[14px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+            className="rounded-md border border-navy py-2.5 text-[13px] font-semibold text-navy transition-colors hover:bg-navy hover:text-white disabled:opacity-50"
           >
-            {busy ? t('oCerts.issuing') : t('oCerts.issueNow')}
+            {t('oCerts.reissueAll')}
           </button>
-          <button onClick={onClose} className="rounded-md border border-border px-5 py-2.75 text-[14px] text-navy">
-            {t('dash.close')}
-          </button>
+          <div className="text-[11.5px] leading-5 text-muted">{t('oCerts.reissueHint')}</div>
         </div>
       </div>
     </div>

@@ -12,6 +12,7 @@ export function AccountPage() {
   const { t } = useLanguage()
   const [name, setName] = useState(profile?.name ?? '')
   const [bio, setBio] = useState(profile?.bio ?? '')
+  const [certificateName, setCertificateName] = useState(profile?.certificate_name ?? '')
   const [isPublic, setIsPublic] = useState(profile?.profile_public ?? true)
   const [specialty, setSpecialty] = useState(profile?.specialty ?? '')
   const [qualification, setQualification] = useState(profile?.qualification ?? '')
@@ -35,6 +36,7 @@ export function AccountPage() {
       await updateProfileDetails(profile.id, {
         name: name.trim(),
         bio: bio.trim() || null,
+        certificate_name: certificateName.trim() || null,
         profile_public: isPublic,
         ...(isTeacher
           ? {
@@ -127,6 +129,15 @@ export function AccountPage() {
           rows={3}
           className="mb-4 w-full resize-y rounded-md border border-border px-3.5 py-2.5 text-[14px] font-[inherit]"
         />
+
+        <label className="mb-1.5 block text-[12.5px] font-semibold text-muted">{t('account.certNameLabel')}</label>
+        <input
+          value={certificateName}
+          onChange={(e) => setCertificateName(e.target.value)}
+          placeholder={t('account.certNamePh')}
+          className="mb-1 w-full rounded-md border border-border px-3.5 py-2.5 text-[14px]"
+        />
+        <div className="mb-4 text-[12px] leading-6 text-muted">{t('account.certNameHint')}</div>
 
         {isTeacher && (
           <div className="mb-4 rounded-lg border border-border-2 bg-bg-soft p-4">
