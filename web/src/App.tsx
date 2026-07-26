@@ -48,12 +48,14 @@ import { OwnerOverviewPage } from '@/pages/dashboard/owner/OverviewPage'
 import { OwnerAdminsPage } from '@/pages/dashboard/owner/AdminsPage'
 import { OwnerAccountsPage } from '@/pages/dashboard/owner/AccountsPage'
 import { OwnerBroadcastPage } from '@/pages/dashboard/owner/BroadcastPage'
+import { OwnerInvoicesPage } from '@/pages/dashboard/owner/InvoicesPage'
 import { OwnerServicesPage } from '@/pages/dashboard/owner/ServicesPage'
 import { OwnerServiceRequestsPage } from '@/pages/dashboard/owner/ServiceRequestsPage'
 import { OwnerHomeContentPage } from '@/pages/dashboard/owner/HomeContentPage'
 import { OwnerDiscountsPage } from '@/pages/dashboard/owner/DiscountsPage'
 import { OwnerContactPage } from '@/pages/dashboard/owner/ContactPage'
 import { StudentGradesPage } from '@/pages/dashboard/student/GradesPage'
+import { StudentInvoicesPage } from '@/pages/dashboard/student/InvoicesPage'
 import { StudentFeedbackPage } from '@/pages/dashboard/student/FeedbackPage'
 import { AccountPage } from '@/pages/dashboard/shared/AccountPage'
 import { MyRequestsPage, MyRequestsRedirect } from '@/pages/dashboard/shared/MyRequestsPage'
@@ -71,6 +73,7 @@ const studentTabs: DashboardTab[] = [
   { key: 'feedback', labelKey: 'tab.feedback', to: '/student/feedback' },
   { key: 'articles', labelKey: 'tab.articles', to: '/student/articles' },
   { key: 'requests', labelKey: 'tab.myRequests', to: '/student/requests' },
+  { key: 'invoices', labelKey: 'tab.invoices', to: '/student/invoices' },
   { key: 'chat', labelKey: 'tab.messages', to: '/student/chat' },
   { key: 'account', labelKey: 'tab.myAccount', to: '/student/account' },
 ]
@@ -94,6 +97,7 @@ const ownerTabs: DashboardTab[] = [
   { key: 'courses', labelKey: 'tab.coursesPrograms', to: '/owner/courses' },
   { key: 'services', labelKey: 'tab.services', to: '/owner/services' },
   { key: 'service-requests', labelKey: 'tab.serviceRequests', to: '/owner/service-requests' },
+  { key: 'invoices', labelKey: 'tab.invoices', to: '/owner/invoices' },
   { key: 'discounts', labelKey: 'tab.discounts', to: '/owner/discounts' },
   { key: 'institutions', labelKey: 'tab.institutions', to: '/owner/institutions' },
   { key: 'inst-consultations', labelKey: 'tab.instConsultations', to: '/owner/institution-consultations' },
@@ -208,6 +212,7 @@ export default function App() {
             <Route path="/student/courses/:id" element={<StudentCourseDetailPage />} />
             <Route path="/student/assignments" element={<StudentAssignmentsPage />} />
             <Route path="/student/grades" element={<StudentGradesPage />} />
+            <Route path="/student/invoices" element={<StudentInvoicesPage />} />
             <Route path="/student/certificates" element={<StudentCertificatesPage />} />
             <Route path="/student/feedback" element={<StudentFeedbackPage />} />
             <Route path="/student/articles" element={<StudentArticlesPage />} />
@@ -241,6 +246,7 @@ export default function App() {
             <Route path="/owner/courses" element={<OwnerCoursesPage />} />
             <Route path="/owner/services" element={<OwnerServicesPage />} />
             <Route path="/owner/service-requests" element={<OwnerServiceRequestsPage />} />
+            <Route path="/owner/invoices" element={<OwnerInvoicesPage />} />
             <Route path="/owner/certificates" element={<OwnerCertificatesPage />} />
             <Route path="/owner/admins" element={<OwnerAdminsPage />} />
             <Route path="/owner/accounts" element={<OwnerAccountsPage />} />
