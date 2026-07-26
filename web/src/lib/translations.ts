@@ -155,6 +155,7 @@ export const translations = {
     ar: 'هذا الرمز غير صالح أو أُلغيت الشهادة. تأكّد من الرابط أو تواصل معنا.',
     en: 'This code is invalid or the certificate was revoked. Check the link or contact us.',
   },
+  'verify.number': { ar: 'رقم الشهادة', en: 'Certificate No.' },
   'verify.name': { ar: 'الاسم', en: 'Name' },
   'verify.course': { ar: 'الدورة / البرنامج', en: 'Course / program' },
   'verify.certificate': { ar: 'الشهادة', en: 'Certificate' },
@@ -368,6 +369,7 @@ export const translations = {
     ar: 'يُطبع هذا الاسم على شهاداتك — يُفضَّل مطابقته لاسمك في الهوية/جواز السفر بالضبط. إن تُرك فارغًا يُستخدم اسم حسابك.',
     en: 'This name is printed on your certificates — match it to your ID/passport exactly. If left empty, your account name is used.',
   },
+  'account.certPreviewLabel': { ar: 'سيظهر على شهادتك هكذا:', en: 'Will appear on your certificate as:' },
   'account.bioPh': { ar: 'اكتب نبذة قصيرة عنك تظهر في ملفك الشخصي...', en: 'Write a short bio shown on your profile…' },
   'account.publicToggle': { ar: 'السماح للآخرين برؤية ملفي الشخصي', en: 'Let others view my profile' },
   'account.publicHint': {

@@ -137,7 +137,13 @@ export function AccountPage() {
           placeholder={t('account.certNamePh')}
           className="mb-1 w-full rounded-md border border-border px-3.5 py-2.5 text-[14px]"
         />
-        <div className="mb-4 text-[12px] leading-6 text-muted">{t('account.certNameHint')}</div>
+        <div className="mb-3 text-[12px] leading-6 text-muted">{t('account.certNameHint')}</div>
+        <div className="mb-4 rounded-lg border border-dashed border-gold/50 bg-gold/[0.06] px-4 py-3">
+          <div className="mb-1 text-[11.5px] font-semibold text-accent">{t('account.certPreviewLabel')}</div>
+          <div className="font-heading text-[18px] font-bold text-navy">
+            {certificateName.trim() || name.trim() || '—'}
+          </div>
+        </div>
 
         {isTeacher && (
           <div className="mb-4 rounded-lg border border-border-2 bg-bg-soft p-4">

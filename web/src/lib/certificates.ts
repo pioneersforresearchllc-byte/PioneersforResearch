@@ -118,6 +118,7 @@ async function compositeCertificate(
   courseTitle: string,
   verifyUrl: string,
   dateText: string,
+  certNumber: string,
 ): Promise<Blob> {
   const img = await loadImage(template.image_url, 'تعذر تحميل صورة القالب')
 
@@ -162,6 +163,13 @@ async function compositeCertificate(
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(cx - box / 2, cy - box / 2, box, box)
     ctx.drawImage(qrImg, cx - qrSize / 2, cy - qrSize / 2, qrSize, qrSize)
+    // Readable serial under the QR.
+    if (certNumber) {
+      const codeFont = Math.round(canvas.width * 0.013)
+      ctx.font = `600 ${codeFont}px "IBM Plex Sans Arabic", sans-serif`
+      ctx.fillStyle = '#0b1f3a'
+      ctx.fillText(certNumber, cx, cy + box / 2 + codeFont)
+    }
   } catch {
     // If QR generation fails, still issue the certificate without it.
   }
@@ -195,9 +203,14 @@ export async function issueCertificatesForCourse(
 
   const { data: existing } = await supabase
     .from('certificate_issuances')
-    .select('id, student_id, template_id')
+    .select('id, student_id, template_id, cert_number')
     .eq('course_id', courseId)
-  const existingIdByKey = new Map((existing ?? []).map((e) => [`${e.student_id}:${e.template_id}`, e.id as string]))
+  const existingByKey = new Map(
+    (existing ?? []).map((e) => [
+      `${e.student_id}:${e.template_id}`,
+      { id: e.id as string, certNumber: (e.cert_number as string | null) ?? '' },
+    ]),
+  )
 
   let issuedCount = 0
   for (const enrollment of enrollments) {
@@ -205,13 +218,19 @@ export async function issueCertificatesForCourse(
     const printedName = (student?.certificate_name?.trim() || student?.name || '').trim()
     for (const templateId of templateIds) {
       const key = `${enrollment.student_id}:${templateId}`
-      const existingId = existingIdByKey.get(key)
-      if (existingId && !opts.reissue) continue
+      const existingRec = existingByKey.get(key)
+      if (existingRec && !opts.reissue) continue
       const template = templatesById.get(templateId)
       if (!template) continue
 
-      // Reuse the existing id on re-issue so its QR verification link stays valid.
-      const issuanceId = existingId ?? crypto.randomUUID()
+      // Reuse the existing id + serial on re-issue so the QR link and printed
+      // certificate number stay stable; mint fresh ones for new certificates.
+      const issuanceId = existingRec?.id ?? crypto.randomUUID()
+      let certNumber = existingRec?.certNumber ?? ''
+      if (!certNumber) {
+        const { data: num } = await supabase.rpc('next_certificate_number')
+        certNumber = (num as string | null) ?? ''
+      }
       const dateText = new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })
       const blob = await compositeCertificate(
         template,
@@ -219,6 +238,7 @@ export async function issueCertificatesForCourse(
         courseTitle,
         certificateVerifyUrl(issuanceId),
         dateText,
+        certNumber,
       )
       const path = `${enrollment.student_id}/${courseId}-${templateId}.png`
       const { error: uploadErr } = await supabase.storage.from('certificate-issuances').upload(path, blob, {
@@ -227,11 +247,11 @@ export async function issueCertificatesForCourse(
       if (uploadErr) throw uploadErr
       const { data: signed } = await supabase.storage.from('certificate-issuances').createSignedUrl(path, 60 * 60 * 24 * 365)
 
-      if (existingId) {
+      if (existingRec) {
         const { error: updErr } = await supabase
           .from('certificate_issuances')
-          .update({ image_url: signed?.signedUrl ?? null })
-          .eq('id', existingId)
+          .update({ image_url: signed?.signedUrl ?? null, cert_number: certNumber })
+          .eq('id', existingRec.id)
         if (updErr) throw updErr
       } else {
         const { error: insertErr } = await supabase.from('certificate_issuances').insert({
@@ -239,6 +259,7 @@ export async function issueCertificatesForCourse(
           course_id: courseId,
           student_id: enrollment.student_id,
           template_id: templateId,
+          cert_number: certNumber,
           image_url: signed?.signedUrl ?? null,
         })
         if (insertErr) throw insertErr
@@ -262,6 +283,7 @@ export interface CertificateVerification {
   student_name: string
   course_title: string
   template_title: string
+  cert_number: string
   issued_at: string
 }
 

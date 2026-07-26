@@ -43,6 +43,7 @@ export function VerifyCertificatePage() {
                 <div className="font-heading text-xl font-bold">{t('verify.valid')}</div>
               </div>
               <div className="flex flex-col gap-3 p-6">
+                {data.cert_number && <Row label={t('verify.number')} value={data.cert_number} />}
                 <Row label={t('verify.name')} value={data.student_name} />
                 <Row label={t('verify.course')} value={data.course_title} />
                 {data.template_title && <Row label={t('verify.certificate')} value={data.template_title} />}
