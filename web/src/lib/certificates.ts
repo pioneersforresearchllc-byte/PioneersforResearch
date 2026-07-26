@@ -231,7 +231,9 @@ export async function issueCertificatesForCourse(
         const { data: num } = await supabase.rpc('next_certificate_number')
         certNumber = (num as string | null) ?? ''
       }
-      const dateText = new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })
+      // Always English (Gregorian) on the certificate, regardless of the
+      // admin's UI language — e.g. "July 26, 2026".
+      const dateText = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
       const blob = await compositeCertificate(
         template,
         printedName,
