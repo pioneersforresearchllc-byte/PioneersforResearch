@@ -66,6 +66,52 @@ export const enrollStudent = (userId: string, courseId: string) =>
 export const unenrollStudent = (userId: string, courseId: string) =>
   adminAction({ action: 'unenroll', userId, courseId })
 
+export type BroadcastAudience = 'students' | 'teachers' | 'all'
+
+export interface BroadcastRow {
+  id: string
+  audience: BroadcastAudience
+  subject: string
+  message: string
+  recipient_count: number
+  created_at: string
+}
+
+/** Send an email to every active student / teacher (or both). Returns how
+ * many recipients it reached; `sent` is false when SMTP isn't configured or
+ * there were no matching accounts. */
+export async function sendBroadcast(input: {
+  audience: BroadcastAudience
+  subject: string
+  message: string
+}): Promise<{ sent: boolean; recipientCount: number }> {
+  const { data, error } = await supabase.functions.invoke('admin-broadcast', { body: input })
+  if (error) {
+    const ctx = (error as { context?: Response }).context
+    if (ctx && typeof ctx.text === 'function') {
+      try {
+        const parsed = JSON.parse(await ctx.text()) as { error?: string }
+        if (parsed.error) throw new Error(parsed.error)
+      } catch (e) {
+        if (e instanceof Error && e.message) throw e
+      }
+    }
+    throw error
+  }
+  const result = data as { sent?: boolean; recipientCount?: number; error?: string }
+  if (result?.error) throw new Error(result.error)
+  return { sent: !!result?.sent, recipientCount: result?.recipientCount ?? 0 }
+}
+
+export async function listBroadcasts(): Promise<BroadcastRow[]> {
+  const { data, error } = await supabase
+    .from('admin_broadcasts')
+    .select('id, audience, subject, message, recipient_count, created_at')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as BroadcastRow[]
+}
+
 export async function listAllAccounts(): Promise<AccountRow[]> {
   const { data, error } = await supabase.functions.invoke('admin-accounts', { body: { action: 'list' } })
   if (error) throw error
