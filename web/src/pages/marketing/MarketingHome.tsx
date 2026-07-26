@@ -8,6 +8,7 @@ import { useContentText } from '@/lib/content'
 import { listServices, type Service } from '@/lib/services'
 import { listTeamMembers } from '@/lib/team'
 import { Reveal } from '@/components/Reveal'
+import { InstallAppButton } from '@/components/InstallAppButton'
 
 type TeamEntry = { name: string; role: string; bio: string }
 
@@ -335,6 +336,7 @@ export function MarketingHome() {
                 {ct('home.hero.browsePrograms')}
               </a>
             )}
+            <InstallAppButton />
           </div>
         </Reveal>
       </div>

@@ -452,6 +452,28 @@ export const translations = {
   'tab.contactMessages': { ar: 'رسائل التواصل', en: 'Contact Messages' },
   'tab.broadcast': { ar: 'إرسال جماعي', en: 'Broadcast' },
 
+  'install.button': { ar: 'ثبّت التطبيق', en: 'Install App' },
+  'install.title': { ar: 'ثبّت تطبيق Pioneers', en: 'Install the Pioneers app' },
+  'install.intro': {
+    ar: 'ثبّت الموقع كتطبيق على جهازك للوصول السريع والإشعارات الفورية. اتبع الخطوات حسب جهازك:',
+    en: 'Install the site as an app for quick access and instant notifications. Follow the steps for your device:',
+  },
+  'install.ios.title': { ar: '📱 آيفون / آيباد (Safari)', en: '📱 iPhone / iPad (Safari)' },
+  'install.ios.s1': { ar: 'اضغط زر المشاركة (المربّع مع السهم ↑) في شريط Safari.', en: 'Tap the Share button (square with an ↑) in the Safari bar.' },
+  'install.ios.s2': { ar: 'مرّر واختر «إضافة إلى الشاشة الرئيسية».', en: 'Scroll and choose “Add to Home Screen”.' },
+  'install.ios.s3': { ar: 'اضغط «إضافة» في الأعلى.', en: 'Tap “Add” at the top.' },
+  'install.android.title': { ar: '🤖 أندرويد (Chrome)', en: '🤖 Android (Chrome)' },
+  'install.android.s1': { ar: 'اضغط زر القائمة (⋮) أعلى يمين المتصفح.', en: 'Tap the menu (⋮) at the top-right of the browser.' },
+  'install.android.s2': { ar: 'اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».', en: 'Choose “Install app” or “Add to Home screen”.' },
+  'install.android.s3': { ar: 'أكّد بالضغط على «تثبيت».', en: 'Confirm by tapping “Install”.' },
+  'install.windows.title': { ar: '💻 ويندوز (Chrome / Edge)', en: '💻 Windows (Chrome / Edge)' },
+  'install.windows.s1': {
+    ar: 'اضغط أيقونة التثبيت (شاشة بها سهم ↓) في نهاية شريط العنوان، أو افتح القائمة (⋮).',
+    en: 'Click the install icon (a screen with a ↓) at the end of the address bar, or open the menu (⋮).',
+  },
+  'install.windows.s2': { ar: 'اختر «تثبيت Pioneers…» ثم «تثبيت».', en: 'Choose “Install Pioneers…” then “Install”.' },
+  'install.close': { ar: 'إغلاق', en: 'Close' },
+
   'notif.title': { ar: 'الإشعارات', en: 'Notifications' },
   'notif.subtitle': {
     ar: 'فعّل الإشعارات لتصلك تنبيهات فورية عند وصول رسالة، أو رصد درجة، أو إصدار شهادة، أو تحديث حالة طلبك — حتى والتطبيق مغلق.',
