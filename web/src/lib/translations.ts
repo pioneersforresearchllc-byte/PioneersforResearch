@@ -458,6 +458,20 @@ export const translations = {
   'tab.broadcast': { ar: 'إرسال جماعي', en: 'Broadcast' },
   'tab.invoices': { ar: 'الفواتير', en: 'Invoices' },
 
+  'comments.eyebrow': { ar: 'المجتمع', en: 'COMMUNITY' },
+  'comments.title': { ar: 'آراء وتعليقات زوّارنا', en: 'What our community says' },
+  'comments.subtitle': {
+    ar: 'شاركنا رأيك أو تجربتك مع المنصة — تظهر تعليقات المسجّلين هنا للجميع.',
+    en: 'Share your thoughts or experience — comments from signed-in members appear here for everyone.',
+  },
+  'comments.placeholder': { ar: 'اكتب تعليقك هنا…', en: 'Write your comment here…' },
+  'comments.post': { ar: 'نشر التعليق', en: 'Post comment' },
+  'comments.posting': { ar: 'جارِ النشر…', en: 'Posting…' },
+  'comments.postingAs': { ar: 'تنشر باسم {name}', en: 'Posting as {name}' },
+  'comments.loginPrompt': { ar: 'سجّل الدخول لتترك تعليقًا يظهر للجميع.', en: 'Sign in to leave a comment visible to everyone.' },
+  'comments.empty': { ar: 'كن أول من يترك تعليقًا 👋', en: 'Be the first to leave a comment 👋' },
+  'comments.delete': { ar: 'حذف التعليق', en: 'Delete comment' },
+
   'invoices.ownerTitle': { ar: 'الفواتير والمدفوعات', en: 'Invoices & Payments' },
   'invoices.ownerSubtitle': {
     ar: 'كل عمليات الدفع على المنصة (دورات وخدمات) مع حالتها.',

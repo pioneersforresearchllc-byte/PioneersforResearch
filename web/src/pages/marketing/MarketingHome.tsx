@@ -9,6 +9,7 @@ import { listServices, type Service } from '@/lib/services'
 import { listTeamMembers } from '@/lib/team'
 import { Reveal } from '@/components/Reveal'
 import { InstallAppButton } from '@/components/InstallAppButton'
+import { SiteComments } from '@/components/SiteComments'
 
 type TeamEntry = { name: string; role: string; bio: string }
 
@@ -458,6 +459,9 @@ export function MarketingHome() {
           <div className="text-center text-[14.5px] text-faint">{t('home.resources.empty')}</div>
         )}
       </div>
+
+      {/* COMMUNITY / PUBLIC COMMENTS WALL */}
+      <SiteComments />
 
       {/* CONTACT */}
       <div id="contact" className="relative overflow-hidden bg-[#0a1c34] px-4 py-12 text-white md:px-16 md:py-20">
