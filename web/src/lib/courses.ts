@@ -160,6 +160,38 @@ export async function setCourseAccessCode(courseId: string, code: string) {
   if (error) throw error
 }
 
+// ── Rich HTML course content (course_contents table) ───────────────────────
+/** The course's custom HTML content, or null. RLS lets only enrolled
+ * students / the course's teachers / the owner read it. Returns null (never
+ * throws) so a missing table pre-migration can't break the page. */
+export async function getCourseContent(courseId: string): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from('course_contents')
+      .select('content_html')
+      .eq('course_id', courseId)
+      .maybeSingle()
+    if (error) return null
+    return (data?.content_html as string | null) ?? null
+  } catch {
+    return null
+  }
+}
+
+/** Owner: set (or clear, when empty) a course's custom HTML content. */
+export async function setCourseContent(courseId: string, html: string) {
+  const trimmed = html.trim()
+  if (!trimmed) {
+    const { error } = await supabase.from('course_contents').delete().eq('course_id', courseId)
+    if (error) throw error
+    return
+  }
+  const { error } = await supabase
+    .from('course_contents')
+    .upsert({ course_id: courseId, content_html: trimmed, updated_at: new Date().toISOString() }, { onConflict: 'course_id' })
+  if (error) throw error
+}
+
 /** Student: redeem a course access code to enrol for free. */
 export async function redeemCourseCode(courseId: string, code: string): Promise<void> {
   const { data, error } = await supabase.functions.invoke('redeem-course-code', { body: { courseId, code: code.trim() } })

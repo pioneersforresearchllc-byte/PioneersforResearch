@@ -7,9 +7,11 @@ import {
   deleteCourse,
   deleteSession,
   getCourseAccessCode,
+  getCourseContent,
   listActiveTeachers,
   listCoursesWithMeta,
   setCourseAccessCode,
+  setCourseContent,
   updateCourse,
   uploadCourseImage,
   type CourseFormValues,
@@ -67,12 +69,16 @@ function CourseEditor({
   const { t } = useLanguage()
   const [selectedTeachers, setSelectedTeachers] = useState<string[]>(course?.teacherIds ?? [])
   const [accessCode, setAccessCode] = useState('')
+  const [contentHtml, setContentHtml] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
-  // Load the course's private access code when editing.
+  // Load the course's private access code + custom HTML content when editing.
   useEffect(() => {
-    if (course) void getCourseAccessCode(course.id).then(setAccessCode)
+    if (course) {
+      void getCourseAccessCode(course.id).then(setAccessCode)
+      void getCourseContent(course.id).then((html) => setContentHtml(html ?? ''))
+    }
   }, [course])
 
   const [sessionTitle, setSessionTitle] = useState('')
@@ -110,6 +116,7 @@ function CourseEditor({
     try {
       const courseId = course ? (await updateCourse(course.id, form, selectedTeachers), course.id) : await createCourse(form, selectedTeachers)
       await setCourseAccessCode(courseId, accessCode)
+      await setCourseContent(courseId, contentHtml)
       onSaved()
       onClose()
     } catch (e) {
@@ -246,6 +253,25 @@ function CourseEditor({
             <div className="mt-1 text-[11.5px] text-muted">
               {form.code_only ? t('oCourses.accessCodeHintRequired') : t('oCourses.accessCodeHint')}
             </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-[13px] font-semibold text-navy">{t('oCourses.contentHtml')}</label>
+            <textarea
+              value={contentHtml}
+              onChange={(e) => setContentHtml(e.target.value)}
+              placeholder={t('oCourses.contentHtmlPh')}
+              rows={5}
+              dir="ltr"
+              spellCheck={false}
+              className="w-full resize-y rounded-md border border-border px-3.5 py-2.5 font-mono text-[12px] leading-5"
+            />
+            <div className="mt-1 text-[11.5px] text-muted">{t('oCourses.contentHtmlHint')}</div>
+            {contentHtml.trim() && (
+              <div className="mt-1 text-[11.5px] font-semibold text-success">
+                {t('oCourses.contentHtmlSet')} ({contentHtml.length.toLocaleString('en-US')})
+              </div>
+            )}
           </div>
 
           <div>
