@@ -10,6 +10,40 @@ function initials(name: string) {
   return name.trim().slice(0, 2) || '؟'
 }
 
+/** Read-only star rating display. */
+function Stars({ value }: { value: number }) {
+  return (
+    <div className="flex items-center gap-0.5" aria-label={`${value}/5`}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <span key={n} className={`text-[15px] leading-none ${n <= value ? 'text-gold' : 'text-border'}`}>
+          ★
+        </span>
+      ))}
+    </div>
+  )
+}
+
+/** Interactive star picker for the comment form. */
+function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onChange(n)}
+          aria-label={`${n}`}
+          className={`text-[22px] leading-none transition-transform hover:scale-110 ${
+            n <= value ? 'text-gold' : 'text-border'
+          }`}
+        >
+          ★
+        </button>
+      ))}
+    </div>
+  )
+}
+
 function Avatar({ c }: { c: SiteComment }) {
   if (c.author?.avatar_url) {
     return <img src={c.author.avatar_url} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
@@ -28,15 +62,17 @@ export function SiteComments() {
   const { data } = useQuery({ queryKey: ['site-comments'], queryFn: listSiteComments })
 
   const [body, setBody] = useState('')
+  const [rating, setRating] = useState(5)
   const [error, setError] = useState('')
 
   const isOwner = profile?.role === 'owner'
   const locale = lang === 'ar' ? 'ar' : 'en-US'
 
   const addMut = useMutation({
-    mutationFn: () => addSiteComment(profile!.id, body),
+    mutationFn: () => addSiteComment(profile!.id, body, rating),
     onSuccess: () => {
       setBody('')
+      setRating(5)
       setError('')
       void queryClient.invalidateQueries({ queryKey: ['site-comments'] })
     },
@@ -81,6 +117,10 @@ export function SiteComments() {
                 className="w-full resize-y rounded-lg border border-border px-3.5 py-2.5 text-[14px] outline-none focus:border-navy"
               />
               {error && <div className="mt-2 text-[13px] text-error">{error}</div>}
+              <div className="mt-3 flex items-center gap-2">
+                <span className="text-[12.5px] font-medium text-muted">{t('comments.yourRating')}</span>
+                <StarPicker value={rating} onChange={setRating} />
+              </div>
               <div className="mt-2.5 flex items-center justify-between">
                 <span className="text-[12px] text-faint">{t('comments.postingAs', { name: profile.name })}</span>
                 <button
@@ -118,8 +158,11 @@ export function SiteComments() {
                     <Avatar c={c} />
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[14px] font-semibold text-navy">{c.author?.name ?? '—'}</div>
-                      <div className="text-[11.5px] text-faint">
-                        {new Date(c.created_at).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })}
+                      <div className="mt-0.5 flex items-center gap-2">
+                        {c.rating ? <Stars value={c.rating} /> : null}
+                        <span className="text-[11.5px] text-faint">
+                          {new Date(c.created_at).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </span>
                       </div>
                     </div>
                     {canDelete && (
