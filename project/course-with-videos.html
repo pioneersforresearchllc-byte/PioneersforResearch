@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>منهجية البحث العلمي: من الفكرة إلى السؤال البحثي | Pioneers Health Research</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy-950:#050e1a;
+    --navy-900:#0b1f3a;
+    --navy-800:#0d2748;
+    --navy-700:#14335c;
+    --navy-600:#1c4577;
+    --gold-700:#8a6d2f;
+    --gold-500:#c9a24b;
+    --gold-300:#ecdfb8;
+    --gold-100:#f6ecd2;
+    --cream-50:#faf6ea;
+    --paper-100:#f6f8fb;
+    --paper-200:#eef1f5;
+    --line-200:#dfe3e9;
+    --ink-900:#0b1f3a;
+    --ink-700:#33404f;
+    --ink-500:#6b7686;
+    --rose-400:#e8b4ac;
+    --rose-700:#a85c50;
+    --sage-600:#1f8a5b;
+    --sage-100:#e4f2ea;
+    --font-display:'El Messiri', serif;
+    --font-body:'IBM Plex Sans Arabic', sans-serif;
+    --shadow-card: 0 10px 30px -12px rgba(11,31,58,.18);
+    --shadow-soft: 0 4px 16px -8px rgba(11,31,58,.15);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--font-body);
+    background:var(--cream-50);
+    color:var(--ink-700);
+    line-height:1.85;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:var(--font-display); color:var(--navy-900); margin:0; line-height:1.35;}
+  p{margin:0 0 14px;}
+  ul,ol{margin:0 0 14px; padding-inline-start:22px;}
+  li{margin-bottom:8px;}
+  button{font-family:inherit; cursor:pointer;}
+  :focus-visible{outline:3px solid var(--gold-500); outline-offset:2px;}
+
+  .app{min-height:100vh; display:flex; flex-direction:column;}
+
+  /* ---------- Topbar ---------- */
+  .topbar{
+    background:linear-gradient(180deg, var(--navy-900), var(--navy-800));
+    color:#fff;
+    padding:14px 22px 16px;
+    position:sticky; top:0; z-index:40;
+    box-shadow:0 6px 18px -10px rgba(0,0,0,.4);
+  }
+  .topbar-inner{
+    max-width:1180px; margin:0 auto;
+    display:flex; align-items:center; gap:16px; justify-content:space-between;
+  }
+  .brand{display:flex; align-items:center; gap:10px; min-width:0;}
+  .brand-mark{
+    width:34px; height:34px; border-radius:9px; flex:none;
+    background:conic-gradient(from 220deg, var(--gold-300), var(--gold-500) 40%, var(--gold-700) 75%, var(--gold-300));
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:700; color:var(--navy-900); font-size:15px;
+  }
+  .brand-text{min-width:0;}
+  .brand-text .k1{font-size:11px; letter-spacing:.06em; color:var(--gold-300); font-weight:600;}
+  .brand-text .k2{font-size:14px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .menu-btn{
+    display:none; align-items:center; gap:8px;
+    background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.18);
+    padding:8px 12px; border-radius:9px; font-size:13px; font-weight:600;
+  }
+  .progress-wrap{flex:1; max-width:420px; display:flex; align-items:center; gap:10px;}
+  .progress-track{flex:1; height:7px; background:rgba(255,255,255,.15); border-radius:99px; overflow:hidden;}
+  .progress-fill{height:100%; width:0%; background:linear-gradient(90deg, var(--gold-700), var(--gold-500)); border-radius:99px; transition:width .45s cubic-bezier(.4,0,.2,1);}
+  .progress-pct{font-size:12px; color:var(--gold-300); font-variant-numeric:tabular-nums; min-width:34px; text-align:left;}
+
+  /* ---------- Layout ---------- */
+  .layout{flex:1; display:grid; grid-template-columns:272px 1fr; max-width:1180px; width:100%; margin:0 auto; gap:0; align-items:start;}
+
+  /* ---------- Funnel Nav (signature element) ---------- */
+  .funnel-nav{
+    background:linear-gradient(180deg, var(--navy-900), var(--navy-950));
+    color:#fff; padding:26px 18px 34px; align-self:stretch;
+    border-inline-start:1px solid rgba(255,255,255,.06);
+  }
+  .nav-intro-item{
+    display:flex; align-items:center; gap:10px; width:100%; text-align:right;
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+    color:#fff; padding:10px 12px; border-radius:10px; margin-bottom:22px; font-size:13.5px; font-weight:600;
+  }
+  .nav-intro-item .dot{
+    width:22px;height:22px;border-radius:50%; flex:none;
+    background:rgba(255,255,255,.12); display:flex; align-items:center; justify-content:center; font-size:12px;
+  }
+  .nav-intro-item.current{background:rgba(201,162,75,.18); border-color:rgba(201,162,75,.5);}
+  .nav-intro-item.current .dot{background:var(--gold-500); color:var(--navy-950);}
+
+  .stage-group{margin:0 auto 18px; position:relative;}
+  .stage-group[data-w="1"]{max-width:100%;}
+  .stage-group[data-w="2"]{max-width:86%;}
+  .stage-group[data-w="3"]{max-width:72%;}
+  .stage-group[data-w="4"]{max-width:56%;}
+  .stage-label{
+    font-size:11px; letter-spacing:.05em; color:var(--gold-300); font-weight:700;
+    margin-bottom:10px; text-align:center; opacity:.9;
+  }
+  .stage-chevron{display:flex; justify-content:center; margin:2px 0 14px; color:rgba(201,162,75,.55); font-size:11px;}
+
+  .lessons{list-style:none; margin:0; padding:0 0 0 18px; position:relative;}
+  .lessons::before{
+    content:''; position:absolute; right:9px; top:6px; bottom:6px; width:2px;
+    background:rgba(255,255,255,.12);
+  }
+  .lesson-item{position:relative; margin-bottom:6px;}
+  .lesson-btn{
+    display:flex; align-items:center; gap:10px; width:100%; text-align:right;
+    background:transparent; border:none; color:rgba(255,255,255,.72);
+    padding:8px 8px 8px 4px; border-radius:9px; font-size:13px; line-height:1.4;
+  }
+  .lesson-btn:hover{background:rgba(255,255,255,.06); color:#fff;}
+  .lesson-btn .dot{
+    width:19px; height:19px; border-radius:50%; flex:none; position:relative; z-index:2;
+    background:var(--navy-800); border:2px solid rgba(255,255,255,.28);
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:700; color:rgba(255,255,255,.6);
+  }
+  .lesson-btn .ttl{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .lesson-item.done .dot{background:var(--gold-500); border-color:var(--gold-500); color:var(--navy-950);}
+  .lesson-item.done .lesson-btn{color:rgba(255,255,255,.85);}
+  .lesson-item.current .dot{background:var(--navy-950); border-color:var(--gold-500); box-shadow:0 0 0 3px rgba(201,162,75,.25); color:var(--gold-300);}
+  .lesson-item.current .lesson-btn{color:#fff; font-weight:700; background:rgba(255,255,255,.05);}
+  .lesson-item.quiz-item .dot{font-size:11px;}
+  .lesson-item.quiz-item .ttl{font-weight:700; color:var(--gold-300);}
+  .lesson-item.quiz-item.done .ttl{color:rgba(255,255,255,.85);}
+
+  .lesson-item.locked .lesson-btn{opacity:.4; cursor:not-allowed;}
+  .lesson-item.locked .lesson-btn:hover{background:transparent; color:rgba(255,255,255,.5);}
+  .lesson-item.locked .dot{background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.15); color:rgba(255,255,255,.3);}
+
+  @keyframes pulseAttn{ 0%,100%{box-shadow:0 0 0 0 rgba(201,162,75,.65);} 50%{box-shadow:0 0 0 7px rgba(201,162,75,0);} }
+  .lesson-item.attn .dot{animation:pulseAttn .55s ease-in-out 2;}
+
+  .nav-backdrop{display:none;}
+
+  /* ---------- Main stage ---------- */
+  main.stage{padding:34px 40px 0; min-width:0;}
+  .slide{display:none; animation:fadeUp .38s ease;}
+  .slide.active{display:block;}
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+  @media (prefers-reduced-motion: reduce){
+    .slide{animation:none;} .progress-fill{transition:none;}
+  }
+
+  .eyebrow{display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+  .eyebrow .tag{
+    font-size:11.5px; font-weight:700; letter-spacing:.03em; color:var(--gold-700);
+    background:var(--gold-100); border:1px solid var(--gold-300); padding:4px 10px; border-radius:99px;
+  }
+  .eyebrow .tag.quiz-tag{background:var(--navy-900); color:var(--gold-300); border-color:var(--navy-900);}
+  .eyebrow .count{font-size:12.5px; color:var(--ink-500); font-weight:600;}
+  h2.slide-title{font-size:clamp(22px,3vw,32px); margin-bottom:16px;}
+  .lead{font-size:17px; color:var(--ink-700); max-width:64ch;}
+
+  .card{background:#fff; border:1px solid var(--line-200); border-radius:16px; padding:22px 24px; box-shadow:var(--shadow-soft); margin:20px 0;}
+  .diagram-card{background:var(--paper-100); border:1px solid var(--line-200); border-radius:16px; padding:20px; margin:22px 0; text-align:center;}
+  .diagram-card svg{max-width:100%; height:auto;}
+  .diagram-cap{font-size:12.5px; color:var(--ink-500); margin-top:10px;}
+
+  .box{border-radius:14px; padding:16px 18px; margin:18px 0; border:1px solid;}
+  .box.tip{background:var(--gold-100); border-color:var(--gold-300);}
+  .box.tip .box-head{color:var(--gold-700);}
+  .box.example{background:var(--paper-200); border-color:var(--line-200); border-inline-start:4px solid var(--navy-700);}
+  .box.example .box-head{color:var(--navy-800);}
+  .box.warn{background:#fdf1ef; border-color:#f3d3cd; border-inline-start:4px solid var(--rose-700);}
+  .box.warn .box-head{color:var(--rose-700);}
+  .box-head{font-weight:700; font-size:13.5px; margin-bottom:6px; display:flex; align-items:center; gap:6px;}
+  .box p:last-child{margin-bottom:0;}
+
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:760px){.grid-2{grid-template-columns:1fr;}}
+
+  .compare-card{border-radius:14px; padding:16px 18px; border:1px solid var(--line-200);}
+  .compare-card.bad{background:#fdf6f5; border-color:#f3d9d5;}
+  .compare-card.good{background:var(--sage-100); border-color:#c7e4d4;}
+  .compare-card .lbl{font-size:12px; font-weight:700; margin-bottom:8px;}
+  .compare-card.bad .lbl{color:var(--rose-700);}
+  .compare-card.good .lbl{color:var(--sage-600);}
+  .compare-card p{font-size:14.5px; margin:0;}
+
+  details.deepen{background:var(--paper-100); border:1px solid var(--line-200); border-radius:14px; padding:4px 18px; margin:18px 0;}
+  details.deepen summary{cursor:pointer; font-weight:700; color:var(--navy-800); padding:12px 0; list-style:none; display:flex; align-items:center; gap:8px;}
+  details.deepen summary::-webkit-details-marker{display:none;}
+  details.deepen summary::before{content:'+'; font-family:var(--font-display); font-size:18px; color:var(--gold-700); width:20px; text-align:center;}
+  details.deepen[open] summary::before{content:'−';}
+  details.deepen .deepen-body{padding-bottom:16px; font-size:14.5px;}
+
+  .pico-row{display:flex; gap:10px; flex-wrap:wrap; margin:20px 0;}
+  .pico-box{flex:1; min-width:130px; border-radius:14px; padding:14px; text-align:center; color:#fff; cursor:default;}
+  .pico-box .letter{font-family:var(--font-display); font-size:26px; font-weight:700; display:block;}
+  .pico-box .word{font-size:12px; opacity:.85; display:block; margin-top:2px;}
+  .pico-box .name{font-size:13.5px; font-weight:700; margin-top:8px; display:block;}
+  .pico-p{background:linear-gradient(160deg, var(--navy-700), var(--navy-900));}
+  .pico-i{background:linear-gradient(160deg, #7a5a20, var(--gold-700));}
+  .pico-c{background:linear-gradient(160deg, #6b7686, #46505e);}
+  .pico-o{background:linear-gradient(160deg, #1f8a5b, #146341);}
+
+  .checklist{list-style:none; margin:0; padding:0;}
+  .checklist li{
+    display:flex; gap:12px; align-items:flex-start; background:#fff; border:1px solid var(--line-200);
+    border-radius:12px; padding:14px 16px; margin-bottom:10px;
+  }
+  .checklist input[type=checkbox]{width:19px; height:19px; margin-top:3px; accent-color:var(--sage-600); flex:none;}
+  .checklist .txt strong{display:block; color:var(--navy-900); margin-bottom:3px; font-size:14.5px;}
+  .checklist .txt span{font-size:13.5px; color:var(--ink-500);}
+  .checklist li.checked{background:var(--sage-100); border-color:#c7e4d4;}
+
+  /* ---------- Quiz ---------- */
+  .quiz-lock-note{
+    display:flex; gap:10px; align-items:flex-start; font-size:13.5px; color:var(--navy-800);
+    background:var(--gold-100); border:1px solid var(--gold-300); border-radius:12px; padding:12px 16px; margin-bottom:22px;
+  }
+  .quiz-q{background:#fff; border:1px solid var(--line-200); border-radius:14px; padding:18px 20px; margin-bottom:16px;}
+  .quiz-q .qtitle{font-weight:700; color:var(--navy-900); margin-bottom:12px; font-size:15px;}
+  .quiz-opts{display:flex; flex-direction:column; gap:8px;}
+  .quiz-opt{
+    text-align:right; background:var(--paper-100); border:1px solid var(--line-200); border-radius:10px;
+    padding:10px 14px; font-size:14px; color:var(--ink-700); transition:.15s;
+  }
+  .quiz-opt:hover:not(:disabled){border-color:var(--navy-600);}
+  .quiz-opt:disabled{cursor:default;}
+  .quiz-opt.correct{background:var(--sage-100); border-color:var(--sage-600); color:#175c3d; font-weight:700;}
+  .quiz-opt.incorrect{background:#fdf1ef; border-color:var(--rose-700); color:var(--rose-700); font-weight:700;}
+  .quiz-fb{margin-top:10px; font-size:13.5px; color:var(--ink-500); display:none;}
+  .quiz-fb.show{display:block;}
+
+  .quiz-result{border-radius:14px; padding:20px 22px; margin-top:8px; display:none;}
+  .quiz-result.show{display:block;}
+  .quiz-result.success{background:var(--sage-100); border:1px solid #b9dfca;}
+  .quiz-result.retry{background:#fdf1ef; border:1px solid #f3d3cd;}
+  .quiz-result .rtitle{font-weight:700; font-size:15.5px; margin-bottom:6px;}
+  .quiz-result.success .rtitle{color:#175c3d;}
+  .quiz-result.retry .rtitle{color:var(--rose-700);}
+  .quiz-result p{margin-bottom:14px; font-size:14px;}
+  .quiz-result-btn{border:none; padding:11px 22px; border-radius:10px; font-weight:700; font-size:14px; color:#fff; background:var(--navy-900);}
+  .quiz-result.retry .quiz-result-btn{background:var(--rose-700);}
+
+  .completion-lock{text-align:center;}
+  .completion-card{
+    background:linear-gradient(150deg, var(--navy-900), var(--navy-950));
+    color:#fff; border-radius:20px; padding:34px 30px; text-align:center; margin:26px 0;
+    display:none;
+  }
+  .completion-card.show{display:block;}
+  .completion-card svg{margin-bottom:8px;}
+  .completion-card h3{color:#fff; font-size:22px; margin-bottom:8px;}
+  .completion-card p{color:rgba(255,255,255,.78); max-width:56ch; margin-inline:auto;}
+
+  /* ---------- Footer controls ---------- */
+  .controls{
+    max-width:1180px; margin:0 auto; width:100%; padding:22px 40px 40px;
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+  }
+  .nav-btn{
+    display:flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--line-200);
+    color:var(--navy-900); font-weight:700; font-size:14px; padding:11px 20px; border-radius:11px;
+    box-shadow:var(--shadow-soft);
+  }
+  .nav-btn:disabled{opacity:.35; cursor:not-allowed;}
+  .nav-btn.primary{background:var(--navy-900); color:#fff; border-color:var(--navy-900);}
+  .nav-btn.primary:hover:not(:disabled){background:var(--navy-800);}
+  .step-count{font-size:13px; color:var(--ink-500); font-weight:600;}
+
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr;}
+    .funnel-nav{
+      position:fixed; inset:0 18% 0 auto; width:78%; max-width:320px; z-index:60;
+      transform:translateX(102%); transition:transform .3s ease; overflow-y:auto;
+      box-shadow:-18px 0 40px rgba(0,0,0,.35);
+    }
+    html[dir="rtl"] .funnel-nav{inset:0 auto 0 18%; transform:translateX(-102%);}
+    .funnel-nav.open{transform:translateX(0);}
+    .nav-backdrop{display:none; position:fixed; inset:0; background:rgba(5,14,26,.55); z-index:55;}
+    .nav-backdrop.open{display:block;}
+    .menu-btn{display:flex;}
+    main.stage{padding:26px 18px 0;}
+    .controls{padding:18px 18px 30px;}
+    .card, .diagram-card{padding:16px;}
+  }
+
+  /* ---------- Video summaries (added) ---------- */
+  .video-summary{background:linear-gradient(150deg,var(--navy-900,#0b1f3a),var(--navy-950,#050e1a));border:1px solid rgba(201,162,75,.38);border-radius:16px;padding:18px 18px 16px;margin:22px 0;box-shadow:0 12px 30px -14px rgba(5,14,26,.55);}
+  .video-summary.vs-unit{border-color:rgba(201,162,75,.6);}
+  .video-summary.vs-course{border-color:rgba(201,162,75,.75);background:linear-gradient(150deg,#0d2748,#050e1a);}
+  .video-summary .vs-head{display:flex;align-items:center;gap:11px;margin-bottom:13px;color:#fff;}
+  .video-summary .vs-icon{width:34px;height:34px;border-radius:9px;flex:none;background:linear-gradient(160deg,var(--gold-500,#c9a24b),var(--gold-700,#8a6d2f));display:flex;align-items:center;justify-content:center;color:var(--navy-950,#050e1a);font-size:15px;}
+  .video-summary .vs-titles{min-width:0;display:flex;flex-direction:column;gap:2px;}
+  .video-summary .vs-kicker{font-size:11px;letter-spacing:.04em;font-weight:700;color:var(--gold-300,#ecdfb8);}
+  .video-summary .vs-title{font-family:var(--font-display,'El Messiri',serif);font-weight:700;font-size:15.5px;color:#fff;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .video-summary .vs-dur{margin-inline-start:auto;flex:none;font-size:12px;font-weight:700;color:var(--gold-300,#ecdfb8);background:rgba(201,162,75,.14);border:1px solid rgba(201,162,75,.4);padding:4px 11px;border-radius:99px;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .video-summary .vs-frame{position:relative;width:100%;aspect-ratio:16/9;border-radius:11px;overflow:hidden;background:#04101f;border:1px solid rgba(255,255,255,.08);}
+  .video-summary .vs-frame video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#04101f;display:block;}
+  .video-summary .vs-soon{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;color:rgba(255,255,255,.72);padding:18px;}
+  .video-summary .vs-soon .vs-soon-mark{width:52px;height:52px;border-radius:50%;border:2px solid rgba(201,162,75,.55);color:var(--gold-300,#ecdfb8);display:flex;align-items:center;justify-content:center;font-size:20px;}
+  .video-summary .vs-soon .vs-soon-t{font-size:14px;font-weight:700;color:#fff;}
+  .video-summary .vs-soon .vs-soon-s{font-size:12.5px;color:rgba(255,255,255,.6);}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark">PH</div>
+        <div class="brand-text">
+          <div class="k1">Pioneers Health Research</div>
+          <div class="k2">منهجية البحث العلمي: من الفكرة إلى السؤال البحثي</div>
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-pct" id="progressPct">0%</div>
+      </div>
+      <button class="menu-btn" id="menuBtn" aria-expanded="false">
+        <span>محتويات الكورس</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="nav-backdrop" id="navBackdrop"></div>
+    <aside class="funnel-nav" id="funnelNav" aria-label="محتويات الكورس">
+
+      <button class="nav-intro-item" data-index="0">
+        <span class="dot">◆</span>
+        <span>تمهيد الكورس</span>
+      </button>
+
+      <div class="stage-group" data-w="1">
+        <div class="stage-label">المرحلة ١ — الانطلاق: الفكرة</div>
+        <ul class="lessons">
+          <li class="lesson-item" data-index="1"><button class="lesson-btn"><span class="dot">١</span><span class="ttl">ما هو البحث العلمي؟</span></button></li>
+          <li class="lesson-item" data-index="2"><button class="lesson-btn"><span class="dot">٢</span><span class="ttl">من أين تأتي الفكرة؟</span></button></li>
+          <li class="lesson-item" data-index="3"><button class="lesson-btn"><span class="dot">٣</span><span class="ttl">من فكرة خام إلى فكرة قابلة للبحث</span></button></li>
+          <li class="lesson-item quiz-item" data-index="4"><button class="lesson-btn"><span class="dot">★</span><span class="ttl">اختبار المرحلة ١</span></button></li>
+        </ul>
+      </div>
+      <div class="stage-chevron">▾ ▾ ▾</div>
+
+      <div class="stage-group" data-w="2">
+        <div class="stage-label">المرحلة ٢ — الاستكشاف</div>
+        <ul class="lessons">
+          <li class="lesson-item" data-index="5"><button class="lesson-btn"><span class="dot">٤</span><span class="ttl">مراجعة الأدبيات الأولية</span></button></li>
+          <li class="lesson-item" data-index="6"><button class="lesson-btn"><span class="dot">٥</span><span class="ttl">تحديد الفجوة البحثية</span></button></li>
+          <li class="lesson-item quiz-item" data-index="7"><button class="lesson-btn"><span class="dot">★</span><span class="ttl">اختبار المرحلة ٢</span></button></li>
+        </ul>
+      </div>
+      <div class="stage-chevron">▾ ▾ ▾</div>
+
+      <div class="stage-group" data-w="3">
+        <div class="stage-label">المرحلة ٣ — التبلور</div>
+        <ul class="lessons">
+          <li class="lesson-item" data-index="8"><button class="lesson-btn"><span class="dot">٦</span><span class="ttl">صياغة المشكلة البحثية</span></button></li>
+          <li class="lesson-item" data-index="9"><button class="lesson-btn"><span class="dot">٧</span><span class="ttl">أطر PICO / FINER</span></button></li>
+          <li class="lesson-item" data-index="10"><button class="lesson-btn"><span class="dot">٨</span><span class="ttl">صياغة السؤال النهائي</span></button></li>
+          <li class="lesson-item quiz-item" data-index="11"><button class="lesson-btn"><span class="dot">★</span><span class="ttl">اختبار المرحلة ٣</span></button></li>
+        </ul>
+      </div>
+      <div class="stage-chevron">▾ ▾ ▾</div>
+
+      <div class="stage-group" data-w="4">
+        <div class="stage-label">المرحلة ٤ — الإقلاع</div>
+        <ul class="lessons">
+          <li class="lesson-item" data-index="12"><button class="lesson-btn"><span class="dot">٩</span><span class="ttl">الأهداف والفرضيات</span></button></li>
+          <li class="lesson-item" data-index="13"><button class="lesson-btn"><span class="dot">١٠</span><span class="ttl">أخطاء شائعة تجنّبها</span></button></li>
+          <li class="lesson-item quiz-item" data-index="14"><button class="lesson-btn"><span class="dot">★</span><span class="ttl">الخاتمة + اختبار المرحلة ٤</span></button></li>
+        </ul>
+      </div>
+
+    </aside>
+
+    <main class="stage">
+
+      <!-- SLIDE 0: INTRO -->
+      <section class="slide" data-index="0">
+        <div class="eyebrow"><span class="tag">تمهيد</span><span class="count">قبل أن نبدأ</span></div>
+        <h2 class="slide-title">مرحبًا بك في رحلتك البحثية</h2>
+        <p class="lead">هذا الكورس سيأخذك خطوة بخطوة من فكرة عامة غامضة إلى سؤال بحثي واضح وقابل للدراسة، تبني عليه مشروعك البحثي القادم — سواء كان بحث تخرّج، رسالة ماجستير أو دكتوراه، أو أول ورقة علمية تنشرها.</p>
+
+        <div class="card">
+          <h3 style="font-size:16px;margin-bottom:12px;">في نهاية هذا الكورس، ستكون قادرًا على أن:</h3>
+          <ul>
+            <li>تُفرّق بين فكرة بحثية "خام" وأخرى "قابلة للبحث فعليًا".</li>
+            <li>تُجري مراجعة أدبيات أولية سريعة تكشف لك الفجوة البحثية الحقيقية.</li>
+            <li>تصوغ مشكلة بحثية واضحة بخطوات منهجية بدل الحدس والتخمين.</li>
+            <li>تستخدم أطرًا معتمدة عالميًا (PICO وFINER) لصياغة سؤال بحثي دقيق.</li>
+            <li>تبني من سؤالك أهدافًا وفرضيات قابلة للاختبار فعليًا.</li>
+          </ul>
+        </div>
+
+        <div class="diagram-card">
+          <svg viewBox="0 0 640 260" xmlns="http://www.w3.org/2000/svg">
+            <text x="320" y="24" text-anchor="middle" font-family="El Messiri, serif" font-size="14" font-weight="700" fill="#0b1f3a">خارطة الرحلة: من العام إلى المحدد</text>
+            <polygon points="140,50 500,50 440,110 200,110" fill="#14335c"/>
+            <text x="320" y="86" text-anchor="middle" font-size="15" fill="#fff" font-family="IBM Plex Sans Arabic">فكرة عامة</text>
+            <polygon points="200,122 440,122 400,172 240,172" fill="#8a6d2f"/>
+            <text x="320" y="153" text-anchor="middle" font-size="14.5" fill="#fff" font-family="IBM Plex Sans Arabic">فكرة مُركّزة بعد المراجعة</text>
+            <polygon points="240,184 400,184 375,224 265,224" fill="#c9a24b"/>
+            <text x="320" y="210" text-anchor="middle" font-size="14" fill="#1f2a1a" font-family="IBM Plex Sans Arabic" font-weight="700">سؤال بحثي محدد</text>
+            <text x="320" y="248" text-anchor="middle" font-size="12" fill="#6b7686" font-family="IBM Plex Sans Arabic">١١ درسًا  •  ٤ اختبارات مرحلية  •  ~٥٠ دقيقة</text>
+          </svg>
+        </div>
+
+        <div class="box tip">
+          <div class="box-head">💡 قبل أن تبدأ</div>
+          <p>في نهاية كل مرحلة اختبار قصير يجب اجتيازه بإجابات صحيحة لفتح المرحلة التالية. إن أخطأت في سؤال، ستظهر لك الإجابة الصحيحة فورًا، وتقدر تعيد محاولة الأسئلة الخاطئة فقط حتى تتقنها.</p>
+        </div>
+      </section>
+
+      <!-- SLIDE 1: LESSON 1 -->
+      <section class="slide" data-index="1">
+        <div class="eyebrow"><span class="tag">المرحلة ١ · الانطلاق</span><span class="count">الدرس ١ من ١١</span></div>
+        <h2 class="slide-title">ما هو البحث العلمي؟ ولماذا نبحث؟</h2>
+        <p class="lead">البحث العلمي ليس مجرد "جمع معلومات" — إنه عملية منهجية منظمة لتوليد معرفة جديدة أو التحقق من معرفة قائمة، باستخدام أدوات وأساليب يمكن لأي باحث آخر أن يكرّرها وينقدها.</p>
+
+        <p>في المجال الصحي تحديدًا، لا يُعد البحث ترفًا أكاديميًا، بل هو الأداة التي نُحسّن بها الممارسة السريرية، ونسدّ بها الفجوات المعرفية، ونتّخذ بها قرارات مبنية على أدلة (Evidence-Based) بدل الاعتماد على الانطباع أو العادة.</p>
+
+        <div class="card">
+          <h3 style="font-size:16px;margin-bottom:12px;">خصائص البحث العلمي الجيد</h3>
+          <ul>
+            <li><strong>منهجي:</strong> يتبع خطوات واضحة يمكن تتبعها من البداية للنهاية.</li>
+            <li><strong>قابل للتكرار:</strong> يستطيع باحث آخر إعادة تنفيذه والوصول لنتائج مشابهة.</li>
+            <li><strong>موضوعي:</strong> يقلّل من تأثير الرأي الشخصي والتحيز قدر الإمكان.</li>
+            <li><strong>مبني على أدلة:</strong> يستند لما هو موثّق وموجود، لا لانطباعات فردية.</li>
+            <li><strong>يخضع للمراجعة:</strong> يُعرض على الأقران والمختصين قبل اعتماده.</li>
+          </ul>
+        </div>
+
+        <div class="diagram-card">
+          <svg viewBox="0 0 560 320" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="280" cy="164" r="118" fill="none" stroke="#dfe3e9" stroke-width="2" stroke-dasharray="4 6"/>
+            <g font-family="IBM Plex Sans Arabic" font-size="13.5" text-anchor="middle">
+              <circle cx="280" cy="46" r="34" fill="#14335c"/><text x="280" y="51" fill="#fff">ملاحظة</text>
+              <circle cx="398" cy="112" r="34" fill="#1c4577"/><text x="398" y="117" fill="#fff">سؤال</text>
+              <circle cx="360" cy="248" r="34" fill="#8a6d2f"/><text x="360" y="253" fill="#fff">تحقيق</text>
+              <circle cx="200" cy="248" r="34" fill="#c9a24b"/><text x="200" y="253" fill="#1f2a1a">إجابة</text>
+              <circle cx="162" cy="112" r="34" fill="#1f8a5b"/><text x="162" y="117" fill="#fff">معرفة</text>
+            </g>
+            <g stroke="#a9b2bd" stroke-width="2" fill="none" marker-end="url(#arrow)">
+              <path d="M303,68 L378,92"/>
+              <path d="M392,144 L370,220"/>
+              <path d="M332,258 L228,258"/>
+              <path d="M182,224 L156,144"/>
+              <path d="M186,90 L258,58"/>
+            </g>
+            <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#a9b2bd"/></marker></defs>
+            <text x="280" y="304" text-anchor="middle" font-size="12" fill="#6b7686" font-family="IBM Plex Sans Arabic">دائرة البحث العلمي المستمرة — كل إجابة تولّد أسئلة جديدة</text>
+          </svg>
+        </div>
+
+        <div class="box tip">
+          <div class="box-head">💡 نصيحة الباحث</div>
+          <p>البحث الجيد لا يبدأ بالإجابة، بل يبدأ بسؤال صادق عن شيء لا نعرفه بعد. إن كنت تعرف النتيجة مسبقًا، فربما لا تحتاج بحثًا بل تحتاج تأكيدًا — وهذا فخ شائع سنتحدث عنه لاحقًا.</p>
+        </div>
+      </section>
+
+      <!-- SLIDE 2: LESSON 2 -->
+      <section class="slide" data-index="2">
+        <div class="eyebrow"><span class="tag">المرحلة ١ · الانطلاق</span><span class="count">الدرس ٢ من ١١</span></div>
+        <h2 class="slide-title">من أين تأتي الفكرة البحثية؟</h2>
+        <p class="lead">كثير من الباحثين المبتدئين يعلقون عند سؤال: "من أين أبدأ؟". الحقيقة أن الأفكار البحثية الجيدة نادرًا ما تُخترع من فراغ — هي غالبًا تُلتقط من مصادر متكررة يمكنك تدريب نفسك على ملاحظتها.</p>
+
+        <div class="card">
+          <h3 style="font-size:16px;margin-bottom:12px;">أهم ٦ مصادر للأفكار البحثية</h3>
+          <ol>
+            <li><strong>الممارسة اليومية:</strong> حالة سريرية محيّرة، أو مشكلة تتكرر معك في العمل.</li>
+            <li><strong>الأدبيات المنشورة:</strong> قسم "التوصيات للأبحاث المستقبلية" في نهاية الأوراق العلمية غالبًا كنز مهمل.</li>
+            <li><strong>الفجوة بين النظرية والتطبيق:</strong> ما تتعلمه في الكتب لا يحدث دائمًا كما هو في الواقع.</li>
+            <li><strong>البيانات المتاحة:</strong> سجلات صحية أو قواعد بيانات موجودة لم تُحلَّل بعد.</li>
+            <li><strong>المؤتمرات والنقاشات العلمية:</strong> أسئلة تُطرح في الجلسات ولا تجد إجابة كاملة.</li>
+            <li><strong>فضولك الشخصي:</strong> أحيانًا أفضل الأفكار تبدأ بـ"لماذا يحدث هذا فعلًا؟".</li>
+          </ol>
+        </div>
+
+        <div class="box example">
+          <div class="box-head">📋 مثال تطبيقي</div>
+          <p>طبيب عام لاحظ في عيادته أن نسبة كبيرة من مرضى السكري يهملون قياس سكر الدم في أيام العطلات الأسبوعية تحديدًا. هذه الملاحظة اليومية البسيطة يمكن أن تتحول — بعد التنقيح — إلى فكرة بحثية كاملة عن "أنماط الالتزام بمراقبة السكر وعلاقتها بروتين الأسبوع".</p>
+        </div>
+
+        <div class="box tip">
+          <div class="box-head">💡 نصيحة الباحث</div>
+          <p>احتفظ بـ"دفتر أفكار بحثية" على هاتفك أو مكتبك. أفضل الأفكار غالبًا تأتي في أثناء العمل اليومي لا وأنت تحاول "التفكير بجد" أمام الشاشة.</p>
+        </div>
+      </section>
+
+      <!-- SLIDE 3: LESSON 3 -->
+      <section class="slide" data-index="3">
+        <div class="eyebrow"><span class="tag">المرحلة ١ · الانطلاق</span><span class="count">الدرس ٣ من ١١</span></div>
+        <h2 class="slide-title">من فكرة خام إلى فكرة قابلة للبحث</h2>
+        <p class="lead">ليست كل فكرة تخطر ببالك جاهزة لتكون بحثًا. الفكرة الخام عادة تكون عامة جدًا أو فضفاضة أو غير قابلة للتنفيذ فعليًا — ومهمتك في هذه المرحلة أن "تُمررها" عبر مجموعة من الفلاتر لتضييقها.</p>
+
+        <div class="grid-2">
+          <div class="compare-card bad">
+            <div class="lbl">✕ فكرة خام غامضة</div>
+            <p>"أريد أن أبحث في السمنة عند الأطفال."</p>
+          </div>
+          <div class="compare-card good">
+            <div class="lbl">✓ فكرة مُضيَّقة قابلة للبحث</div>
+            <p>"علاقة نمط الأكل الأسري بمعدل السمنة لدى أطفال المرحلة الابتدائية في مدينة X خلال عام دراسي واحد."</p>
+          </div>
+        </div>
+
+        <details class="deepen">
+          <summary>تعمّق أكثر: معايير التضييق الخمسة بالتفصيل</summary>
+          <div class="deepen-body">
+            <ul>
+              <li><strong>قابلة للقياس:</strong> هل تستطيع جمع بيانات رقمية أو وصفية واضحة عنها؟</li>
+              <li><strong>ممكنة التنفيذ:</strong> هل الوقت والموارد والوصول للعينة متاحة لك فعلًا؟</li>
+              <li><strong>أخلاقية:</strong> هل يمكن تنفيذها دون ضرر أو انتهاك لخصوصية المشاركين؟</li>
+              <li><strong>مهمة:</strong> هل الإجابة عليها تُحدث فرقًا علميًا أو عمليًا حقيقيًا؟</li>
+              <li><strong>أصيلة:</strong> هل أُجيب عنها بالفعل بشكل كافٍ من قبل؟</li>
+            </ul>
+          </div>
+        </details>
+
+        <div class="box tip">
+          <div class="box-head">💡 نصيحة الباحث</div>
+          <p>اختبر فكرتك بسؤال بسيط وصريح: "هل أستطيع فعلًا تنفيذ هذا البحث بالوقت والموارد المتاحة لي الآن؟" إن كانت الإجابة "لا"، فالفكرة ليست خاطئة، لكنها تحتاج تضييقًا إضافيًا.</p>
+        </div>
+      </section>
+
+      <!-- SLIDE 4: QUIZ STAGE 1 -->
+      <section class="slide" data-index="4">
+        <div class="eyebrow"><span class="tag quiz-tag">اختبار المرحلة</span><span class="count">نهاية المرحلة ١ — الانطلاق</span></div>
+        <h2 class="slide-title">اختبار المرحلة الأولى</h2>
+        <p class="lead">قبل الانتقال لمرحلة "الاستكشاف"، تأكد من رسوخ أفكار هذه المرحلة عبر الأسئلة التالية.</p>
+
+        <div class="quiz-lock-note">
+          <span>🔒</span>
+          <span>أجب عن الأسئلة الثلاثة بشكل صحيح لفتح المرحلة التالية. إن أخطأت، ستظهر لك الإجابة الصحيحة فورًا، ويمكنك إعادة محاولة الأسئلة الخاطئة فقط.</span>
+        </div>
+
+        <div id="quiz1Container"></div>
+        <div id="quiz1Result" class="quiz-result"></div>
+      </section>
+
+      <!-- SLIDE 5: LESSON 4 -->
+      <section class="slide" data-index="5">
+        <div class="eyebrow"><span class="tag">المرحلة ٢ · الاستكشاف</span><span class="count">الدرس ٤ من ١١</span></div>
+        <h2 class="slide-title">مراجعة الأدبيات الأولية</h2>
+        <p class="lead">قبل أن تُقرّر فكرتك النهائية، عليك أن تعرف: ماذا كُتب عن هذا الموضوع من قبل؟ هذه ليست "المراجعة المنهجية" الكاملة (Systematic Review) التي تأتي لاحقًا في مراحل متقدمة، بل استكشاف سريع وهادف يمنعك من إعادة اختراع العجلة.</p>
+
+        <div class="card">
+          <h3 style="font-size:16px;margin-bottom:12px;">خطوات المراجعة الأولية</h3>
+          <ol>
+            <li>حدّد الكلمات المفتاحية الأساسية ومرادفاتها، واستخدم عوامل البحث <strong>AND / OR</strong> لتوسيع أو تضييق النتائج.</li>
+            <li>ابحث في قواعد بيانات موثوقة (PubMed، Google Scholar، Scopus أو ما يناسب تخصصك).</li>
+            <li>اقرأ الملخصات (Abstracts) أولًا لتصفية النتائج قبل قراءة الأوراق كاملة.</li>
+            <li>نظّم ما تجده في جدول بسيط: المصدر — المنهجية — أهم نتيجة — الفجوة الملاحظة.</li>
+            <li>لاحظ التكرار: إذا وجدت نفس الفجوة تتكرر في عدة مصادر، فأنت على الطريق الصحيح.</li>
+          </ol>
+        </div>
+
+        <div class="box tip">
+          <div class="box-head">💡 نصيحة الباحث</div>
+          <p>لا تحاول قراءة كل شيء في هذه المرحلة. هدفك الآن هو رسم خريطة عامة للمجال، وليس إتقانه بالكامل — ذلك يأتي لاحقًا في المراجعة المنهجية الكاملة.</p>
+        </div>
+      </section>
+
+      <!-- SLIDE 6: LESSON 5 -->
+      <section class="slide" data-index="6">
+        <div class="eyebrow"><span class="tag">المرحلة ٢ · الاستكشاف</span><span class="count">الدرس ٥ من ١١</span></div>
+        <h2 class="slide-title">تحديد الفجوة البحثية</h2>
+        <p class="lead">الفجوة البحثية (Research Gap) هي المساحة بين "ما هو معروف علميًا" و"ما لا نزال لا نعرفه أو نختلف عليه". إيجادها بدقة هو ما يميّز البحث الجيد عن مجرد تكرار لما كُتب من قبل.</p>
+
+        <div class="card">
+          <h3 style="font-size:16px;margin-bottom:12px;">أنواع الفجوات البحثية الخمسة</h3>
+          <ul>
+            <li><strong>فجوة معرفية:</strong> سؤال لم يُجب عليه أحد بشكل مباشر بعد.</li>
+            <li><strong>فجوة منهجية:</strong> أُجيب عليه سابقًا لكن بمنهجية ضعيفة (عيّنة صغيرة، تصميم محدود).</li>
+            <li><strong>فجوة سياقية/جغرافية:</strong> الدراسات موجودة لكن في بيئة أو ثقافة أو فئة مختلفة عن سياقك.</li>
+            <li><strong>فجوة زمنية:</strong> الدراسات المتوفرة قديمة وتحتاج تحديثًا يعكس المستجدات الحالية.</li>
+            <li><strong>فجوة تناقض النتائج:</strong> دراسات متضاربة تحتاج بحثًا حاسمًا يوضّح الصورة.</li>
+          </ul>
+        </div>
+
+        <div class="box example">
+          <div class="box-head">📋 مثال تطبيقي</div>
+          <p>وجدت دراسات عديدة عن فعالية برامج التثقيف الصحي لمرضى الضغط في المدن الكبرى، لكن لا توجد دراسات مماثلة في المناطق الريفية ذات الموارد المحدودة. هذه فجوة سياقية واضحة يمكن بناء بحث كامل عليها.</p>
+        </div>
+
+        <div class="box tip">
+          <div class="box-head">💡 نصيحة الباحث</div>
+          <p>الفجوة الجيدة نادرًا ما تكون "لم يبحث أحد هذا الموضوع إطلاقًا" — غالبًا هي "هذا الجانب المحدد لم يُدرس بما يكفي بعد."</p>
+        </div>
+      </section>
+
+      <!-- SLIDE 7: QUIZ STAGE 2 -->
+      <section class="slide" data-index="7">
+        <div class="eyebrow"><span class="tag quiz-tag">اختبار المرحلة</span><span class="count">نهاية المرحلة ٢ — الاستكشاف</span></div>
+        <h2 class="slide-title">اختبار المرحلة الثانية</h2>
+        <p class="lead">قبل الانتقال لمرحلة "التبلور"، تأكد من فهمك لمراجعة الأدبيات وتحديد الفجوة البحثية.</p>
+
+        <div class="quiz-lock-note">
+          <span>🔒</span>
+          <span>أجب عن الأسئلة الثلاثة بشكل صحيح لفتح المرحلة التالية. إن أخطأت، ستظهر لك الإجابة الصحيحة فورًا، ويمكنك إعادة محاولة الأسئلة الخاطئة فقط.</span>
+        </div>
+
+        <div id="quiz2Container"></div>
+        <div id="quiz2Result" class="quiz-result"></div>
+      </section>
+
+      <!-- SLIDE 8: LESSON 6 -->
+      <section class="slide" data-index="8">
+        <div class="eyebrow"><span class="tag">المرحلة ٣ · التبلور</span><span class="count">الدرس ٦ من ١١</span></div>
+        <h2 class="slide-title">صياغة المشكلة البحثية</h2>
+        <p class="lead">المشكلة البحثية (Problem Statement) هي الفقرة التي تُترجم بها الفجوة التي وجدتها إلى تبرير واضح ومقنع لماذا يستحق موضوعك البحث. فقرة جيدة تجعل القارئ يقول: "نعم، هذا فعلًا يستحق الدراسة."</p>
+
+        <div class="box example">
+          <div class="box-head">📋 قالب جاهز للصياغة</div>
+          <p>"رغم أن [ما هو معروف من المراجعة]، إلا أن [الفجوة المحددة] لا تزال غير واضحة، وهذا يمثل مشكلة لأن [الأهمية العملية أو العلمية لسد هذه الفجوة]."</p>
+        </div>
+
+        <div class="box example">
+          <div class="box-head">✅ مثال مُطبَّق</div>
+          <p>"رغم أن دراسات عديدة أثبتت فعالية التذكير النصي (SMS) في تحسين التزام مرضى الضغط بالدواء في البيئات الحضرية، إلا أن أثر هذا التدخل في المناطق الريفية محدودة الاتصال لا يزال غير مدروس، وهذا يمثل فجوة مهمة لأن نحو ٤٠٪ من مرضى الضغط في بلادنا يقيمون في مناطق ريفية."</p>
+        </div>
+
+        <div class="box tip">
+          <div class="box-head">💡 نصيحة الباحث</div>
+          <p>مشكلة بحثية جيدة تُقرأ في فقرة واحدة مترابطة، لا تحتاج شرحًا إضافيًا لفهمها.</p>
+        </div>
+      </section>
+
+      <!-- SLIDE 9: LESSON 7 -->
+      <section class="slide" data-index="9">
+        <div class="eyebrow"><span class="tag">المرحلة ٣ · التبلور</span><span class="count">الدرس ٧ من ١١</span></div>
+        <h2 class="slide-title">أطر صياغة السؤال البحثي: PICO وFINER</h2>
+        <p class="lead">بعد أن حددت مشكلتك البحثية، تحتاج أداة تُترجمها إلى سؤال دقيق. إطار <strong>PICO</strong> هو الأكثر استخدامًا في الأبحاث الصحية والسريرية.</p>
+
+        <div class="pico-row">
+          <div class="pico-box pico-p"><span class="letter">P</span><span class="word">Population</span><span class="name">الفئة / المرضى</span></div>
+          <div class="pico-box pico-i"><span class="letter">I</span><span class="word">Intervention</span><span class="name">التدخل / التعرض</span></div>
+          <div class="pico-box pico-c"><span class="letter">C</span><span class="word">Comparison</span><span class="name">المقارنة (اختياري)</span></div>
+          <div class="pico-box pico-o"><span class="letter">O</span><span class="word">Outcome</span><span class="name">النتيجة المقاسة</span></div>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:16px;margin-bottom:12px;">معايير FINER لتقييم جودة أي سؤال بحثي</h3>
+          <ul>
+            <li><strong>F</strong>easible — ممكن التنفيذ بمواردك ووقتك.</li>
+            <li><strong>I</strong>nteresting — مثير للاهتمام العلمي أو العملي.</li>
+            <li><strong>N</strong>ovel — يضيف جديدًا لم يُجب عنه بالكامل من قبل.</li>
+            <li><strong>E</strong>thical — يمكن تنفيذه دون تجاوز أخلاقي.</li>
+            <li><strong>R</strong>elevant — ذو صلة حقيقية بالمجال أو المجتمع.</li>
+          </ul>
+        </div>
+
+        <div class="box tip">
+          <div class="box-head">💡 نصيحة الباحث</div>
+          <p>PICO أداة تنظيمية وليست قاعدة صارمة. إن لم ينطبق عليك عنصر مثل C في الدراسات الوصفية، تجاوزه بثقة دون أن تُقحمه بالقوة.</p>
+        </div>
+      </section>
+
+      <!-- SLIDE 10: LESSON 8 -->
+      <section class="slide" data-index="10">
+        <div class="eyebrow"><span class="tag">المرحلة ٣ · التبلور</span><span class="count">الدرس ٨ من ١١</span></div>
+        <h2 class="slide-title">صياغة السؤال البحثي النهائي</h2>
+        <p class="lead">الآن نجمع كل ما سبق: المشكلة البحثية + تحليل PICO = سؤال بحثي واحد، واضح، ومحدد. إليك أمثلة توضح كيف يتحول موضوع عام إلى سؤال جاهز للعمل عليه.</p>
+
+        <div class="card">
+          <h3 style="font-size:15px;margin-bottom:10px;">مثال ١ — الالتزام الدوائي</h3>
+          <p style="font-size:14px;color:var(--ink-500);margin-bottom:8px;">P: مرضى ضغط الدم في المناطق الريفية · I: التذكير عبر الرسائل النصية · C: الرعاية الاعتيادية · O: معدل الالتزام بالدواء</p>
+          <div class="box example" style="margin:0;">
+            <p><strong>السؤال:</strong> "هل يُحسّن التذكير عبر الرسائل النصية معدل الالتزام الدوائي لدى مرضى ضغط الدم في المناطق الريفية، مقارنة بالرعاية الاعتيادية، خلال ثلاثة أشهر؟"</p>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:22px;">
+          <div class="compare-card bad">
+            <div class="lbl">✕ سؤال ضعيف الصياغة</div>
+            <p>"هل النظافة مهمة في المستشفيات؟" — عام جدًا، ولا يحدد فئة أو مقياسًا واضحًا للنتيجة.</p>
+          </div>
+          <div class="compare-card good">
+            <div class="lbl">✓ سؤال جيد الصياغة</div>
+            <p>"هل يقلّل تطبيق بروتوكول تعقيم اليدين الموسّع من معدل العدوى المكتسبة داخل وحدات العناية المركزة خلال ستة أشهر؟"</p>
+          </div>
+        </div>
+
+        <div class="box tip" style="margin-top:20px;">
+          <div class="box-head">💡 نصيحة الباحث</div>
+          <p>إن كان سؤالك يحتاج فقرة كاملة ليُفهم، أعد صياغته. السؤال الجيد يُقرأ في جملة واحدة واضحة، ويتضمن فئة محددة، ومتغيرًا واضحًا، ونتيجة قابلة للقياس.</p>
+        </div>
+      </section>
+
+      <!-- SLIDE 11: QUIZ STAGE 3 -->
+      <section class="slide" data-index="11">
+        <div class="eyebrow"><span class="tag quiz-tag">اختبار المرحلة</span><span class="count">نهاية المرحلة ٣ — التبلور</span></div>
+        <h2 class="slide-title">اختبار المرحلة الثالثة</h2>
+        <p class="lead">قبل الانتقال لمرحلة "الإقلاع" الأخيرة، تأكد من فهمك لصياغة المشكلة البحثية وإطار PICO والسؤال البحثي النهائي.</p>
+
+        <div class="quiz-lock-note">
+          <span>🔒</span>
+          <span>أجب عن الأسئلة الثلاثة بشكل صحيح لفتح المرحلة التالية. إن أخطأت، ستظهر لك الإجابة الصحيحة فورًا، ويمكنك إعادة محاولة الأسئلة الخاطئة فقط.</span>
+        </div>
+
+        <div id="quiz3Container"></div>
+        <div id="quiz3Result" class="quiz-result"></div>
+      </section>
+
+      <!-- SLIDE 12: LESSON 9 -->
+      <section class="slide" data-index="12">
+        <div class="eyebrow"><span class="tag">المرحلة ٤ · الإقلاع</span><span class="count">الدرس ٩ من ١١</span></div>
+        <h2 class="slide-title">من السؤال إلى الأهداف والفرضيات</h2>
+        <p class="lead">السؤال البحثي وحده لا يكفي لبدء التنفيذ. تحتاج ترجمته إلى أهداف عملية، وأحيانًا فرضية قابلة للاختبار إحصائيًا.</p>
+
+        <div class="card">
+          <h3 style="font-size:16px;margin-bottom:10px;">الهدف العام والأهداف الفرعية</h3>
+          <p><strong>الهدف العام (Aim):</strong> جملة واحدة تلخّص الغرض الكلي من الدراسة.</p>
+          <p><strong>الأهداف الفرعية (Objectives):</strong> ٣ إلى ٥ أهداف قابلة للقياس، تبدأ عادة بأفعال إجرائية مثل: قياس، مقارنة، تحديد، تقييم.</p>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:16px;margin-bottom:10px;">الفرضية البحثية (Hypothesis)</h3>
+          <p>الفرضية عبارة تنبؤية عن العلاقة المتوقعة بين متغيرين، ويجب أن تكون <strong>قابلة للدحض إحصائيًا</strong> — أي يمكن إثبات خطئها بالبيانات. تُستخدم غالبًا في الدراسات الكمية، بينما تكتفي الدراسات الوصفية أو الكيفية بأهداف واضحة دون فرضية.</p>
+        </div>
+
+        <div class="box example">
+          <div class="box-head">📋 مثال تطبيقي (استكمالًا لمثال الالتزام الدوائي)</div>
+          <p><strong>الفرضية:</strong> "يؤدي التذكير عبر الرسائل النصية إلى ارتفاع معدل الالتزام الدوائي لدى مرضى ضغط الدم في المناطق الريفية، مقارنة بالرعاية الاعتيادية."</p>
+        </div>
+
+        <div class="box tip">
+          <div class="box-head">💡 نصيحة الباحث</div>
+          <p>الفرضية تنبؤ قابل للدحض — إن كانت عبارتك لا يمكن إثبات خطئها إحصائيًا بأي حال، فهي ليست فرضية علمية بالمعنى الدقيق.</p>
+        </div>
+      </section>
+
+      <!-- SLIDE 13: LESSON 10 -->
+      <section class="slide" data-index="13">
+        <div class="eyebrow"><span class="tag">المرحلة ٤ · الإقلاع</span><span class="count">الدرس ١٠ من ١١</span></div>
+        <h2 class="slide-title">أخطاء شائعة يجب تجنبها</h2>
+        <p class="lead">راجع سؤالك البحثي مقابل هذه القائمة قبل أن تنتقل لمرحلة تصميم الدراسة. علّم كل نقطة راجعتها بنجاح.</p>
+
+        <ul class="checklist" id="mistakesList">
+          <li><input type="checkbox" data-idx="1"/><div class="txt"><strong>سؤال فضفاض جدًا أو عام</strong><span>تأكد أن سؤالك محدد بفئة ومتغير ونتيجة واضحة، لا موضوعًا عامًا.</span></div></li>
+          <li><input type="checkbox" data-idx="2"/><div class="txt"><strong>الخلط بين الموضوع والسؤال البحثي</strong><span>"السمنة" موضوع، أما "ما علاقة كذا بكذا لدى فئة كذا؟" فهو سؤال.</span></div></li>
+          <li><input type="checkbox" data-idx="3"/><div class="txt"><strong>تجاهل الجدوى العملية</strong><span>تحقق أن البيانات والوقت والموارد متاحة فعلًا لتنفيذ ما تخطط له.</span></div></li>
+          <li><input type="checkbox" data-idx="4"/><div class="txt"><strong>تعدد الأسئلة داخل سؤال واحد</strong><span>إن وجدت "و" تربط بين فكرتين مختلفتين تمامًا، فربما لديك سؤالان لا سؤال واحد.</span></div></li>
+          <li><input type="checkbox" data-idx="5"/><div class="txt"><strong>مراجعة أدبيات غير كافية</strong><span>تأكد أنك لا تُعيد اختراع بحث موجود بالفعل دون أن تعرف.</span></div></li>
+          <li><input type="checkbox" data-idx="6"/><div class="txt"><strong>تجاهل الاعتبارات الأخلاقية مبكرًا</strong><span>فكّر في موافقة اللجنة الأخلاقية (IRB) من البداية، لا بعد التنفيذ.</span></div></li>
+          <li><input type="checkbox" data-idx="7"/><div class="txt"><strong>التحيز التأكيدي</strong><span>احذر أن تبحث فقط عمّا يؤكد رأيك المسبق، وتتجاهل ما يخالفه.</span></div></li>
+        </ul>
+
+        <div class="box warn">
+          <div class="box-head">⚠ تذكير مهم</div>
+          <p>هذه القائمة أداة مراجعة ذاتية وليست حكمًا نهائيًا. إن شعرت أن سؤالك يقع في أكثر من نقطة، هذا طبيعي جدًا في المراحل الأولى — عد لدروس المرحلة ٣ وأعد الصياغة دون قلق.</p>
+        </div>
+      </section>
+
+      <!-- SLIDE 14: LESSON 11 + QUIZ STAGE 4 + COMPLETION -->
+      <section class="slide" data-index="14">
+        <div class="eyebrow"><span class="tag">المرحلة ٤ · الإقلاع</span><span class="count">الدرس ١١ من ١١ — الأخير</span></div>
+        <h2 class="slide-title">الخاتمة: خطوتك التالية</h2>
+        <p class="lead">قطعت الرحلة كاملة: من فكرة عامة، عبر مراجعة الأدبيات وتحديد الفجوة، إلى صياغة مشكلة بحثية وسؤال محدد وأهداف وفرضية قابلة للاختبار.</p>
+
+        <div class="card">
+          <h3 style="font-size:16px;margin-bottom:10px;">ماذا بعد؟</h3>
+          <p>الخطوة التالية الطبيعية هي <strong>تصميم الدراسة</strong>: اختيار المنهجية المناسبة (كمي، كيفي، أو مختلط)، تحديد حجم العينة، واستيفاء الموافقات الأخلاقية اللازمة قبل بدء جمع البيانات.</p>
+          <p style="margin-bottom:0;">إن احتجت مرافقة أقرب في هذه الخطوة، يمكنك الاستفادة من خدمات الإشراف البحثي والاستشارات المتخصصة في <strong>Pioneers Health Research</strong>.</p>
+        </div>
+
+        <h3 style="font-size:18px;margin:26px 0 14px;">اختبار المرحلة الرابعة والأخيرة</h3>
+        <div class="quiz-lock-note">
+          <span>🔒</span>
+          <span>أجب عن الأسئلة التالية بشكل صحيح لإظهار بطاقة إنجاز إتمام الكورس. إن أخطأت، ستظهر لك الإجابة الصحيحة فورًا، ويمكنك إعادة محاولة الأسئلة الخاطئة فقط.</span>
+        </div>
+
+        <div id="quiz4Container"></div>
+        <div id="quiz4Result" class="quiz-result"></div>
+
+        <div class="box tip completion-lock" id="completionLock">
+          <div class="box-head" style="justify-content:center;">🎓 بطاقة إنجازك بانتظارك هنا</div>
+          <p>أكمل اختبار المرحلة الرابعة أعلاه بإجابات صحيحة لتظهر بطاقة إتمام الكورس.</p>
+        </div>
+
+        <div class="completion-card" id="completionCard">
+          <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="26" cy="26" r="24" stroke="#c9a24b" stroke-width="2"/>
+            <path d="M16 27L23 34L37 18" stroke="#c9a24b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <h3>أنجزت رحلة "من الفكرة إلى السؤال البحثي"</h3>
+          <p>أنت الآن جاهز لصياغة سؤال بحثي متين تبني عليه دراستك القادمة. بالتوفيق في خطوتك البحثية القادمة!</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div class="controls">
+    <button class="nav-btn primary" id="nextBtn">الدرس التالي ←</button>
+    <span class="step-count" id="stepCount">١ / ١٥</span>
+    <button class="nav-btn" id="prevBtn" disabled>→ الدرس السابق</button>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var navItems = Array.prototype.slice.call(document.querySelectorAll('.nav-intro-item, .lesson-item'));
+  var total = slides.length;
+  var current = 0;
+
+  var unlockedUpTo = 4;
+
+  var progressFill = document.getElementById('progressFill');
+  var progressPct = document.getElementById('progressPct');
+  var stepCount = document.getElementById('stepCount');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var funnelNav = document.getElementById('funnelNav');
+  var menuBtn = document.getElementById('menuBtn');
+  var navBackdrop = document.getElementById('navBackdrop');
+
+  var arNums = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩','١٠','١١','١٢','١٣','١٤','١٥'];
+  function toArabicNum(n){ return String(n).split('').map(function(d){ return '٠١٢٣٤٥٦٧٨٩'[+d]; }).join(''); }
+
+  function refreshLocks(){
+    navItems.forEach(function(el){
+      var idx = parseInt(el.dataset.index,10);
+      el.classList.toggle('locked', idx > unlockedUpTo);
+    });
+  }
+
+  function updateNextBtnState(){
+    nextBtn.disabled = (current === total-1) || (current+1 > unlockedUpTo);
+  }
+
+  function showSlide(i){
+    if(i < 0) i = 0;
+    if(i > total-1) i = total-1;
+    current = i;
+    slides.forEach(function(s){ s.classList.toggle('active', parseInt(s.dataset.index,10) === current); });
+
+    navItems.forEach(function(el){
+      var idx = parseInt(el.dataset.index,10);
+      el.classList.toggle('current', idx === current);
+      el.classList.toggle('done', idx < current);
+    });
+    refreshLocks();
+
+    var pct = Math.round(((current+1)/total)*100);
+    progressFill.style.width = pct + '%';
+    progressPct.textContent = pct + '%';
+    stepCount.textContent = arNums[current+1] + ' / ' + arNums[total];
+
+    prevBtn.disabled = current === 0;
+    nextBtn.textContent = current === total-1 ? 'إنهاء الكورس ✓' : 'الدرس التالي ←';
+    updateNextBtnState();
+
+    window.scrollTo({top:0, behavior:'smooth'});
+    closeMobileNav();
+  }
+
+  function goTo(i){
+    if(i < 0) i = 0;
+    if(i > total-1) i = total-1;
+    if(i > unlockedUpTo){
+      var blocker = document.querySelector('.lesson-item[data-index="'+unlockedUpTo+'"], .nav-intro-item[data-index="'+unlockedUpTo+'"]');
+      if(blocker){
+        blocker.classList.add('attn');
+        setTimeout(function(){ blocker.classList.remove('attn'); }, 1200);
+      }
+      return;
+    }
+    showSlide(i);
+  }
+
+  function unlockUpTo(n){
+    if(n > unlockedUpTo){
+      unlockedUpTo = n;
+      refreshLocks();
+      updateNextBtnState();
+    }
+  }
+
+  navItems.forEach(function(el){
+    el.addEventListener('click', function(){ goTo(parseInt(el.dataset.index,10)); });
+  });
+
+  prevBtn.addEventListener('click', function(){ goTo(current-1); });
+  nextBtn.addEventListener('click', function(){ goTo(current+1); });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowLeft') goTo(current+1);
+    if(e.key === 'ArrowRight') goTo(current-1);
+  });
+
+  function openMobileNav(){ funnelNav.classList.add('open'); navBackdrop.classList.add('open'); menuBtn.setAttribute('aria-expanded','true'); }
+  function closeMobileNav(){ funnelNav.classList.remove('open'); navBackdrop.classList.remove('open'); menuBtn.setAttribute('aria-expanded','false'); }
+  menuBtn.addEventListener('click', function(){
+    funnelNav.classList.contains('open') ? closeMobileNav() : openMobileNav();
+  });
+  navBackdrop.addEventListener('click', closeMobileNav);
+
+  document.querySelectorAll('#mistakesList input[type=checkbox]').forEach(function(cb){
+    cb.addEventListener('change', function(){
+      cb.closest('li').classList.toggle('checked', cb.checked);
+    });
+  });
+
+  function buildQuiz(config){
+    var qBlocks = config.questions.map(function(item, qi){
+      var wrap = document.createElement('div');
+      wrap.className = 'quiz-q';
+
+      var title = document.createElement('div');
+      title.className = 'qtitle';
+      title.textContent = (qi+1) + '. ' + item.q;
+      wrap.appendChild(title);
+
+      var optsWrap = document.createElement('div');
+      optsWrap.className = 'quiz-opts';
+
+      var fb = document.createElement('div');
+      fb.className = 'quiz-fb';
+      fb.textContent = item.fb;
+
+      var buttons = item.opts.map(function(opt){
+        var b = document.createElement('button');
+        b.className = 'quiz-opt';
+        b.type = 'button';
+        b.textContent = opt.t;
+        b.addEventListener('click', function(){ answer(qi, opt.c, b); });
+        optsWrap.appendChild(b);
+        return b;
+      });
+
+      wrap.appendChild(optsWrap);
+      wrap.appendChild(fb);
+      config.containerEl.appendChild(wrap);
+
+      return {wrap:wrap, buttons:buttons, fb:fb, answered:false, correct:false};
+    });
+
+    function answer(qi, isCorrect, clickedBtn){
+      var block = qBlocks[qi];
+      if(block.answered) return;
+      block.answered = true;
+      block.correct = isCorrect;
+      var item = config.questions[qi];
+      block.buttons.forEach(function(btn, oi){
+        btn.disabled = true;
+        if(item.opts[oi].c) btn.classList.add('correct');
+        else if(btn === clickedBtn) btn.classList.add('incorrect');
+      });
+      block.fb.classList.add('show');
+      checkAll();
+    }
+
+    function resetQuestion(qi){
+      var block = qBlocks[qi];
+      block.answered = false;
+      block.correct = false;
+      block.buttons.forEach(function(btn){
+        btn.disabled = false;
+        btn.classList.remove('correct','incorrect');
+      });
+      block.fb.classList.remove('show');
+    }
+
+    function checkAll(){
+      var allAnswered = qBlocks.every(function(b){ return b.answered; });
+      if(!allAnswered){
+        config.resultEl.className = 'quiz-result';
+        return;
+      }
+      var allCorrect = qBlocks.every(function(b){ return b.correct; });
+      if(allCorrect){
+        config.resultEl.className = 'quiz-result show success';
+        config.resultEl.innerHTML = '<div class="rtitle">✓ ممتاز! أجبت عن جميع أسئلة هذه المرحلة بشكل صحيح</div>' +
+          '<p>' + (config.autoReveal ? 'إليك بطاقة إنجازك أدناه.' : 'يمكنك الآن المتابعة بثقة إلى المرحلة التالية.') + '</p>' +
+          (config.passLabel ? '<button type="button" class="quiz-result-btn" id="'+config.key+'ContinueBtn">'+config.passLabel+'</button>' : '');
+        if(config.passLabel){
+          document.getElementById(config.key+'ContinueBtn').addEventListener('click', function(){ config.onPass(true); });
+        }
+        config.onPass(false);
+      } else {
+        var wrongCount = qBlocks.filter(function(b){ return !b.correct; }).length;
+        config.resultEl.className = 'quiz-result show retry';
+        config.resultEl.innerHTML = '<div class="rtitle">راجع الإجابة الصحيحة الموضحة أعلاه</div>' +
+          '<p>أخطأت في ' + toArabicNum(wrongCount) + ' من ' + toArabicNum(qBlocks.length) + ' — أعد محاولة الأسئلة الخاطئة فقط.</p>' +
+          '<button type="button" class="quiz-result-btn" id="'+config.key+'RetryBtn">إعادة محاولة الأسئلة الخاطئة</button>';
+        document.getElementById(config.key+'RetryBtn').addEventListener('click', function(){
+          qBlocks.forEach(function(b, qi){ if(!b.correct) resetQuestion(qi); });
+          config.resultEl.className = 'quiz-result';
+        });
+      }
+    }
+  }
+
+  buildQuiz({
+    key:'quiz1',
+    containerEl: document.getElementById('quiz1Container'),
+    resultEl: document.getElementById('quiz1Result'),
+    passLabel: 'متابعة إلى المرحلة الثانية: الاستكشاف ←',
+    questions:[
+      {
+        q:'ما أبرز خاصية يجب أن يتصف بها البحث العلمي الجيد؟',
+        opts:[
+          {t:'أن يعتمد على انطباع الباحث الشخصي فقط', c:false},
+          {t:'أن يكون منهجيًا وقابلًا للتكرار والمراجعة', c:true},
+          {t:'أن يُنجز في أقصر وقت ممكن بغض النظر عن الدقة', c:false}
+        ],
+        fb:'البحث الجيد يتميز بكونه منهجيًا وموضوعيًا وقابلًا لأن يكرره باحث آخر ويصل لنتائج مشابهة.'
+      },
+      {
+        q:'أي مما يلي مصدر شائع وموثوق لالتقاط فكرة بحثية؟',
+        opts:[
+          {t:"قسم 'التوصيات للأبحاث المستقبلية' في نهاية الأوراق العلمية المنشورة", c:true},
+          {t:'اختيار عنوان عشوائي دون أي علاقة بمجال عملك', c:false},
+          {t:'نسخ عنوان بحث سابق دون أي تعديل', c:false}
+        ],
+        fb:'الأدبيات المنشورة، وتحديدًا توصيات الأبحاث المستقبلية، من أغنى مصادر الأفكار البحثية الجادة.'
+      },
+      {
+        q:'ما الذي يحوّل الفكرة الخام إلى فكرة قابلة للبحث فعليًا؟',
+        opts:[
+          {t:'أن تصبح أكثر غموضًا وعمومية', c:false},
+          {t:'أن تكون قابلة للقياس، وممكنة التنفيذ، وأخلاقية، ومهمة، وأصيلة', c:true},
+          {t:'أن تُصاغ بجمل أكاديمية معقدة', c:false}
+        ],
+        fb:'تضييق الفكرة عبر معايير: القياس، الجدوى، الأخلاق، الأهمية، والأصالة هو ما يجعلها قابلة للبحث.'
+      }
+    ],
+    onPass: function(navigate){ unlockUpTo(7); if(navigate) goTo(5); }
+  });
+
+  buildQuiz({
+    key:'quiz2',
+    containerEl: document.getElementById('quiz2Container'),
+    resultEl: document.getElementById('quiz2Result'),
+    passLabel: 'متابعة إلى المرحلة الثالثة: التبلور ←',
+    questions:[
+      {
+        q:'ما الهدف الرئيسي من المراجعة الأولية للأدبيات قبل تحديد فكرتك النهائية؟',
+        opts:[
+          {t:'حفظ كل الأوراق المنشورة عن ظهر قلب', c:false},
+          {t:'رسم خريطة عامة للمجال وتجنّب تكرار بحث موجود بالفعل', c:true},
+          {t:'كتابة المراجعة المنهجية الكاملة للرسالة العلمية', c:false}
+        ],
+        fb:'المراجعة الأولية استكشاف سريع وهادف لفهم ما هو موجود، وليست إتقانًا شاملًا للمجال.'
+      },
+      {
+        q:'ما الفرق بين الفجوة المعرفية والفجوة المنهجية؟',
+        opts:[
+          {t:'المعرفية: لا توجد إجابة على السؤال بعد. المنهجية: توجد إجابة لكن بجودة بحثية ضعيفة', c:true},
+          {t:'لا فرق حقيقي بينهما، وهما نفس المفهوم', c:false},
+          {t:'الفجوة المنهجية تعني عدم وجود أي دراسات في المجال إطلاقًا', c:false}
+        ],
+        fb:'الفجوة المعرفية غياب إجابة، بينما المنهجية وجود إجابة ضعيفة الجودة أو محدودة العينة.'
+      },
+      {
+        q:'متى تُعتبر الفجوة البحثية جيدة وقابلة للبناء عليها؟',
+        opts:[
+          {t:'عندما لم يتطرق لها أي باحث في العالم إطلاقًا (نادر الحدوث)', c:false},
+          {t:'عندما يكون جانب محدد منها لم يُدرس بما يكفي بعد', c:true},
+          {t:'عندما تتفق جميع الدراسات السابقة على نفس النتيجة تمامًا', c:false}
+        ],
+        fb:'الفجوات الجيدة غالبًا جزئية ومحددة: جانب لم يُدرس كفاية، لا غيابًا كاملًا للأبحاث.'
+      }
+    ],
+    onPass: function(navigate){ unlockUpTo(11); if(navigate) goTo(8); }
+  });
+
+  buildQuiz({
+    key:'quiz3',
+    containerEl: document.getElementById('quiz3Container'),
+    resultEl: document.getElementById('quiz3Result'),
+    passLabel: 'متابعة إلى المرحلة الرابعة: الإقلاع ←',
+    questions:[
+      {
+        q:"ما المكونات الأساسية لفقرة 'المشكلة البحثية' الجيدة؟",
+        opts:[
+          {t:'السياق العام، وما هو معروف، والفجوة، وأهمية سدها', c:true},
+          {t:'فقط ذكر الفجوة دون أي سياق إضافي', c:false},
+          {t:'قائمة طويلة من جميع الدراسات السابقة دون تحليل', c:false}
+        ],
+        fb:'المشكلة البحثية الجيدة تجمع بين السياق، وما هو معروف، والفجوة، وأهمية سدّها في فقرة مترابطة.'
+      },
+      {
+        q:'في إطار PICO، ماذا يمثّل الحرف O؟',
+        opts:[
+          {t:'Objective، أي الهدف العام من الدراسة', c:false},
+          {t:'Outcome، أي النتيجة أو المخرج الذي تقيسه', c:true},
+          {t:'Overview، أي نظرة عامة على الموضوع', c:false}
+        ],
+        fb:'O يرمز إلى Outcome، وهي النتيجة التي تقيسها لتحديد أثر التدخل أو التعرض المدروس.'
+      },
+      {
+        q:'أي الأسئلة البحثية التالية الأفضل صياغة؟',
+        opts:[
+          {t:'"هل الرياضة مفيدة؟"', c:false},
+          {t:'"هل يقلل برنامج تمارين منزلية لمدة ١٢ أسبوعًا من ضغط الدم الانقباضي لدى كبار السن المصابين بارتفاع الضغط؟"', c:true},
+          {t:'"ما رأيك في ممارسة الرياضة بشكل عام؟"', c:false}
+        ],
+        fb:'السؤال الجيد يحدد فئة واضحة، وتدخلًا محددًا، ونتيجة قابلة للقياس ضمن إطار زمني.'
+      }
+    ],
+    onPass: function(navigate){ unlockUpTo(14); if(navigate) goTo(12); }
+  });
+
+  var completionLock = document.getElementById('completionLock');
+  var completionCard = document.getElementById('completionCard');
+
+  buildQuiz({
+    key:'quiz4',
+    containerEl: document.getElementById('quiz4Container'),
+    resultEl: document.getElementById('quiz4Result'),
+    autoReveal:true,
+    questions:[
+      {
+        q:'ما الفرق بين الهدف العام والأهداف الفرعية؟',
+        opts:[
+          {t:'الهدف العام جملة واحدة تلخص الغرض الكلي، والأهداف الفرعية أهداف محددة وقابلة للقياس', c:true},
+          {t:'لا فرق بينهما إطلاقًا', c:false},
+          {t:'الأهداف الفرعية دائمًا أهم من الهدف العام', c:false}
+        ],
+        fb:'الهدف العام يلخّص الغرض الكلي، بينما الأهداف الفرعية أدق وقابلة للقياس والتنفيذ خطوة بخطوة.'
+      },
+      {
+        q:"ما الشرط الأساسي لتكون العبارة 'فرضية علمية'؟",
+        opts:[
+          {t:'أن تكون قابلة للدحض إحصائيًا', c:true},
+          {t:'أن توافق عليها الأغلبية', c:false},
+          {t:'أن تُكتب بلغة أكاديمية معقدة', c:false}
+        ],
+        fb:'الفرضية العلمية يجب أن تكون قابلة للاختبار والدحض إحصائيًا، وإلا فهي رأي وليست فرضية.'
+      },
+      {
+        q:'أي مما يلي يعتبر خطأ شائعًا عند صياغة سؤال بحثي؟',
+        opts:[
+          {t:'تحديد فئة ومتغير ونتيجة بوضوح', c:false},
+          {t:'تضمين أكثر من سؤال داخل سؤال واحد باستخدام "و"', c:true},
+          {t:'مراجعة الأدبيات جيدًا قبل الصياغة', c:false}
+        ],
+        fb:'إن وجدت "و" تربط بين فكرتين مختلفتين تمامًا، فربما لديك سؤالان لا سؤالًا واحدًا.'
+      },
+      {
+        q:'ما أفضل وقت للتفكير في الموافقات الأخلاقية (IRB) لبحثك؟',
+        opts:[
+          {t:'بعد الانتهاء من جمع البيانات', c:false},
+          {t:'منذ بداية التخطيط للدراسة', c:true},
+          {t:'لا حاجة لها في الأبحاث الصحية', c:false}
+        ],
+        fb:'التفكير في الاعتبارات الأخلاقية منذ البداية يوفر عليك وقتًا وتعديلات لاحقة مكلفة.'
+      },
+      {
+        q:"ما الهدف من مرحلة 'الإقلاع' الأخيرة في رحلة صياغة السؤال البحثي؟",
+        opts:[
+          {t:'الانتقال من السؤال إلى أهداف وفرضية قابلة للاختبار تمهيدًا لتصميم الدراسة', c:true},
+          {t:'إنهاء البحث دون الحاجة لتصميم دراسة', c:false},
+          {t:'تجاهل الجانب الأخلاقي لأنه غير ضروري', c:false}
+        ],
+        fb:'مرحلة الإقلاع تجهّزك بأهداف وفرضية واضحة، لتنتقل بعدها مباشرة لتصميم الدراسة.'
+      }
+    ],
+    onPass: function(){
+      completionLock.style.display = 'none';
+      completionCard.classList.add('show');
+    }
+  });
+
+  showSlide(0);
+  refreshLocks();
+})();
+</script>
+
+<!-- ===== ملخّصات الفيديو للكورس (مُضافة) ===== -->
+<script>
+(function () {
+  "use strict";
+  var CONFIG = {
+    basePath: "videos/", posterPath: "videos/posters/", ext: ".mp4",
+    lessons: { 1:"lesson-01", 2:"lesson-02", 3:"lesson-03", 5:"lesson-04", 6:"lesson-05",
+               8:"lesson-06", 9:"lesson-07", 10:"lesson-08", 12:"lesson-09", 13:"lesson-10", 14:"lesson-11" },
+    units: { 4:{file:"unit-1",label:"الوحدة الأولى — الانطلاق"},
+             7:{file:"unit-2",label:"الوحدة الثانية — الاستكشاف"},
+             11:{file:"unit-3",label:"الوحدة الثالثة — التبلور"},
+             14:{file:"unit-4",label:"الوحدة الرابعة — الإقلاع"} },
+    course: { 14:"course-summary" },
+    durations: { lesson:"٥ دقائق", unit:"١٠ دقائق", course:"٢٠ دقيقة" }
+  };
+  function el(t,c,h){ var n=document.createElement(t); if(c)n.className=c; if(h!=null)n.innerHTML=h; return n; }
+  function slide(i){ return document.querySelector('.slide[data-index="'+i+'"]'); }
+  function after(nn,rn){ if(rn&&rn.parentNode)rn.parentNode.insertBefore(nn,rn.nextSibling); }
+  function card(kind, file, kicker, title, dur){
+    var c = el("div","video-summary"+(kind==="unit"?" vs-unit":kind==="course"?" vs-course":""));
+    var head = el("div","vs-head");
+    head.appendChild(el("div","vs-icon","▶"));
+    var ts = el("div","vs-titles");
+    ts.appendChild(el("div","vs-kicker",kicker));
+    ts.appendChild(el("div","vs-title",title));
+    head.appendChild(ts);
+    head.appendChild(el("div","vs-dur","⏱ "+dur));
+    c.appendChild(head);
+    var frame = el("div","vs-frame");
+    var v = document.createElement("video");
+    v.setAttribute("controls",""); v.setAttribute("preload","none"); v.setAttribute("playsinline","");
+    v.setAttribute("poster", CONFIG.posterPath+file+".jpg");
+    var s = document.createElement("source"); s.src = CONFIG.basePath+file+CONFIG.ext; s.type="video/mp4";
+    v.appendChild(s);
+    var soon = el("div","vs-soon",'<div class="vs-soon-mark">🎬</div><div class="vs-soon-t">هذا الملخّص قيد الإنتاج</div><div class="vs-soon-s">سيظهر الفيديو هنا تلقائيًا فور رفعه</div>');
+    function showSoon(){ if(frame.dataset.soon)return; frame.dataset.soon="1"; v.style.display="none"; frame.appendChild(soon); }
+    v.addEventListener("error",showSoon,true); s.addEventListener("error",showSoon,true);
+    setTimeout(function(){ if(!v.readyState&&!frame.dataset.soon){ try{v.load();}catch(e){} setTimeout(function(){ if(!v.readyState)showSoon(); },2500); } },400);
+    frame.appendChild(v); c.appendChild(frame);
+    return c;
+  }
+  function inject(){
+    Object.keys(CONFIG.lessons).forEach(function(idx){
+      var s=slide(idx); if(!s)return;
+      var tEl=s.querySelector(".slide-title");
+      after(card("lesson", CONFIG.lessons[idx], "🎥 ملخّص الدرس بالفيديو",
+                 tEl?tEl.textContent.trim():"ملخّص الدرس", CONFIG.durations.lesson),
+            s.querySelector(".lead")||tEl||s.firstElementChild);
+    });
+    Object.keys(CONFIG.units).forEach(function(idx){
+      var s=slide(idx); if(!s)return; var u=CONFIG.units[idx];
+      var c=card("unit", u.file, "🎬 ملخّص الوحدة بالفيديو", u.label, CONFIG.durations.unit);
+      var quiz=s.querySelector('[id^="quiz"][id$="Container"]');
+      var note=s.querySelector(".quiz-lock-note");
+      if(quiz) quiz.parentNode.insertBefore(c, note||quiz);
+      else after(c, s.querySelector(".lead")||s.querySelector(".slide-title"));
+    });
+    Object.keys(CONFIG.course).forEach(function(idx){
+      var s=slide(idx); if(!s)return;
+      var c=card("course", CONFIG.course[idx], "🏆 ملخّص الكورس الكامل",
+                 "من الفكرة إلى السؤال البحثي — مراجعة شاملة", CONFIG.durations.course);
+      var a=s.querySelector("#completionLock")||s.querySelector(".completion-card");
+      if(a) a.parentNode.insertBefore(c,a); else s.appendChild(c);
+    });
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",inject);
+  else inject();
+})();
+</script>
+
+</body>
+</html>
