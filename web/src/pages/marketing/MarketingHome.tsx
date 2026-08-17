@@ -9,6 +9,7 @@ import { listServices, type Service } from '@/lib/services'
 import { listTeamMembers } from '@/lib/team'
 import { Reveal } from '@/components/Reveal'
 import { SiteComments } from '@/components/SiteComments'
+import { AudienceSection } from '@/components/AudienceSection'
 
 type TeamEntry = { name: string; role: string; bio: string }
 
@@ -366,6 +367,9 @@ export function MarketingHome() {
           ))}
         </div>
       </div>
+
+      {/* WHO WE SERVE — individuals & institutions */}
+      {!isTeacherSession && <AudienceSection />}
 
       {/* COURSES */}
       {!isTeacherSession && (
