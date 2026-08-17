@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { fetchSiteContent, resolveSocialLink } from '@/lib/content'
 import { AnnouncementPopup } from '@/components/AnnouncementPopup'
+import { InstallAppButton } from '@/components/InstallAppButton'
 
 const dashboardPathFor = (role: string) =>
   role === 'student'
@@ -79,6 +80,16 @@ export function MarketingLayout() {
       >
         {t('lang.toggle')}
       </button>
+      {!isTeacherSession && (
+        <Link
+          to="/courses"
+          onClick={() => setMenuOpen(false)}
+          className="rounded-md border border-navy px-4 py-2 text-[13px] text-navy no-underline hover:bg-bg-soft"
+        >
+          {t('nav.browseCourses')}
+        </Link>
+      )}
+      <InstallAppButton className="rounded-md bg-gold px-4 py-2 text-[13px] font-medium text-white no-underline hover:bg-gold-hover" />
       {session && profile ? (
         <Link
           to={dashboardPathFor(profile.role)}
@@ -119,18 +130,18 @@ export function MarketingLayout() {
             <img src="/logo.png" alt="" className="h-9 w-9 md:h-10 md:w-10" />
             Pioneers Health Research
           </Link>
-          <div className="hidden items-center gap-8.5 text-[15px] md:flex">{navLinks}</div>
-          <div className="hidden items-center gap-3 md:flex">{authLinks}</div>
+          <div className="hidden items-center gap-6 text-[14.5px] xl:flex">{navLinks}</div>
+          <div className="hidden items-center gap-2.5 xl:flex">{authLinks}</div>
           <button
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="Menu"
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-border text-navy md:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-border text-navy xl:hidden"
           >
             {menuOpen ? '✕' : '☰'}
           </button>
         </div>
         {menuOpen && (
-          <div className="flex flex-col gap-4 border-t border-border px-4 py-4 md:hidden">
+          <div className="flex flex-col gap-4 border-t border-border px-4 py-4 xl:hidden">
             <div className="flex flex-col gap-3 text-[15px]">{navLinks}</div>
             <div className="flex flex-wrap items-center gap-3">{authLinks}</div>
           </div>

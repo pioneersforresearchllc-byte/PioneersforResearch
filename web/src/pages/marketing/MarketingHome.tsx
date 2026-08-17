@@ -8,7 +8,6 @@ import { useContentText } from '@/lib/content'
 import { listServices, type Service } from '@/lib/services'
 import { listTeamMembers } from '@/lib/team'
 import { Reveal } from '@/components/Reveal'
-import { InstallAppButton } from '@/components/InstallAppButton'
 import { SiteComments } from '@/components/SiteComments'
 
 type TeamEntry = { name: string; role: string; bio: string }
@@ -272,7 +271,7 @@ export function ServicesSection() {
 }
 
 export function MarketingHome() {
-  const { session, profile } = useAuth()
+  const { profile } = useAuth()
   const { t, lang } = useLanguage()
   const ct = useContentText()
   const TEAM = useTeam(lang, t)
@@ -323,34 +322,7 @@ export function MarketingHome() {
           <h1 className="font-heading mb-5.5 text-[28px] font-bold leading-[1.4] text-navy md:text-[46px]">
             {ct('home.hero.title')}
           </h1>
-          <p className="mb-8.5 text-base leading-[1.9] text-muted md:text-lg">{ct('home.hero.subtitle')}</p>
-          <div className="flex flex-wrap gap-4">
-                        <Link
-              to={
-                session
-                  ? profile?.role === 'teacher'
-                    ? '/teacher'
-                    : profile?.role === 'owner'
-                      ? '/owner'
-                      : profile?.role === 'institution'
-                        ? '/institution'
-                        : '/student'
-                  : '/login'
-              }
-              className="rounded-md bg-navy px-7.5 py-3.5 text-[15px] text-white no-underline hover:bg-navy-hover"
-            >
-              {session ? t('nav.backToDashboard') : t('nav.login')}
-            </Link>
-            {!isTeacherSession && (
-              <a
-                href="#courses"
-                className="rounded-md border border-navy px-7.5 py-3.5 text-[15px] text-navy no-underline hover:bg-bg-soft"
-              >
-                {ct('home.hero.browsePrograms')}
-              </a>
-            )}
-            <InstallAppButton />
-          </div>
+          <p className="text-base leading-[1.9] text-muted md:text-lg">{ct('home.hero.subtitle')}</p>
         </Reveal>
       </div>
 

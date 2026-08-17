@@ -7,6 +7,7 @@ export const translations = {
 
   'nav.about': { ar: 'من نحن', en: 'About' },
   'nav.courses': { ar: 'الدورات', en: 'Courses' },
+  'nav.browseCourses': { ar: 'استعرض الدورات', en: 'Browse Courses' },
   'nav.programs': { ar: 'البرامج', en: 'Programs' },
   'nav.resources': { ar: 'الموارد', en: 'Resources' },
   'nav.contact': { ar: 'تواصل', en: 'Contact' },
