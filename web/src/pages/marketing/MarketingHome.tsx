@@ -15,7 +15,7 @@ type TeamEntry = { name: string; role: string; bio: string }
 
 // Team comes from the admin-managed table; until the owner adds members, we
 // fall back to the original four so the section is never empty.
-function useTeam(lang: 'ar' | 'en', t: (key: 'team.sara.role' | 'team.khalid.role' | 'team.mona.role' | 'team.faisal.role') => string): TeamEntry[] {
+export function useTeam(lang: 'ar' | 'en', t: (key: 'team.sara.role' | 'team.khalid.role' | 'team.mona.role' | 'team.faisal.role') => string): TeamEntry[] {
   const { data } = useQuery({ queryKey: ['team-members'], queryFn: listTeamMembers })
   if (data && data.length > 0) {
     return data.map((m) => ({
@@ -32,7 +32,7 @@ function useTeam(lang: 'ar' | 'en', t: (key: 'team.sara.role' | 'team.khalid.rol
   ]
 }
 
-function formatSar(cents: number, t: ReturnType<typeof useLanguage>['t']) {
+export function formatSar(cents: number, t: ReturnType<typeof useLanguage>['t']) {
   if (cents === 0) return t('course.free')
   return `${(cents / 100).toLocaleString('ar-SA')} ${t('course.currency')}`
 }
@@ -50,7 +50,7 @@ function Stars({ avg }: { avg: number }) {
   )
 }
 
-interface CourseCard {
+export interface CourseCard {
   id: string
   title: string
   description: string
@@ -65,7 +65,7 @@ interface CourseCard {
   rating_count: number
 }
 
-function useCourses() {
+export function useCourses() {
   return useQuery({
     queryKey: ['marketing-courses'],
     queryFn: async (): Promise<CourseCard[]> => {
@@ -139,7 +139,7 @@ function useArticlePreviews() {
 // Shared card grid for the two public offering sections (courses and
 // programs) — both are the same underlying row type, only labelled and
 // filtered differently.
-function OfferingSection({
+export function OfferingSection({
   id,
   eyebrow,
   title,
@@ -218,7 +218,7 @@ function OfferingSection({
 // Paid services (presentation design, data analysis…). Each card shows the
 // cheapest fixed-price package as a "from" price and links to the service's
 // own page, where the visitor picks a package and fills the request brief.
-function ServicesSection() {
+export function ServicesSection() {
   const { t, lang } = useLanguage()
   const ct = useContentText()
   const { data: services } = useQuery({ queryKey: ['marketing-services'], queryFn: listServices })

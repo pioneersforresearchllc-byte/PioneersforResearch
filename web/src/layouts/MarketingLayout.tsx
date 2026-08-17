@@ -49,25 +49,25 @@ export function MarketingLayout() {
 
   const navLinks = (
     <>
-      <a href="/#about" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
+      <Link to="/about" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
         {t('nav.about')}
-      </a>
+      </Link>
       {!isTeacherSession && (
         <>
-          <a href="/#courses" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
+          <Link to="/courses" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
             {t('nav.courses')}
-          </a>
-          <a href="/#services" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
+          </Link>
+          <Link to="/services" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
             {t('nav.services')}
-          </a>
+          </Link>
         </>
       )}
       <a href="/#resources" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
         {t('nav.resources')}
       </a>
-      <a href="/#contact" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
+      <Link to="/contact" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
         {t('nav.contact')}
-      </a>
+      </Link>
     </>
   )
 

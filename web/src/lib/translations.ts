@@ -469,6 +469,7 @@ export const translations = {
   'comments.posting': { ar: 'جارِ النشر…', en: 'Posting…' },
   'comments.postingAs': { ar: 'تنشر باسم {name}', en: 'Posting as {name}' },
   'comments.yourRating': { ar: 'تقييمك:', en: 'Your rating:' },
+  'contactPage.orEmail': { ar: 'أو راسلنا مباشرة على', en: 'Or email us directly at' },
   'comments.loginPrompt': { ar: 'سجّل الدخول لتترك تعليقًا يظهر للجميع.', en: 'Sign in to leave a comment visible to everyone.' },
   'comments.empty': { ar: 'كن أول من يترك تعليقًا 👋', en: 'Be the first to leave a comment 👋' },
   'comments.delete': { ar: 'حذف التعليق', en: 'Delete comment' },

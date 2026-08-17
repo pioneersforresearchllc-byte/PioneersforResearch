@@ -27,6 +27,10 @@ import { OwnerInstitutionConsultationsPage } from '@/pages/dashboard/owner/Insti
 import { OwnerLoginPage } from '@/pages/auth/OwnerLoginPage'
 import { OwnerOtpPage } from '@/pages/auth/OwnerOtpPage'
 import { MarketingHome } from '@/pages/marketing/MarketingHome'
+import { AboutPage } from '@/pages/marketing/AboutPage'
+import { MarketingCoursesPage } from '@/pages/marketing/CoursesPage'
+import { MarketingServicesPage } from '@/pages/marketing/ServicesPage'
+import { MarketingContactPage } from '@/pages/marketing/ContactPage'
 import { CourseDetailPage } from '@/pages/marketing/CourseDetailPage'
 import { ServiceDetailPage } from '@/pages/marketing/ServiceDetailPage'
 import { ArticleDetailPage } from '@/pages/marketing/ArticleDetailPage'
@@ -184,6 +188,10 @@ export default function App() {
       <Routes>
         <Route element={<MarketingLayout />}>
           <Route path="/" element={<MarketingHome />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/courses" element={<MarketingCoursesPage />} />
+          <Route path="/services" element={<MarketingServicesPage />} />
+          <Route path="/contact" element={<MarketingContactPage />} />
           <Route path="/course/:id" element={<CourseDetailPage />} />
           <Route path="/service/:slug" element={<ServiceDetailPage />} />
           <Route path="/article/:id" element={<ArticleDetailPage />} />
