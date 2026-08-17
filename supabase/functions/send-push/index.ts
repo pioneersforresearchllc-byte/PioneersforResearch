@@ -36,11 +36,14 @@ const SERVICE_ROLE_KEY =
   firstFromJsonDict(Deno.env.get('SUPABASE_SECRET_KEYS')) || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANON_KEY = firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) || Deno.env.get('SUPABASE_ANON_KEY')!
 
-const VAPID_PUBLIC_KEY =
+// .trim() everything — a stray space or newline pasted into a Supabase secret
+// makes the key an invalid base64url string ("Failed to decode base64url").
+const VAPID_PUBLIC_KEY = (
   Deno.env.get('VAPID_PUBLIC_KEY') ||
   'BARWGwQjMoR3aaUov5vw7-aO7YaPqMKAvNk3vlqp35CwCPetwRcQLLlUhd3P1k-gt4VKMnBH7aeWUz4zTGsFgB8'
-const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') || ''
-const VAPID_SUBJECT = Deno.env.get('VAPID_SUBJECT') || 'mailto:abbasfakhraddin@gmail.com'
+).trim()
+const VAPID_PRIVATE_KEY = (Deno.env.get('VAPID_PRIVATE_KEY') || '').trim()
+const VAPID_SUBJECT = (Deno.env.get('VAPID_SUBJECT') || 'mailto:abbasfakhraddin@gmail.com').trim()
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
