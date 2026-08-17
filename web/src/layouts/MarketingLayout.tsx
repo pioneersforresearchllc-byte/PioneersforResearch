@@ -50,6 +50,9 @@ export function MarketingLayout() {
 
   const navLinks = (
     <>
+      <Link to="/" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
+        {t('nav.home')}
+      </Link>
       <Link to="/about" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
         {t('nav.about')}
       </Link>

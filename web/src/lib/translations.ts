@@ -5,6 +5,7 @@
 export const translations = {
   'lang.toggle': { ar: 'English', en: 'العربية' },
 
+  'nav.home': { ar: 'الرئيسية', en: 'Home' },
   'nav.about': { ar: 'من نحن', en: 'About' },
   'nav.courses': { ar: 'الدورات', en: 'Courses' },
   'nav.browseCourses': { ar: 'استعرض الدورات', en: 'Browse Courses' },
