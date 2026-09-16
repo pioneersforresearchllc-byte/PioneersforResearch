@@ -9,6 +9,7 @@ export interface ServicePackage {
   description: string | null
   description_en: string | null
   price_cents: number | null
+  original_price_cents: number | null
   is_custom: boolean
   sort_order: number
 }
@@ -281,7 +282,13 @@ export async function startServiceCheckout(requestId: string, code?: string): Pr
 // ── Owner package/price control ──────────────────────────────────────────
 export async function updatePackage(
   id: string,
-  values: { title: string; description: string | null; price_cents: number | null; is_custom: boolean },
+  values: {
+    title: string
+    description: string | null
+    price_cents: number | null
+    original_price_cents: number | null
+    is_custom: boolean
+  },
 ) {
   const { error } = await supabase.from('service_packages').update(values).eq('id', id)
   if (error) throw error

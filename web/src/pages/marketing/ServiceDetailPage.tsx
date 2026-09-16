@@ -208,10 +208,19 @@ export function ServiceDetailPage() {
                 >
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <span className="text-[15px] font-semibold text-navy">{pkgTitle(p)}</span>
-                    <span className="shrink-0 text-[15px] font-bold text-navy">
-                      {p.is_custom || p.price_cents == null
-                        ? t('service.contactUs')
-                        : formatSar(p.price_cents, t('course.currency'))}
+                    <span className="flex shrink-0 items-baseline gap-2 text-[15px] font-bold text-navy">
+                      {p.is_custom || p.price_cents == null ? (
+                        t('service.contactUs')
+                      ) : (
+                        <>
+                          {p.original_price_cents != null && p.original_price_cents > p.price_cents && (
+                            <span className="text-[12.5px] font-normal text-faint line-through">
+                              {formatSar(p.original_price_cents, t('course.currency'))}
+                            </span>
+                          )}
+                          <span>{formatSar(p.price_cents, t('course.currency'))}</span>
+                        </>
+                      )}
                     </span>
                   </div>
                   {pkgDesc(p) && <div className="text-[12.5px] leading-6 text-muted">{pkgDesc(p)}</div>}
