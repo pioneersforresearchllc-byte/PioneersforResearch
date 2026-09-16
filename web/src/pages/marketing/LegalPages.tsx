@@ -51,7 +51,7 @@ const TERMS: Record<'ar' | 'en', Doc> = {
       {
         h: 'هوية مزوّد الخدمة',
         p: [
-          'تُدار هذه المنصة من قِبل: بايونيرز للأبحاث الصحية (شركة ذات مسؤولية محدودة).',
+          'تُدار هذه المنصة من قِبل: شركة بايونيرز هيلث ريسيرتش كونسالتينج (ذات مسؤولية محدودة)، وتُقدَّم خدماتها تحت الاسم التجاري «بايونيرز للأبحاث الصحية».',
           'الرقم الموحّد للمنشأة: 7055175363 — رخصة الاستثمار الأجنبي (وزارة الاستثمار MISA): 24926274626 — الرقم الضريبي: 3150160068 — العنوان الوطني (الرمز المختصر): JHJA8230.',
           `للتواصل والشكاوى: ${EMAIL}. المتجر موثّق لدى منصة التوثيق الحكومية (معروف / منصة الأعمال بمركز الأعمال السعودي).`,
         ],
@@ -94,7 +94,7 @@ const TERMS: Record<'ar' | 'en', Doc> = {
       {
         h: 'Service provider identity',
         p: [
-          'This Platform is operated by: Pioneers for Research LLC.',
+          'This Platform is operated by: Pioneers Health Research Consulting (LLC), providing its services under the trade name “Pioneers Health Research”.',
           'Unified Establishment Number: 7055175363 — Foreign Investment License (MISA): 24926274626 — Tax Number (ZATCA): 3150160068 — National Address (Short Code): JHJA8230.',
           `Contact & complaints: ${EMAIL}. The store is authenticated on the government platform (Maroof / the Business Platform of the Saudi Business Center).`,
         ],
@@ -138,7 +138,7 @@ const PRIVACY: Record<'ar' | 'en', Doc> = {
     intro:
       'أُعدّت هذه السياسة وفق نظام حماية البيانات الشخصية (PDPL) في المملكة العربية السعودية، وتشرح كيف نجمع بياناتك ونعالجها ونحميها وننقلها عند استخدامك منصة Pioneers Health Research.',
     sections: [
-      { h: 'المتحكّم في البيانات', p: ['جهة التحكّم في بياناتك هي: بايونيرز للأبحاث الصحية (شركة ذات مسؤولية محدودة) — الرقم الموحّد للمنشأة: 7055175363. للتواصل بشأن الخصوصية: ' + EMAIL + '.'] },
+      { h: 'المتحكّم في البيانات', p: ['جهة التحكّم في بياناتك هي: شركة بايونيرز هيلث ريسيرتش كونسالتينج (ذات مسؤولية محدودة) — الرقم الموحّد للمنشأة: 7055175363. للتواصل بشأن الخصوصية: ' + EMAIL + '.'] },
       { h: 'البيانات التي نجمعها', p: ['بيانات الحساب (الاسم، البريد، اسم المستخدم، الهاتف)، وبيانات طلبات الخدمات والدورات، والمحتوى الذي ترفعه، وبيانات تقنية للاستخدام (نوع المتصفح وأوقات تسجيل الدخول).'] },
       { h: 'الأساس النظامي لمعالجة البيانات', p: ['نعالج بياناتك بناءً على موافقتك، وعلى ما تتطلبه تهيئة العقد وتقديم الخدمة، وعلى مصلحتنا المشروعة في تشغيل المنصة وتحسينها، والامتثال للأنظمة.'] },
       { h: 'أغراض الاستخدام', p: ['إنشاء حسابك وتقديم الخدمات، والتواصل بشأن طلباتك وحصصك، وإصدار الشهادات، وتحسين المنصة، والامتثال النظامي.'] },
@@ -162,7 +162,7 @@ const PRIVACY: Record<'ar' | 'en', Doc> = {
     intro:
       'This policy is prepared under the Saudi Personal Data Protection Law (PDPL) and explains how we collect, process, protect, and transfer your data when you use the Pioneers Health Research platform.',
     sections: [
-      { h: 'Data controller', p: ['The controller of your data is: Pioneers for Research LLC — Unified Establishment Number: 7055175363. Privacy contact: ' + EMAIL + '.'] },
+      { h: 'Data controller', p: ['The controller of your data is: Pioneers Health Research Consulting (LLC) — Unified Establishment Number: 7055175363. Privacy contact: ' + EMAIL + '.'] },
       { h: 'Data we collect', p: ['Account data (name, email, username, phone), service/course request data, content you upload, and technical usage data (browser type, sign-in times).'] },
       { h: 'Lawful basis for processing', p: ['We process your data based on your consent, the necessity to form the contract and provide the service, our legitimate interest in operating and improving the Platform, and legal compliance.'] },
       { h: 'Purposes of use', p: ['To create your account and provide services, communicate about your requests and sessions, issue certificates, improve the Platform, and comply with the law.'] },
