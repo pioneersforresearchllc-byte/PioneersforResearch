@@ -308,7 +308,7 @@ export function MarketingHome() {
   return (
     <div>
       {/* HERO */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-bg-soft/60 to-white px-4 pb-12 pt-14 md:px-16 md:pb-17.5 md:pt-22.5">
+      <div className="relative overflow-hidden bg-gradient-to-b from-[#e9eef5] via-bg-soft/50 to-white px-4 pb-12 pt-14 md:px-16 md:pb-17.5 md:pt-22.5">
         {/* Animated depth: soft gradient orbs drifting behind the content. */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
           <div className="animate-gradient absolute -top-32 h-[26rem] w-[26rem] rounded-full bg-gradient-to-br from-gold/25 via-gold/10 to-transparent blur-3xl ltr:-right-24 rtl:-left-24" />
@@ -329,22 +329,20 @@ export function MarketingHome() {
 
       {/* STATS */}
       <div className="grid grid-cols-2 gap-px border-y border-border bg-border md:grid-cols-4">
-        <div className="bg-white px-4 py-6 text-center md:px-7 md:py-8.5">
-          <div className="font-heading text-[26px] font-bold text-navy md:text-[34px]">{courses?.length ?? 0}</div>
-          <div className="mt-1.5 text-[13.5px] text-muted">{ct('home.stats.programs')}</div>
-        </div>
-        <div className="bg-white px-4 py-6 text-center md:px-7 md:py-8.5">
-          <div className="font-heading text-[26px] font-bold text-navy md:text-[34px]">4</div>
-          <div className="mt-1.5 text-[13.5px] text-muted">{ct('home.stats.stages')}</div>
-        </div>
-        <div className="bg-white px-4 py-6 text-center md:px-7 md:py-8.5">
-          <div className="font-heading text-[26px] font-bold text-navy md:text-[34px]">1:1</div>
-          <div className="mt-1.5 text-[13.5px] text-muted">{ct('home.stats.oneToOne')}</div>
-        </div>
-        <div className="bg-white px-4 py-6 text-center md:px-7 md:py-8.5">
-          <div className="font-heading text-[26px] font-bold text-gold md:text-[34px]">✓</div>
-          <div className="mt-1.5 text-[13.5px] text-muted">{ct('home.stats.certificate')}</div>
-        </div>
+        {[
+          { icon: '📚', value: String(courses?.length ?? 0), label: ct('home.stats.programs'), gold: false },
+          { icon: '🧭', value: '4', label: ct('home.stats.stages'), gold: false },
+          { icon: '🧑‍🏫', value: '1:1', label: ct('home.stats.oneToOne'), gold: false },
+          { icon: '🏅', value: '✓', label: ct('home.stats.certificate'), gold: true },
+        ].map((s, i) => (
+          <div key={i} className="bg-white px-4 py-6 text-center transition-colors hover:bg-bg-soft md:px-7 md:py-8.5">
+            <div className="mb-1.5 text-[20px] md:text-[24px]">{s.icon}</div>
+            <div className={`font-heading text-[26px] font-bold md:text-[34px] ${s.gold ? 'text-gold' : 'text-navy'}`}>
+              {s.value}
+            </div>
+            <div className="mt-1.5 text-[13.5px] text-muted">{s.label}</div>
+          </div>
+        ))}
       </div>
 
       {/* ABOUT */}

@@ -8,12 +8,44 @@ export interface OwnerOverviewStats {
   total_revenue_cents: number
   login_count: number
   overall_avg_rating: number
+  // v2 extras (0 when the v2 RPC isn't available yet)
+  enrollments_count: number
+  requests_count: number
+  students_this_week: number
+  students_last_week: number
+  enrollments_this_week: number
+  enrollments_last_week: number
+  requests_this_week: number
+  requests_last_week: number
+  revenue_this_week_cents: number
+  revenue_last_week_cents: number
+  logins_this_week: number
+  logins_last_week: number
 }
 
+const ZERO_WEEKLY = {
+  enrollments_count: 0,
+  requests_count: 0,
+  students_this_week: 0,
+  students_last_week: 0,
+  enrollments_this_week: 0,
+  enrollments_last_week: 0,
+  requests_this_week: 0,
+  requests_last_week: 0,
+  revenue_this_week_cents: 0,
+  revenue_last_week_cents: 0,
+  logins_this_week: 0,
+  logins_last_week: 0,
+}
+
+/** Prefers the richer v2 RPC (week-over-week); falls back to v1 (totals only)
+ * so the dashboard keeps working before migration 0052 is applied. */
 export async function getOverviewStats(): Promise<OwnerOverviewStats> {
+  const v2 = await supabase.rpc('get_owner_overview_stats_v2').single()
+  if (!v2.error && v2.data) return v2.data as OwnerOverviewStats
   const { data, error } = await supabase.rpc('get_owner_overview_stats').single()
   if (error) throw error
-  return data as OwnerOverviewStats
+  return { ...ZERO_WEEKLY, ...(data as Record<string, number>) } as OwnerOverviewStats
 }
 
 export interface AccountRow {

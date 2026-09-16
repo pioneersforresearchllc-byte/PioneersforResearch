@@ -984,6 +984,17 @@ export const translations = {
 
   // ── Owner dashboard ──────────────────────────────────────────────────
   'oOverview.title': { ar: 'نظرة عامة', en: 'Overview' },
+  'oOverview.subtitle': { ar: 'أداء منصتك مع مقارنة بالأسبوع الماضي.', en: 'Your platform’s performance, compared to last week.' },
+  'oOverview.thisWeek': { ar: 'هذا الأسبوع', en: 'THIS WEEK' },
+  'oOverview.total': { ar: 'الإجمالي', en: 'TOTALS' },
+  'oOverview.vsLastWeek': { ar: 'مقارنةً بالأسبوع الماضي', en: 'vs last week' },
+  'oOverview.new': { ar: 'جديد', en: 'new' },
+  'oOverview.newStudents': { ar: 'طلاب جدد', en: 'New students' },
+  'oOverview.newEnrollments': { ar: 'التحاقات جديدة', en: 'New enrollments' },
+  'oOverview.newRequests': { ar: 'طلبات خدمة جديدة', en: 'New requests' },
+  'oOverview.weekRevenue': { ar: 'إيرادات الأسبوع', en: 'Revenue this week' },
+  'oOverview.enrollments': { ar: 'الالتحاقات', en: 'Enrollments' },
+  'oOverview.requests': { ar: 'طلبات الخدمات', en: 'Service requests' },
   'oOverview.pendingTeachers': { ar: 'طلبات معلمين معلّقة', en: 'Pending teacher applications' },
   'oOverview.activeTeachers': { ar: 'معلمون نشطون', en: 'Active teachers' },
   'oOverview.courses': { ar: 'الدورات', en: 'Courses' },
