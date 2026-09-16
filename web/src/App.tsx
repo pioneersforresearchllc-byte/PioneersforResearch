@@ -27,6 +27,8 @@ import { OwnerInstitutionConsultationsPage } from '@/pages/dashboard/owner/Insti
 import { OwnerLoginPage } from '@/pages/auth/OwnerLoginPage'
 import { OwnerOtpPage } from '@/pages/auth/OwnerOtpPage'
 import { MarketingHome } from '@/pages/marketing/MarketingHome'
+import { TermsPage, PrivacyPage } from '@/pages/marketing/LegalPages'
+import { CookieConsent } from '@/components/CookieConsent'
 import { AboutPage } from '@/pages/marketing/AboutPage'
 import { MarketingCoursesPage } from '@/pages/marketing/CoursesPage'
 import { MarketingServicesPage } from '@/pages/marketing/ServicesPage'
@@ -197,6 +199,8 @@ export default function App() {
           <Route path="/course/:id" element={<CourseDetailPage />} />
           <Route path="/service/:slug" element={<ServiceDetailPage />} />
           <Route path="/article/:id" element={<ArticleDetailPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
         </Route>
 
         <Route path="/verify/:id" element={<VerifyCertificatePage />} />
@@ -283,6 +287,7 @@ export default function App() {
 
         <Route path="*" element={<Placeholder />} />
       </Routes>
+      <CookieConsent />
     </>
   )
 }

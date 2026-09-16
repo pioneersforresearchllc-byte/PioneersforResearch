@@ -18,6 +18,22 @@ export const translations = {
   'footer.copyright': { ar: 'Pioneers Health Research © 2026', en: 'Pioneers Health Research © 2026' },
   'footer.tagline': { ar: 'منصة تدريب على البحث العلمي', en: 'Academic research training platform' },
   'footer.adminPortal': { ar: 'بوابة الإدارة', en: 'Admin Portal' },
+  'footer.terms': { ar: 'شروط الخدمة', en: 'Terms of Service' },
+  'footer.privacy': { ar: 'سياسة الخصوصية', en: 'Privacy Policy' },
+
+  'cookie.text': {
+    ar: 'نستخدم ملفات ضرورية وتخزينًا محليًا لتشغيل تسجيل الدخول وحفظ تفضيلاتك فقط — بلا تتبّع إعلاني.',
+    en: 'We use essential files and local storage only to run sign-in and save your preferences — no ad tracking.',
+  },
+  'cookie.learnMore': { ar: 'اعرف المزيد', en: 'Learn more' },
+  'cookie.accept': { ar: 'موافق', en: 'Got it' },
+
+  'register.mustAgree': {
+    ar: 'يجب الموافقة على شروط الخدمة وسياسة الخصوصية للمتابعة.',
+    en: 'You must accept the Terms of Service and Privacy Policy to continue.',
+  },
+  'register.agreePrefix': { ar: 'أوافق على', en: 'I agree to the' },
+  'register.agreeAnd': { ar: 'و', en: 'and' },
 
   'home.hero.title': {
     ar: 'نُعلّم طلاب اليوم كيف يبنون بحثًا علميًا سليمًا',

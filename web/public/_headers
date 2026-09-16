@@ -1,0 +1,11 @@
+# Security headers applied to every response by Cloudflare Pages.
+# Conservative set (no strict CSP yet) so nothing in the SPA / auth / payment
+# flows breaks; CSP can be layered on later after testing.
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(self)
+  Cross-Origin-Opener-Policy: same-origin
+  X-XSS-Protection: 0

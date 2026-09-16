@@ -190,6 +190,12 @@ export function MarketingLayout() {
         </div>
         <span className="flex flex-wrap gap-4.5">
           <span>{t('footer.tagline')}</span>
+          <Link to="/terms" className="text-muted no-underline hover:text-navy">
+            {t('footer.terms')}
+          </Link>
+          <Link to="/privacy" className="text-muted no-underline hover:text-navy">
+            {t('footer.privacy')}
+          </Link>
           <Link to="/owner-login" className="text-[#9aa6b5] no-underline">
             {t('footer.adminPortal')}
           </Link>

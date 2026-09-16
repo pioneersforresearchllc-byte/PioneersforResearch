@@ -13,6 +13,7 @@ export function RegisterPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [honeypot, setHoneypot] = useState('')
+  const [agreed, setAgreed] = useState(false)
   const [error, setError] = useState('')
   const [showForgotLink, setShowForgotLink] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -29,6 +30,10 @@ export function RegisterPage() {
     }
     if (password.length < 6) {
       setError(t('register.passwordLength'))
+      return
+    }
+    if (!agreed) {
+      setError(t('register.mustAgree'))
       return
     }
 
@@ -191,6 +196,24 @@ export function RegisterPage() {
           onChange={(e) => setHoneypot(e.target.value)}
           className="absolute left-[-9999px] h-px w-px opacity-0"
         />
+        <label className="flex items-start gap-2.5 text-[12.5px] leading-6 text-muted">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0"
+          />
+          <span>
+            {t('register.agreePrefix')}{' '}
+            <Link to="/terms" target="_blank" className="font-semibold text-navy underline underline-offset-2">
+              {t('footer.terms')}
+            </Link>{' '}
+            {t('register.agreeAnd')}{' '}
+            <Link to="/privacy" target="_blank" className="font-semibold text-navy underline underline-offset-2">
+              {t('footer.privacy')}
+            </Link>
+          </span>
+        </label>
         <FieldError>{error}</FieldError>
         {showForgotLink && (
           <div className="-mt-2 text-[13px]">
