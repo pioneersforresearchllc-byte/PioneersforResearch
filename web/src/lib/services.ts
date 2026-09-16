@@ -294,6 +294,13 @@ export async function updatePackage(
   if (error) throw error
 }
 
+/** Owner-only: delete a package from a service. Existing requests keep working —
+ * their package_id is set to null (on delete set null). */
+export async function deletePackage(id: string) {
+  const { error } = await supabase.from('service_packages').delete().eq('id', id)
+  if (error) throw error
+}
+
 /** Owner-only: rename a service (Arabic + English). RLS (services_write_owner)
  * restricts this to a verified owner. */
 export async function updateService(id: string, values: { title: string; title_en: string | null }) {

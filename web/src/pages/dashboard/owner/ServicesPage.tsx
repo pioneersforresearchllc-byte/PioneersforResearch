@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
-import { listAllServicesForOwner, updatePackage, updateService, type Service, type ServicePackage } from '@/lib/services'
+import {
+  deletePackage,
+  listAllServicesForOwner,
+  updatePackage,
+  updateService,
+  type Service,
+  type ServicePackage,
+} from '@/lib/services'
 import { LoadingState } from '@/components/LoadingState'
 
 const inputClass = 'w-full box-border rounded-md border border-border px-3 py-2 text-[13.5px]'
@@ -79,6 +86,19 @@ function PackageRow({ pkg, onSaved }: { pkg: ServicePackage; onSaved: () => void
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  const remove = async () => {
+    setBusy(true)
+    setError('')
+    try {
+      await deletePackage(pkg.id)
+      onSaved()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+      setBusy(false)
+    }
+  }
 
   const save = async () => {
     setBusy(true)
@@ -151,13 +171,42 @@ function PackageRow({ pkg, onSaved }: { pkg: ServicePackage; onSaved: () => void
         <div className="flex items-center gap-2">
           {saved && <span className="text-[12px] text-success">{t('adminServices.saved')}</span>}
           {error && <span className="text-[12px] text-error">{error}</span>}
-          <button
-            onClick={() => void save()}
-            disabled={busy}
-            className="rounded-md bg-navy px-4 py-1.75 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
-          >
-            {t('adminServices.save')}
-          </button>
+          {confirmDelete ? (
+            <>
+              <span className="text-[12px] text-error">{t('adminServices.confirmDelete')}</span>
+              <button
+                onClick={() => void remove()}
+                disabled={busy}
+                className="rounded-md bg-error px-3 py-1.75 text-[12.5px] font-semibold text-white hover:opacity-90 disabled:opacity-50"
+              >
+                {t('adminServices.confirmYes')}
+              </button>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                disabled={busy}
+                className="rounded-md border border-border px-3 py-1.75 text-[12.5px] text-navy hover:bg-white"
+              >
+                {t('adminServices.cancel')}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => setConfirmDelete(true)}
+                disabled={busy}
+                className="rounded-md border border-error/40 px-3 py-1.75 text-[12.5px] font-semibold text-error hover:bg-error/5 disabled:opacity-50"
+              >
+                {t('adminServices.delete')}
+              </button>
+              <button
+                onClick={() => void save()}
+                disabled={busy}
+                className="rounded-md bg-navy px-4 py-1.75 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+              >
+                {t('adminServices.save')}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
