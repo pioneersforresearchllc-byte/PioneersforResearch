@@ -122,6 +122,7 @@ export function MarketingLayout() {
 
   return (
     <div dir={dir} lang={lang} className="min-h-screen w-full bg-white text-navy">
+      <AnnouncementPopup />
       <div className="sticky top-0 z-10 border-b border-border bg-white">
         <div className="flex items-center justify-between px-4 py-4 md:px-16 md:py-5">
           <Link to="/" className="flex items-center gap-2.5 no-underline">
@@ -201,8 +202,6 @@ export function MarketingLayout() {
           </Link>
         </span>
       </div>
-
-      <AnnouncementPopup />
     </div>
   )
 }

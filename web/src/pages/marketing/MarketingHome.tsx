@@ -61,6 +61,7 @@ export interface CourseCard {
   original_price_cents: number | null
   kind: 'course' | 'program'
   code_only: boolean
+  image_url: string | null
   avg_rating: number
   rating_count: number
 }
@@ -168,8 +169,16 @@ export function OfferingSection({
           {items.map((c) => (
             <div
               key={c.id}
-              className="rounded-[10px] border border-border bg-white p-7 transition-all duration-200 hover:-translate-y-1 hover:border-navy hover:shadow-[0_14px_32px_rgba(11,31,58,0.12)]"
+              className="overflow-hidden rounded-[10px] border border-border bg-white transition-all duration-200 hover:-translate-y-1 hover:border-navy hover:shadow-[0_14px_32px_rgba(11,31,58,0.12)]"
             >
+              {c.image_url ? (
+                <img src={c.image_url} className="aspect-[1.9] w-full object-cover" alt="" />
+              ) : (
+                <div className="flex aspect-[1.9] w-full items-center justify-center bg-gradient-to-br from-navy via-[#14335c] to-[#1c4577] text-[38px]">
+                  {c.kind === 'program' ? '🎓' : '📘'}
+                </div>
+              )}
+              <div className="p-7">
               <h3 className="mb-3 text-lg text-navy">{lang === 'en' ? c.title_en || c.title : c.title}</h3>
               <p className="mb-4 text-[14.5px] leading-[1.9] text-muted">
                 {lang === 'en' ? c.description_en || c.description : c.description}
@@ -205,6 +214,7 @@ export function OfferingSection({
               >
                 {ctaLabel}
               </Link>
+              </div>
             </div>
           ))}
         </div>
@@ -240,8 +250,16 @@ export function ServicesSection() {
             return (
               <div
                 key={s.id}
-                className="flex flex-col rounded-[10px] border border-border bg-white p-7 transition-all duration-200 hover:-translate-y-1 hover:border-navy hover:shadow-[0_14px_32px_rgba(11,31,58,0.12)]"
+                className="flex flex-col overflow-hidden rounded-[10px] border border-border bg-white transition-all duration-200 hover:-translate-y-1 hover:border-navy hover:shadow-[0_14px_32px_rgba(11,31,58,0.12)]"
               >
+                {s.image_url ? (
+                  <img src={s.image_url} className="aspect-[1.9] w-full object-cover" alt="" />
+                ) : (
+                  <div className="flex aspect-[1.9] w-full items-center justify-center bg-gradient-to-br from-[#14335c] to-[#1f8a5b] text-[38px]">
+                    🧩
+                  </div>
+                )}
+                <div className="flex flex-1 flex-col p-7">
                 <h3 className="mb-3 text-lg text-navy">{lang === 'en' ? s.title_en || s.title : s.title}</h3>
                 <p className="mb-4 flex-1 text-[14.5px] leading-[1.9] text-muted">
                   {lang === 'en' ? s.description_en || s.description : s.description}
@@ -260,6 +278,7 @@ export function ServicesSection() {
                 >
                   {t('home.services.cta')}
                 </Link>
+                </div>
               </div>
             )
           })}
