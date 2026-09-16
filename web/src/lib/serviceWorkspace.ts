@@ -54,6 +54,32 @@ export async function listMyServiceWorkspaces(userId: string): Promise<MyService
   }))
 }
 
+export interface ServiceActivity {
+  sessions: number
+  tasks: number
+}
+
+/** Counts of sessions + tasks per request, for the "My Services" cards. Returns
+ * zeros (no crash) if the workspace tables aren't migrated yet. */
+export async function getServicesActivity(requestIds: string[]): Promise<Record<string, ServiceActivity>> {
+  const result: Record<string, ServiceActivity> = {}
+  for (const id of requestIds) result[id] = { sessions: 0, tasks: 0 }
+  if (requestIds.length === 0) return result
+  const [{ data: ses }, { data: tsk }] = await Promise.all([
+    supabase.from('service_sessions').select('request_id').in('request_id', requestIds),
+    supabase.from('service_tasks').select('request_id').in('request_id', requestIds),
+  ])
+  for (const r of ses ?? []) {
+    const id = (r as { request_id: string }).request_id
+    if (result[id]) result[id].sessions += 1
+  }
+  for (const r of tsk ?? []) {
+    const id = (r as { request_id: string }).request_id
+    if (result[id]) result[id].tasks += 1
+  }
+  return result
+}
+
 // ── Sessions ────────────────────────────────────────────────────────────
 export async function listSessions(requestId: string): Promise<ServiceSession[]> {
   const { data, error } = await supabase
