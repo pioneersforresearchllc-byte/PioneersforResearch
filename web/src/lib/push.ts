@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 // key lives only in the send-push edge function's Supabase secrets.
 const VAPID_PUBLIC_KEY =
   (import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined) ||
-  'BARWGwQjMoR3aaUov5vw7-aO7YaPqMKAvNk3vlqp35CwCPetwRcQLLlUhd3P1k-gt4VKMnBH7aeWUz4zTGsFgB8'
+  'BKmP41ReZGzp5cXehZCyVmXwoBDLhMUVOmZ-O-dx9FPRVwrT4dHt0smbSl7i5m3fDCPTJ77Lep75TiwGoKm7XtM'
 
 export type PushState = 'unsupported' | 'default' | 'denied' | 'subscribed'
 
