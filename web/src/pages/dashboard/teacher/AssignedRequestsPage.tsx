@@ -4,6 +4,7 @@ import { useLanguage } from '@/lib/i18n'
 import { listAssignedRequests, signRequestFile, updateRequestStatus, type RequestStatus } from '@/lib/services'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
+import { ServiceWorkspace } from '@/components/ServiceWorkspace'
 
 const STATUS_STYLES: Record<RequestStatus, string> = {
   pending: 'bg-bg-soft text-muted',
@@ -147,6 +148,12 @@ export function TeacherAssignedRequestsPage() {
             )}
             {(r.status === 'pending' || r.status === 'awaiting_payment') && (
               <div className="text-[12.5px] text-muted">{t('assignedRequests.waitingPayment')}</div>
+            )}
+
+            {(r.status === 'paid' || r.status === 'in_progress' || r.status === 'done') && (
+              <div className="mt-4 border-t border-border-2 pt-4">
+                <ServiceWorkspace requestId={r.id} manage isStudent={false} />
+              </div>
             )}
           </div>
         ))}

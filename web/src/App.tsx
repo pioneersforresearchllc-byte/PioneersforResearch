@@ -60,6 +60,7 @@ import { OwnerDiscountsPage } from '@/pages/dashboard/owner/DiscountsPage'
 import { OwnerContactPage } from '@/pages/dashboard/owner/ContactPage'
 import { StudentGradesPage } from '@/pages/dashboard/student/GradesPage'
 import { StudentInvoicesPage } from '@/pages/dashboard/student/InvoicesPage'
+import { StudentServicesPage } from '@/pages/dashboard/student/ServicesPage'
 import { StudentFeedbackPage } from '@/pages/dashboard/student/FeedbackPage'
 import { AccountPage } from '@/pages/dashboard/shared/AccountPage'
 import { MyRequestsPage, MyRequestsRedirect } from '@/pages/dashboard/shared/MyRequestsPage'
@@ -76,6 +77,7 @@ const studentTabs: DashboardTab[] = [
   { key: 'certificates', labelKey: 'tab.certificates', to: '/student/certificates' },
   { key: 'feedback', labelKey: 'tab.feedback', to: '/student/feedback' },
   { key: 'articles', labelKey: 'tab.articles', to: '/student/articles' },
+  { key: 'my-services', labelKey: 'tab.myServices', to: '/student/services' },
   { key: 'requests', labelKey: 'tab.myRequests', to: '/student/requests' },
   { key: 'invoices', labelKey: 'tab.invoices', to: '/student/invoices' },
   { key: 'chat', labelKey: 'tab.messages', to: '/student/chat' },
@@ -221,6 +223,7 @@ export default function App() {
             <Route path="/student/assignments" element={<StudentAssignmentsPage />} />
             <Route path="/student/grades" element={<StudentGradesPage />} />
             <Route path="/student/invoices" element={<StudentInvoicesPage />} />
+            <Route path="/student/services" element={<StudentServicesPage />} />
             <Route path="/student/certificates" element={<StudentCertificatesPage />} />
             <Route path="/student/feedback" element={<StudentFeedbackPage />} />
             <Route path="/student/articles" element={<StudentArticlesPage />} />
