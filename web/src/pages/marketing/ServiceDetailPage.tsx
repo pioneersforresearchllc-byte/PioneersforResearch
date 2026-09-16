@@ -93,6 +93,9 @@ export function ServiceDetailPage() {
   }
 
   const layout = LAYOUTS[service.slug] ?? DEFAULT_LAYOUT
+  // Questions the owner turned off for this service (0051). Missing column → [].
+  const hidden = new Set<string>(service.hidden_fields ?? [])
+  const showField = (k: string) => !hidden.has(k)
   const title = lang === 'en' ? service.title_en || service.title : service.title
   const description = lang === 'en' ? service.description_en || service.description : service.description
 
@@ -111,7 +114,7 @@ export function ServiceDetailPage() {
       setError(t('service.errSubject'))
       return
     }
-    if (!quantity.trim() || Number.isNaN(Number(quantity))) {
+    if (showField('quantity') && (!quantity.trim() || Number.isNaN(Number(quantity)))) {
       setError(t('service.errQuantity'))
       return
     }
@@ -149,7 +152,7 @@ export function ServiceDetailPage() {
         subject: subject.trim(),
         purpose: purpose.trim() || null,
         target_audience: audience.trim() || null,
-        quantity: Number(quantity),
+        quantity: showField('quantity') ? Number(quantity) : null,
         language,
         content_text: contentText.trim() || null,
         content_file_url: contentPath,
@@ -276,46 +279,56 @@ export function ServiceDetailPage() {
             <input value={subject} onChange={(e) => setSubject(e.target.value)} className={inputClass} />
           </div>
 
-          <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <label className={labelClass}>{t('service.purpose')}</label>
-              <input
-                value={purpose}
-                onChange={(e) => setPurpose(e.target.value)}
-                placeholder={t('service.purposePh')}
-                className={inputClass}
-              />
+          {(showField('purpose') || (layout.showTargetAudience && showField('audience'))) && (
+            <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {showField('purpose') && (
+                <div>
+                  <label className={labelClass}>{t('service.purpose')}</label>
+                  <input
+                    value={purpose}
+                    onChange={(e) => setPurpose(e.target.value)}
+                    placeholder={t('service.purposePh')}
+                    className={inputClass}
+                  />
+                </div>
+              )}
+              {layout.showTargetAudience && showField('audience') && (
+                <div>
+                  <label className={labelClass}>{t('service.audience')}</label>
+                  <input value={audience} onChange={(e) => setAudience(e.target.value)} className={inputClass} />
+                </div>
+              )}
             </div>
-            {layout.showTargetAudience && (
-              <div>
-                <label className={labelClass}>{t('service.audience')}</label>
-                <input value={audience} onChange={(e) => setAudience(e.target.value)} className={inputClass} />
-              </div>
-            )}
-          </div>
+          )}
 
-          <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <label className={labelClass}>{t(layout.quantityLabelKey)} *</label>
-              <input
-                type="number"
-                min={1}
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                className={inputClass}
-              />
+          {(showField('quantity') || showField('language')) && (
+            <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {showField('quantity') && (
+                <div>
+                  <label className={labelClass}>{t(layout.quantityLabelKey)} *</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+              )}
+              {showField('language') && (
+                <div>
+                  <label className={labelClass}>{t('service.language')}</label>
+                  <select value={language} onChange={(e) => setLanguage(e.target.value)} className={inputClass}>
+                    <option value="العربية">{t('service.langAr')}</option>
+                    <option value="English">{t('service.langEn')}</option>
+                    <option value="ثنائي اللغة">{t('service.langBoth')}</option>
+                  </select>
+                </div>
+              )}
             </div>
-            <div>
-              <label className={labelClass}>{t('service.language')}</label>
-              <select value={language} onChange={(e) => setLanguage(e.target.value)} className={inputClass}>
-                <option value="العربية">{t('service.langAr')}</option>
-                <option value="English">{t('service.langEn')}</option>
-                <option value="ثنائي اللغة">{t('service.langBoth')}</option>
-              </select>
-            </div>
-          </div>
+          )}
 
-          {layout.softwareChoices && (
+          {layout.softwareChoices && showField('software') && (
             <div className="mb-5">
               <label className={labelClass}>{t('service.software')}</label>
               <select value={software} onChange={(e) => setSoftware(e.target.value)} className={inputClass}>
@@ -352,7 +365,7 @@ export function ServiceDetailPage() {
           {/* DESIGN REQUIREMENTS */}
           <div className="mb-5">
             <div className="mb-2 text-[13.5px] font-semibold text-navy">{t('service.designTitle')}</div>
-            {layout.showBrandColors && (
+            {layout.showBrandColors && showField('brand_colors') && (
               <div className="mb-3">
                 <label className={labelClass}>{t('service.colors')}</label>
                 <input
@@ -363,23 +376,27 @@ export function ServiceDetailPage() {
                 />
               </div>
             )}
-            <div className="mb-3">
-              <label className={labelClass}>{t('service.referenceUrl')}</label>
-              <input
-                value={referenceUrl}
-                onChange={(e) => setReferenceUrl(e.target.value)}
-                placeholder="https://"
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className={labelClass}>{t('service.referenceFile')}</label>
-              <input
-                type="file"
-                onChange={(e) => setReferenceFile(e.target.files?.[0] ?? null)}
-                className="text-[13px]"
-              />
-            </div>
+            {showField('reference') && (
+              <>
+                <div className="mb-3">
+                  <label className={labelClass}>{t('service.referenceUrl')}</label>
+                  <input
+                    value={referenceUrl}
+                    onChange={(e) => setReferenceUrl(e.target.value)}
+                    placeholder="https://"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>{t('service.referenceFile')}</label>
+                  <input
+                    type="file"
+                    onChange={(e) => setReferenceFile(e.target.files?.[0] ?? null)}
+                    className="text-[13px]"
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <div className="mb-5">

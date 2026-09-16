@@ -24,8 +24,21 @@ export interface Service {
   image_url: string | null
   active: boolean
   sort_order: number
+  hidden_fields: string[]
   packages: ServicePackage[]
 }
+
+/** Optional request-form questions the owner may show/hide per service. */
+export const TOGGLEABLE_SERVICE_FIELDS = [
+  'purpose',
+  'audience',
+  'quantity',
+  'language',
+  'brand_colors',
+  'reference',
+  'software',
+] as const
+export type ToggleableField = (typeof TOGGLEABLE_SERVICE_FIELDS)[number]
 
 export async function listServices(): Promise<Service[]> {
   const { data: services, error } = await supabase
@@ -305,6 +318,12 @@ export async function deletePackage(id: string) {
  * restricts this to a verified owner. */
 export async function updateService(id: string, values: { title: string; title_en: string | null }) {
   const { error } = await supabase.from('services').update(values).eq('id', id)
+  if (error) throw error
+}
+
+/** Owner-only: set which optional questions are hidden on a service's form. */
+export async function updateServiceHiddenFields(id: string, hidden_fields: string[]) {
+  const { error } = await supabase.from('services').update({ hidden_fields }).eq('id', id)
   if (error) throw error
 }
 

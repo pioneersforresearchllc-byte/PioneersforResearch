@@ -6,6 +6,8 @@ import {
   listAllServicesForOwner,
   updatePackage,
   updateService,
+  updateServiceHiddenFields,
+  TOGGLEABLE_SERVICE_FIELDS,
   type Service,
   type ServicePackage,
 } from '@/lib/services'
@@ -18,11 +20,19 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
   const { t } = useLanguage()
   const [title, setTitle] = useState(service.title)
   const [titleEn, setTitleEn] = useState(service.title_en ?? '')
+  const [hidden, setHidden] = useState<string[]>(service.hidden_fields ?? [])
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
 
-  const dirty = title.trim() !== service.title || (titleEn.trim() || '') !== (service.title_en ?? '')
+  const sortedKey = (a: string[]) => [...a].sort().join(',')
+  const dirty =
+    title.trim() !== service.title ||
+    (titleEn.trim() || '') !== (service.title_en ?? '') ||
+    sortedKey(hidden) !== sortedKey(service.hidden_fields ?? [])
+
+  const toggleField = (k: string) =>
+    setHidden((h) => (h.includes(k) ? h.filter((x) => x !== k) : [...h, k]))
 
   const save = async () => {
     if (!title.trim()) {
@@ -34,6 +44,7 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
     setError('')
     try {
       await updateService(service.id, { title: title.trim(), title_en: titleEn.trim() || null })
+      await updateServiceHiddenFields(service.id, hidden)
       setSaved(true)
       onSaved()
     } catch (e) {
@@ -55,7 +66,20 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
           <input value={titleEn} onChange={(e) => setTitleEn(e.target.value)} dir="ltr" className={inputClass} />
         </div>
       </div>
-      <div className="mt-2 flex items-center justify-between gap-2">
+      <div className="mt-3">
+        <div className="mb-1.5 text-[11.5px] font-semibold text-muted">{t('adminServices.questionsTitle')}</div>
+        <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+          {TOGGLEABLE_SERVICE_FIELDS.map((k) => (
+            <label key={k} className="flex items-center gap-1.5 text-[12.5px] text-navy">
+              <input type="checkbox" checked={!hidden.includes(k)} onChange={() => toggleField(k)} className="h-3.5 w-3.5" />
+              {t(`adminServices.field.${k}` as 'adminServices.field.purpose')}
+            </label>
+          ))}
+        </div>
+        <div className="mt-1 text-[11px] text-faint">{t('adminServices.questionsHint')}</div>
+      </div>
+
+      <div className="mt-3 flex items-center justify-between gap-2">
         <span className="text-[12px] text-faint">/{service.slug}</span>
         <div className="flex items-center gap-2">
           {saved && <span className="text-[12px] text-success">{t('adminServices.saved')}</span>}
@@ -65,7 +89,7 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
             disabled={busy || !dirty}
             className="rounded-md bg-navy px-4 py-1.75 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
           >
-            {t('adminServices.saveName')}
+            {t('adminServices.save')}
           </button>
         </div>
       </div>
