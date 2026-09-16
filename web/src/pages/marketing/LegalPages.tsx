@@ -52,7 +52,7 @@ const TERMS: Record<'ar' | 'en', Doc> = {
         h: 'هوية مزوّد الخدمة',
         p: [
           'تُدار هذه المنصة من قِبل: بايونيرز للأبحاث الصحية (شركة ذات مسؤولية محدودة).',
-          'الرقم الموحّد للمنشأة: 7055175363 — رخصة الاستثمار الأجنبي (وزارة الاستثمار MISA): 24926274626 — الرقم الضريبي: 3150160068 — العنوان الوطني: [يُعبّأ].',
+          'الرقم الموحّد للمنشأة: 7055175363 — رخصة الاستثمار الأجنبي (وزارة الاستثمار MISA): 24926274626 — الرقم الضريبي: 3150160068 — العنوان الوطني (الرمز المختصر): JHJA8230.',
           `للتواصل والشكاوى: ${EMAIL}. المتجر موثّق لدى منصة التوثيق الحكومية (معروف / منصة الأعمال بمركز الأعمال السعودي).`,
         ],
       },
@@ -95,7 +95,7 @@ const TERMS: Record<'ar' | 'en', Doc> = {
         h: 'Service provider identity',
         p: [
           'This Platform is operated by: Pioneers for Research LLC.',
-          'Unified Establishment Number: 7055175363 — Foreign Investment License (MISA): 24926274626 — Tax Number (ZATCA): 3150160068 — National Address: [to fill].',
+          'Unified Establishment Number: 7055175363 — Foreign Investment License (MISA): 24926274626 — Tax Number (ZATCA): 3150160068 — National Address (Short Code): JHJA8230.',
           `Contact & complaints: ${EMAIL}. The store is authenticated on the government platform (Maroof / the Business Platform of the Saudi Business Center).`,
         ],
       },
