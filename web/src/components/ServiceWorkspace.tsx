@@ -12,6 +12,7 @@ import {
   type ServiceSession,
   type ServiceTask,
 } from '@/lib/serviceWorkspace'
+import { triggerPush } from '@/lib/push'
 
 const field = 'w-full box-border rounded-md border border-border px-3 py-2 text-[13px]'
 
@@ -101,6 +102,7 @@ function SessionsPanel({
     mutationFn: () =>
       addSession({ request_id: requestId, title: title.trim(), session_date: date || null, session_time: time || null, link: link.trim() || null }),
     onSuccess: () => {
+      triggerPush('service_session', requestId)
       setTitle(''); setDate(''); setTime(''); setLink(''); setOpen(false); onChange()
     },
   })
@@ -200,6 +202,7 @@ function TasksPanel({
     mutationFn: () =>
       addTask({ request_id: requestId, title: title.trim(), description: desc.trim() || null, due_date: due || null, link: link.trim() || null }),
     onSuccess: () => {
+      triggerPush('service_task', requestId)
       setTitle(''); setDesc(''); setDue(''); setLink(''); setOpen(false); onChange()
     },
   })

@@ -10,7 +10,13 @@ const VAPID_PUBLIC_KEY =
 
 export type PushState = 'unsupported' | 'default' | 'denied' | 'subscribed'
 
-export type PushEvent = 'chat' | 'grade' | 'certificate' | 'service_request'
+export type PushEvent =
+  | 'chat'
+  | 'grade'
+  | 'certificate'
+  | 'service_request'
+  | 'service_session'
+  | 'service_task'
 
 export function pushSupported(): boolean {
   return (

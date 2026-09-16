@@ -206,5 +206,27 @@ async function resolve(
     }
   }
 
+  // The teacher (or owner) added a session/task to a service workspace — notify
+  // that request's student. id = the service_request id.
+  if (type === 'service_session' || type === 'service_task') {
+    const { data: reqRow } = await admin
+      .from('service_requests')
+      .select('user_id, assigned_teacher_id')
+      .eq('id', id)
+      .maybeSingle()
+    if (!reqRow?.user_id) return null
+    const canManage = reqRow.assigned_teacher_id === caller.id || caller.role === 'owner'
+    if (!canManage) return null
+    const isTask = type === 'service_task'
+    return {
+      userIds: [reqRow.user_id as string],
+      title: isTask ? '✓ مهمة جديدة — Pioneers' : '📅 حصة جديدة — Pioneers',
+      body: isTask
+        ? 'أضاف مشرفك مهمة جديدة في خدمتك. اضغط للعرض.'
+        : 'أضاف مشرفك حصة جديدة إلى جدولك. اضغط للعرض.',
+      urlFor: () => '/student/services',
+    }
+  }
+
   return null
 }
