@@ -1,10 +1,70 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
-import { listAllServicesForOwner, updatePackage, type ServicePackage } from '@/lib/services'
+import { listAllServicesForOwner, updatePackage, updateService, type Service, type ServicePackage } from '@/lib/services'
 import { LoadingState } from '@/components/LoadingState'
 
 const inputClass = 'w-full box-border rounded-md border border-border px-3 py-2 text-[13.5px]'
+
+/** Editable service name (Arabic + English) — owner only. */
+function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => void }) {
+  const { t } = useLanguage()
+  const [title, setTitle] = useState(service.title)
+  const [titleEn, setTitleEn] = useState(service.title_en ?? '')
+  const [busy, setBusy] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
+
+  const dirty = title.trim() !== service.title || (titleEn.trim() || '') !== (service.title_en ?? '')
+
+  const save = async () => {
+    if (!title.trim()) {
+      setError(t('adminServices.nameRequired'))
+      return
+    }
+    setBusy(true)
+    setSaved(false)
+    setError('')
+    try {
+      await updateService(service.id, { title: title.trim(), title_en: titleEn.trim() || null })
+      setSaved(true)
+      onSaved()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="mb-4 border-b border-border-2 pb-4">
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-[11.5px] font-semibold text-muted">{t('adminServices.serviceName')}</label>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className="mb-1 block text-[11.5px] font-semibold text-muted">{t('adminServices.serviceNameEn')}</label>
+          <input value={titleEn} onChange={(e) => setTitleEn(e.target.value)} dir="ltr" className={inputClass} />
+        </div>
+      </div>
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <span className="text-[12px] text-faint">/{service.slug}</span>
+        <div className="flex items-center gap-2">
+          {saved && <span className="text-[12px] text-success">{t('adminServices.saved')}</span>}
+          {error && <span className="text-[12px] text-error">{error}</span>}
+          <button
+            onClick={() => void save()}
+            disabled={busy || !dirty}
+            className="rounded-md bg-navy px-4 py-1.75 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+          >
+            {t('adminServices.saveName')}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function PackageRow({ pkg, onSaved }: { pkg: ServicePackage; onSaved: () => void }) {
   const { t } = useLanguage()
@@ -83,7 +143,7 @@ function PackageRow({ pkg, onSaved }: { pkg: ServicePackage; onSaved: () => void
 }
 
 export function OwnerServicesPage() {
-  const { t, lang } = useLanguage()
+  const { t } = useLanguage()
   const queryClient = useQueryClient()
   const { data: services, isLoading } = useQuery({ queryKey: ['owner-services'], queryFn: listAllServicesForOwner })
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ['owner-services'] })
@@ -98,10 +158,7 @@ export function OwnerServicesPage() {
       <div className="flex flex-col gap-5">
         {(services ?? []).map((s) => (
           <div key={s.id} className="rounded-xl border border-border bg-white p-5">
-            <div className="mb-1 font-heading text-[16px] font-bold text-navy">
-              {lang === 'en' ? s.title_en || s.title : s.title}
-            </div>
-            <div className="mb-4 text-[12.5px] text-muted">/{s.slug}</div>
+            <ServiceHeader service={s} onSaved={refresh} />
             <div className="flex flex-col gap-3">
               {s.packages.map((p) => (
                 <PackageRow key={p.id} pkg={p} onSaved={refresh} />

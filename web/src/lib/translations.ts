@@ -686,6 +686,10 @@ export const translations = {
 
   'adminServices.title': { ar: 'الخدمات والأسعار', en: 'Services & Pricing' },
   'adminServices.subtitle': { ar: 'تحكّم في باقات كل خدمة وأسعارها', en: 'Control each service’s packages and prices' },
+  'adminServices.serviceName': { ar: 'اسم الخدمة (عربي)', en: 'Service name (Arabic)' },
+  'adminServices.serviceNameEn': { ar: 'اسم الخدمة (إنجليزي)', en: 'Service name (English)' },
+  'adminServices.saveName': { ar: 'حفظ الاسم', en: 'Save name' },
+  'adminServices.nameRequired': { ar: 'اسم الخدمة مطلوب.', en: 'Service name is required.' },
   'adminServices.packageTitle': { ar: 'اسم الباقة', en: 'Package name' },
   'adminServices.packageDesc': { ar: 'الوصف', en: 'Description' },
   'adminServices.price': { ar: 'السعر (دولار)', en: 'Price (USD)' },

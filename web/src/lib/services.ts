@@ -287,6 +287,13 @@ export async function updatePackage(
   if (error) throw error
 }
 
+/** Owner-only: rename a service (Arabic + English). RLS (services_write_owner)
+ * restricts this to a verified owner. */
+export async function updateService(id: string, values: { title: string; title_en: string | null }) {
+  const { error } = await supabase.from('services').update(values).eq('id', id)
+  if (error) throw error
+}
+
 export async function listAllServicesForOwner(): Promise<Service[]> {
   const { data: services, error } = await supabase.from('services').select('*').order('sort_order')
   if (error) throw error
