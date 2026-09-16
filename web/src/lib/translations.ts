@@ -388,7 +388,7 @@ export const translations = {
 
   'role.student': { ar: 'طالب', en: 'Student' },
   'role.teacher': { ar: 'معلم', en: 'Teacher' },
-  'role.owner': { ar: 'إدارة', en: 'Admin' },
+  'role.owner': { ar: 'رئيس المدربين والمستشارين', en: 'Head of Trainers & Consultants' },
 
   'account.title': { ar: 'حسابي', en: 'My Account' },
   'account.profileSection': { ar: 'الملف الشخصي', en: 'Profile' },
