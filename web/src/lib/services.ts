@@ -314,9 +314,12 @@ export async function deletePackage(id: string) {
   if (error) throw error
 }
 
-/** Owner-only: rename a service (Arabic + English). RLS (services_write_owner)
- * restricts this to a verified owner. */
-export async function updateService(id: string, values: { title: string; title_en: string | null }) {
+/** Owner-only: edit a service's name + description (Arabic + English). RLS
+ * (services_write_owner) restricts this to a verified owner. */
+export async function updateService(
+  id: string,
+  values: { title: string; title_en: string | null; description: string; description_en: string | null },
+) {
   const { error } = await supabase.from('services').update(values).eq('id', id)
   if (error) throw error
 }

@@ -738,6 +738,8 @@ export const translations = {
   'adminServices.field.software': { ar: 'البرنامج', en: 'Software' },
   'adminServices.serviceName': { ar: 'اسم الخدمة (عربي)', en: 'Service name (Arabic)' },
   'adminServices.serviceNameEn': { ar: 'اسم الخدمة (إنجليزي)', en: 'Service name (English)' },
+  'adminServices.descAr': { ar: 'وصف الخدمة (عربي)', en: 'Service description (Arabic)' },
+  'adminServices.descEn': { ar: 'وصف الخدمة (إنجليزي)', en: 'Service description (English)' },
   'adminServices.saveName': { ar: 'حفظ الاسم', en: 'Save name' },
   'adminServices.nameRequired': { ar: 'اسم الخدمة مطلوب.', en: 'Service name is required.' },
   'adminServices.delete': { ar: 'حذف الباقة', en: 'Delete package' },

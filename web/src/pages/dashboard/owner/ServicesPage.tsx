@@ -20,6 +20,8 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
   const { t } = useLanguage()
   const [title, setTitle] = useState(service.title)
   const [titleEn, setTitleEn] = useState(service.title_en ?? '')
+  const [desc, setDesc] = useState(service.description ?? '')
+  const [descEn, setDescEn] = useState(service.description_en ?? '')
   const [hidden, setHidden] = useState<string[]>(service.hidden_fields ?? [])
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -29,6 +31,8 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
   const dirty =
     title.trim() !== service.title ||
     (titleEn.trim() || '') !== (service.title_en ?? '') ||
+    desc.trim() !== (service.description ?? '') ||
+    (descEn.trim() || '') !== (service.description_en ?? '') ||
     sortedKey(hidden) !== sortedKey(service.hidden_fields ?? [])
 
   const toggleField = (k: string) =>
@@ -43,7 +47,12 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
     setSaved(false)
     setError('')
     try {
-      await updateService(service.id, { title: title.trim(), title_en: titleEn.trim() || null })
+      await updateService(service.id, {
+        title: title.trim(),
+        title_en: titleEn.trim() || null,
+        description: desc.trim(),
+        description_en: descEn.trim() || null,
+      })
       await updateServiceHiddenFields(service.id, hidden)
       setSaved(true)
       onSaved()
@@ -66,6 +75,17 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
           <input value={titleEn} onChange={(e) => setTitleEn(e.target.value)} dir="ltr" className={inputClass} />
         </div>
       </div>
+      <div className="mt-2.5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-[11.5px] font-semibold text-muted">{t('adminServices.descAr')}</label>
+          <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={3} className={`${inputClass} resize-y`} />
+        </div>
+        <div>
+          <label className="mb-1 block text-[11.5px] font-semibold text-muted">{t('adminServices.descEn')}</label>
+          <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} rows={3} dir="ltr" className={`${inputClass} resize-y`} />
+        </div>
+      </div>
+
       <div className="mt-3">
         <div className="mb-1.5 text-[11.5px] font-semibold text-muted">{t('adminServices.questionsTitle')}</div>
         <div className="flex flex-wrap gap-x-4 gap-y-1.5">
