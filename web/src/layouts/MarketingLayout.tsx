@@ -5,7 +5,6 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { fetchSiteContent, resolveSocialLink } from '@/lib/content'
 import { AnnouncementPopup } from '@/components/AnnouncementPopup'
-import { InstallAppButton } from '@/components/InstallAppButton'
 
 const dashboardPathFor = (role: string) =>
   role === 'student'
@@ -92,7 +91,6 @@ export function MarketingLayout() {
           {t('nav.browseCourses')}
         </Link>
       )}
-      <InstallAppButton className="rounded-md bg-gold px-4 py-2 text-[13px] font-medium text-white no-underline hover:bg-gold-hover" />
       {session && profile ? (
         <Link
           to={dashboardPathFor(profile.role)}
