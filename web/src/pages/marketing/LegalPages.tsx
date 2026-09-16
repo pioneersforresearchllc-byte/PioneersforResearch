@@ -51,8 +51,8 @@ const TERMS: Record<'ar' | 'en', Doc> = {
       {
         h: 'هوية مزوّد الخدمة',
         p: [
-          'تُدار هذه المنصة من قِبل: [يُعبّأ: الاسم التجاري الكامل كما في السجل التجاري].',
-          'رقم السجل التجاري: [يُعبّأ] — رخصة الاستثمار الأجنبي (وزارة الاستثمار MISA): [يُعبّأ] — الرقم الضريبي (ZATCA): [يُعبّأ] — العنوان الوطني: [يُعبّأ].',
+          'تُدار هذه المنصة من قِبل: بايونيرز للأبحاث الصحية (شركة ذات مسؤولية محدودة).',
+          'الرقم الموحّد للمنشأة: 7055175363 — رخصة الاستثمار الأجنبي (وزارة الاستثمار MISA): 24926274626 — الرقم الضريبي: 3150160068 — العنوان الوطني: [يُعبّأ].',
           `للتواصل والشكاوى: ${EMAIL}. المتجر موثّق لدى منصة التوثيق الحكومية (معروف / منصة الأعمال بمركز الأعمال السعودي).`,
         ],
       },
@@ -62,8 +62,8 @@ const TERMS: Record<'ar' | 'en', Doc> = {
       {
         h: 'الأسعار والدفع (الإفصاح والضريبة)',
         p: [
-          'تُعرض جميع الأسعار بالريال السعودي (﷼) شاملةً ضريبة القيمة المضافة (15%) حيثما تنطبق، وتُوضَّح التكلفة الكاملة قبل تأكيد الطلب.',
-          'نُصدر فاتورة ضريبية عند الاقتضاء وفق أنظمة هيئة الزكاة والضريبة والجمارك. قد تُفعَّل بوابات دفع إلكترونية، وقد تتم بعض التسجيلات بالطلب دون دفع فوري وفق تقديرنا.',
+          'تُعرض جميع الأسعار بالريال السعودي (﷼)، وتُوضَّح التكلفة الكاملة قبل تأكيد الطلب. وفي حال كانت المنشأة مسجَّلة في ضريبة القيمة المضافة، تُبيَّن الضريبة (15%) وتُضاف وفق النظام.',
+          'نُصدر فاتورة عند الاقتضاء، وفاتورة ضريبية متى ما انطبق نظام هيئة الزكاة والضريبة والجمارك. قد تُفعَّل بوابات دفع إلكترونية، وقد تتم بعض التسجيلات بالطلب دون دفع فوري وفق تقديرنا.',
         ],
       },
       {
@@ -94,8 +94,8 @@ const TERMS: Record<'ar' | 'en', Doc> = {
       {
         h: 'Service provider identity',
         p: [
-          'This Platform is operated by: [to fill: full legal/commercial name as per the Commercial Registration].',
-          'Commercial Registration (CR) No.: [to fill] — Foreign Investment License (MISA): [to fill] — Tax (VAT) No. (ZATCA): [to fill] — National Address: [to fill].',
+          'This Platform is operated by: Pioneers for Research LLC.',
+          'Unified Establishment Number: 7055175363 — Foreign Investment License (MISA): 24926274626 — Tax Number (ZATCA): 3150160068 — National Address: [to fill].',
           `Contact & complaints: ${EMAIL}. The store is authenticated on the government platform (Maroof / the Business Platform of the Saudi Business Center).`,
         ],
       },
@@ -105,7 +105,7 @@ const TERMS: Record<'ar' | 'en', Doc> = {
       {
         h: 'Pricing & payment (disclosure & VAT)',
         p: [
-          'All prices are shown in Saudi Riyals (﷼) inclusive of Value Added Tax (15%) where applicable, and the full cost is shown before order confirmation.',
+          'All prices are shown in Saudi Riyals (﷼), and the full cost is shown before order confirmation. Where the establishment is VAT-registered, VAT (15%) is disclosed and added as required by law.',
           'We issue a tax invoice where required under ZATCA rules. Electronic payment gateways may be enabled, and some registrations may proceed by request without immediate payment at our discretion.',
         ],
       },
@@ -138,7 +138,7 @@ const PRIVACY: Record<'ar' | 'en', Doc> = {
     intro:
       'أُعدّت هذه السياسة وفق نظام حماية البيانات الشخصية (PDPL) في المملكة العربية السعودية، وتشرح كيف نجمع بياناتك ونعالجها ونحميها وننقلها عند استخدامك منصة Pioneers Health Research.',
     sections: [
-      { h: 'المتحكّم في البيانات', p: ['جهة التحكّم في بياناتك هي: [يُعبّأ: الاسم التجاري] — السجل التجاري: [يُعبّأ]. للتواصل بشأن الخصوصية: ' + EMAIL + '.'] },
+      { h: 'المتحكّم في البيانات', p: ['جهة التحكّم في بياناتك هي: بايونيرز للأبحاث الصحية (شركة ذات مسؤولية محدودة) — الرقم الموحّد للمنشأة: 7055175363. للتواصل بشأن الخصوصية: ' + EMAIL + '.'] },
       { h: 'البيانات التي نجمعها', p: ['بيانات الحساب (الاسم، البريد، اسم المستخدم، الهاتف)، وبيانات طلبات الخدمات والدورات، والمحتوى الذي ترفعه، وبيانات تقنية للاستخدام (نوع المتصفح وأوقات تسجيل الدخول).'] },
       { h: 'الأساس النظامي لمعالجة البيانات', p: ['نعالج بياناتك بناءً على موافقتك، وعلى ما تتطلبه تهيئة العقد وتقديم الخدمة، وعلى مصلحتنا المشروعة في تشغيل المنصة وتحسينها، والامتثال للأنظمة.'] },
       { h: 'أغراض الاستخدام', p: ['إنشاء حسابك وتقديم الخدمات، والتواصل بشأن طلباتك وحصصك، وإصدار الشهادات، وتحسين المنصة، والامتثال النظامي.'] },
@@ -162,7 +162,7 @@ const PRIVACY: Record<'ar' | 'en', Doc> = {
     intro:
       'This policy is prepared under the Saudi Personal Data Protection Law (PDPL) and explains how we collect, process, protect, and transfer your data when you use the Pioneers Health Research platform.',
     sections: [
-      { h: 'Data controller', p: ['The controller of your data is: [to fill: commercial name] — CR: [to fill]. Privacy contact: ' + EMAIL + '.'] },
+      { h: 'Data controller', p: ['The controller of your data is: Pioneers for Research LLC — Unified Establishment Number: 7055175363. Privacy contact: ' + EMAIL + '.'] },
       { h: 'Data we collect', p: ['Account data (name, email, username, phone), service/course request data, content you upload, and technical usage data (browser type, sign-in times).'] },
       { h: 'Lawful basis for processing', p: ['We process your data based on your consent, the necessity to form the contract and provide the service, our legitimate interest in operating and improving the Platform, and legal compliance.'] },
       { h: 'Purposes of use', p: ['To create your account and provide services, communicate about your requests and sessions, issue certificates, improve the Platform, and comply with the law.'] },
