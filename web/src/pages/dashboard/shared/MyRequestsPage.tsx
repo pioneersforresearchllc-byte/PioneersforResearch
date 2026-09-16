@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { listMyServiceRequests, markMyRequestsSeen, startServiceCheckout, type RequestStatus } from '@/lib/services'
+import { PAYMENTS_ENABLED } from '@/lib/config'
 import { validateDiscount, type DiscountPreview } from '@/lib/discounts'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
@@ -163,7 +164,13 @@ export function MyRequestsPage() {
               {t('adminRequests.deliveryBy')}: {r.delivery_date}
             </div>
 
-            {r.status === 'awaiting_payment' && r.final_price_cents != null && (
+            {!PAYMENTS_ENABLED && r.status === 'awaiting_payment' && (
+              <div className="rounded-lg bg-success/10 p-3.5 text-[13px] leading-6 text-success">
+                {t('myRequests.registeredNote')}
+              </div>
+            )}
+
+            {PAYMENTS_ENABLED && r.status === 'awaiting_payment' && r.final_price_cents != null && (
               <div className="rounded-lg bg-gold/10 p-3.5">
                 <div className="mb-2 text-[14px] text-navy">
                   {t('myRequests.amountDue')}:{' '}
