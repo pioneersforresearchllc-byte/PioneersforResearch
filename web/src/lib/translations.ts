@@ -731,6 +731,7 @@ export const translations = {
 
   'adminRequests.title': { ar: 'طلبات الخدمات', en: 'Service Requests' },
   'adminRequests.empty': { ar: 'لا توجد طلبات بعد.', en: 'No requests yet.' },
+  'adminRequests.approveActivate': { ar: 'موافقة وتفعيل (بدون دفع)', en: 'Approve & activate (no payment)' },
   'adminRequests.status.pending': { ar: 'جديد', en: 'New' },
   'adminRequests.status.awaiting_payment': { ar: 'بانتظار الدفع', en: 'Awaiting payment' },
   'adminRequests.status.paid': { ar: 'مدفوع', en: 'Paid' },

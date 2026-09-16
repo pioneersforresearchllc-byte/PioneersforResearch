@@ -17,6 +17,7 @@ import {
 } from '@/lib/services'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
+import { PAYMENTS_ENABLED } from '@/lib/config'
 
 // Before the customer pays, the owner prices/cancels; after payment they only
 // move the work forward. 'paid' itself is set by the Stripe webhook, never a
@@ -237,8 +238,10 @@ export function OwnerServiceRequestsPage() {
 
             {/* Pricing only matters before payment. A fixed-price package is
                 auto-priced and shown read-only; only custom packages are
-                priced manually by the owner. */}
-            {!isPaidPhase(r.status) &&
+                priced manually by the owner. Hidden entirely while online
+                payments are off. */}
+            {PAYMENTS_ENABLED &&
+              !isPaidPhase(r.status) &&
               (r.packagePriceCents != null && !r.packageIsCustom ? (
                 <div className="mb-3 rounded-lg bg-bg-soft p-3 text-[13px] text-navy">
                   {t('adminRequests.fixedPrice')}:{' '}
@@ -272,18 +275,31 @@ export function OwnerServiceRequestsPage() {
                   ))}
                 </>
               ) : (
-                PRE_PAYMENT_ACTIONS.map((s) => (
+                <>
+                  {/* Approve & activate without payment — moves the request
+                      straight to "in progress" so its workspace opens for the
+                      student, skipping the price/pay step. */}
                   <button
-                    key={s}
-                    onClick={() => void setStatus(r.id, s)}
-                    disabled={r.status === s}
-                    className={`rounded-md px-3 py-1.5 text-[12px] font-semibold ${
-                      r.status === s ? 'bg-navy text-white' : 'border border-border text-navy hover:border-navy'
-                    }`}
+                    onClick={() => void setStatus(r.id, 'in_progress')}
+                    className="rounded-md bg-success px-3.5 py-1.5 text-[12px] font-semibold text-white hover:opacity-90"
                   >
-                    {statusLabel(s)}
+                    ✓ {t('adminRequests.approveActivate')}
                   </button>
-                ))
+                  {(PAYMENTS_ENABLED ? PRE_PAYMENT_ACTIONS : PRE_PAYMENT_ACTIONS.filter((s) => s !== 'awaiting_payment')).map(
+                    (s) => (
+                      <button
+                        key={s}
+                        onClick={() => void setStatus(r.id, s)}
+                        disabled={r.status === s}
+                        className={`rounded-md px-3 py-1.5 text-[12px] font-semibold ${
+                          r.status === s ? 'bg-navy text-white' : 'border border-border text-navy hover:border-navy'
+                        }`}
+                      >
+                        {statusLabel(s)}
+                      </button>
+                    ),
+                  )}
+                </>
               )}
             </div>
 
