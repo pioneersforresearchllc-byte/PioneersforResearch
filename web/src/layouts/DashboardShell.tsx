@@ -4,6 +4,7 @@ import { useLanguage } from '@/lib/i18n'
 import type { translations } from '@/lib/translations'
 import { navIcon } from './navIcons'
 import { NotificationBell } from '@/components/NotificationBell'
+import { PageTransition } from '@/components/ui/motion'
 
 export interface DashboardTab {
   key: string
@@ -34,7 +35,7 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
 
   return (
     <div dir={dir} lang={lang} className="flex min-h-screen flex-col">
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border px-4 py-3.5 md:px-8 md:py-4">
+      <div className="glass elev-1 sticky top-0 z-30 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border/70 px-4 py-3.5 md:px-8 md:py-4">
         <div className="font-heading text-base font-bold text-navy md:text-lg">
           Pioneers Health Research{' '}
           <span className="block text-[12.5px] font-normal text-muted md:inline md:text-[13px]">— {t(subtitleKey)}</span>
@@ -63,7 +64,7 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
         </div>
       </div>
       <div className="flex flex-1 flex-col md:flex-row">
-        <div className="hidden w-[236px] shrink-0 flex-col gap-0.5 border-l border-border bg-white p-3 md:flex">
+        <div className="sticky top-[65px] hidden max-h-[calc(100vh-65px)] w-[236px] shrink-0 flex-col gap-0.5 self-start overflow-y-auto border-l border-border bg-white p-3 md:flex">
           {tabs.map((tab) => (
             <NavLink
               key={tab.key}
@@ -113,7 +114,9 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
         </div>
         <div className="flex-1 overflow-x-hidden bg-bg-soft px-4 py-5 md:px-10 md:py-8">
           <div className="mx-auto w-full max-w-6xl">
-            <Outlet />
+            <PageTransition>
+              <Outlet />
+            </PageTransition>
           </div>
         </div>
       </div>
