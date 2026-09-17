@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
@@ -6,6 +7,7 @@ import { getServicesActivity, listMyServiceWorkspaces } from '@/lib/serviceWorks
 import { ServiceWorkspace } from '@/components/ServiceWorkspace'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
+import { buttonClasses } from '@/components/ui/Button'
 
 const STATUS_STYLE: Record<string, string> = {
   paid: 'bg-success/10 text-success',
@@ -30,13 +32,25 @@ export function StudentServicesPage() {
     enabled: items.length > 0,
   })
 
+  const hasServices = items.length > 0
+
   return (
     <div>
-      <div className="mb-1 font-heading text-xl font-bold text-navy">{t('tab.myServices')}</div>
-      <p className="mb-5 text-[13px] text-muted">{t('myServices.subtitle')}</p>
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="mb-1 font-heading text-xl font-bold text-navy">{t('tab.myServices')}</div>
+          <p className="text-[13px] text-muted">{t('myServices.subtitle')}</p>
+        </div>
+        <Link to="/services" className={buttonClasses(hasServices ? 'outline' : 'primary', 'sm')}>
+          {hasServices ? t('myServices.browseMore') : t('myServices.subscribeCta')}
+          <span aria-hidden>←</span>
+        </Link>
+      </div>
 
       {isLoading && <LoadingState />}
-      {data && items.length === 0 && <EmptyState title={t('myServices.empty')} />}
+      {data && items.length === 0 && (
+        <EmptyState title={t('myServices.empty')} action={<Link to="/services" className={buttonClasses('primary', 'md')}>{t('myServices.subscribeCta')}</Link>} />
+      )}
 
       <div className="flex flex-col gap-3">
         {items.map((s) => {

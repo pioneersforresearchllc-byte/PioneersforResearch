@@ -245,7 +245,12 @@ export function ServiceDetailPage() {
         <p className="mb-8 text-[15.5px] leading-[2] text-muted-2">{description}</p>
 
         {/* DIRECT PRICE — for a service sold without packages */}
-        {service.packages.length === 0 && service.price_cents != null && (
+        {service.packages.length === 0 && service.hide_price && (
+          <div className="mb-8 rounded-xl border border-border bg-bg-soft/60 p-5 text-[15px] font-semibold text-muted">
+            {t('home.services.onRequest')}
+          </div>
+        )}
+        {service.packages.length === 0 && !service.hide_price && service.price_cents != null && (
           <div className="mb-8 flex flex-wrap items-baseline gap-3 rounded-xl border border-border bg-bg-soft/60 p-5">
             <span className="text-[13px] font-semibold text-muted">{t('service.price')}</span>
             {service.original_price_cents != null && service.original_price_cents > service.price_cents && (
@@ -274,7 +279,7 @@ export function ServiceDetailPage() {
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <span className="text-[15px] font-semibold text-navy">{pkgTitle(p)}</span>
                     <span className="flex shrink-0 items-baseline gap-2 text-[15px] font-bold text-navy">
-                      {p.is_custom || p.price_cents == null ? (
+                      {p.is_custom || p.price_cents == null || service.hide_price ? (
                         t('service.contactUs')
                       ) : (
                         <>

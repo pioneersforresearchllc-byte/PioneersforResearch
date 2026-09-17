@@ -50,6 +50,8 @@ export interface Service {
   // Direct price used when the service has no packages (nullable — 0055).
   price_cents: number | null
   original_price_cents: number | null
+  // When true, prices are hidden ("price on request") — 0058.
+  hide_price: boolean
   // Owner-defined custom request questions (0056). Null/empty → legacy form.
   questions: ServiceQuestion[] | null
   packages: ServicePackage[]
@@ -356,6 +358,7 @@ export async function updateService(
     original_price_cents?: number | null
     questions?: ServiceQuestion[] | null
     image_url?: string | null
+    hide_price?: boolean
   },
 ) {
   const { error } = await supabase.from('services').update(values).eq('id', id)

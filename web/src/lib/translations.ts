@@ -508,6 +508,8 @@ export const translations = {
     en: 'Your subscribed services — schedule, session times & links, and the tasks your mentor adds.',
   },
   'myServices.empty': { ar: 'لا توجد خدمات نشطة بعد. اشترك في خدمة لتظهر هنا.', en: 'No active services yet. Subscribe to a service to see it here.' },
+  'myServices.browseMore': { ar: 'تصفّح المزيد من الخدمات', en: 'Browse more services' },
+  'myServices.subscribeCta': { ar: 'اشترك في خدمة', en: 'Subscribe to a service' },
   'myServices.mentor': { ar: 'المشرف', en: 'Mentor' },
 
   'workspace.sessions': { ar: 'الجدول والحصص', en: 'Schedule & sessions' },
@@ -765,6 +767,7 @@ export const translations = {
   'home.services.cta': { ar: 'اطلب الخدمة', en: 'Request Service' },
   'home.services.from': { ar: 'تبدأ من', en: 'From' },
   'home.services.eyebrow': { ar: 'خدماتنا الاحترافية', en: 'OUR SERVICES' },
+  'home.services.onRequest': { ar: 'السعر عند الطلب', en: 'Price on request' },
 
   'service.notFound': { ar: 'الخدمة غير موجودة', en: 'Service not found' },
   'service.price': { ar: 'السعر', en: 'Price' },
@@ -859,6 +862,7 @@ export const translations = {
   'adminServices.saved': { ar: 'تم الحفظ', en: 'Saved' },
   'adminServices.create': { ar: 'إنشاء', en: 'Create' },
   'adminServices.image': { ar: 'صورة الخدمة', en: 'Service image' },
+  'adminServices.hidePrice': { ar: 'إخفاء السعر (يظهر «السعر عند الطلب»)', en: 'Hide price (show “price on request”)' },
   'adminServices.uploading': { ar: 'جارِ الرفع…', en: 'Uploading…' },
   'adminServices.removeImage': { ar: 'إزالة الصورة', en: 'Remove image' },
   'adminServices.addService': { ar: 'خدمة جديدة', en: 'New service' },

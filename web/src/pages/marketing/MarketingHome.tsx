@@ -252,7 +252,7 @@ export function ServicesSection() {
       {services && services.length > 0 ? (
         <div className="grid grid-cols-1 gap-6.5 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((s) => {
-            const info = priceInfo(s)
+            const info = s.hide_price ? null : priceInfo(s)
             const discounted = info && info.original != null && info.original > info.price
             const pct = discounted ? Math.round((1 - info!.price / info!.original!) * 100) : 0
             return (
@@ -279,13 +279,15 @@ export function ServicesSection() {
                   <p className="mb-4 flex-1 text-[14.5px] leading-[1.9] text-muted">
                     {lang === 'en' ? s.description_en || s.description : s.description}
                   </p>
-                  {info && (
+                  {s.hide_price ? (
+                    <div className="mb-4 text-[13px] font-medium text-muted">{t('home.services.onRequest')}</div>
+                  ) : info ? (
                     <div className="mb-4 flex items-baseline gap-2">
                       {info.from && <span className="text-[12.5px] text-muted">{t('home.services.from')}</span>}
                       {discounted && <span className="text-[13px] text-faint line-through">{formatSar(info.original!, t)}</span>}
                       <span className="text-[17px] font-bold text-navy">{formatSar(info.price, t)}</span>
                     </div>
-                  )}
+                  ) : null}
                   <Link
                     to={`/service/${s.slug}`}
                     className="flex w-full items-center justify-center gap-2 rounded-lg bg-navy py-2.75 text-center text-[13.5px] font-semibold text-white no-underline transition-colors hover:bg-navy-hover"

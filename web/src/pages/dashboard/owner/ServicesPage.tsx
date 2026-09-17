@@ -147,6 +147,7 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
   const [hidden, setHidden] = useState<string[]>(service.hidden_fields ?? [])
   const [questions, setQuestions] = useState<ServiceQuestion[]>(service.questions ?? [])
   const [imageUrl, setImageUrl] = useState<string | null>(service.image_url)
+  const [hidePrice, setHidePrice] = useState(service.hide_price)
   const [uploadingImg, setUploadingImg] = useState(false)
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -164,6 +165,7 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
     priceRiyal.trim() !== curPrice ||
     originalRiyal.trim() !== curOriginal ||
     imageUrl !== service.image_url ||
+    hidePrice !== service.hide_price ||
     JSON.stringify(questions) !== JSON.stringify(service.questions ?? []) ||
     sortedKey(hidden) !== sortedKey(service.hidden_fields ?? [])
 
@@ -211,6 +213,7 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
         price_cents: priceRiyal.trim() ? Math.round(Number(priceRiyal) * 100) : null,
         original_price_cents: originalRiyal.trim() ? Math.round(Number(originalRiyal) * 100) : null,
         image_url: imageUrl,
+        hide_price: hidePrice,
         questions: questions.filter((q) => q.label.trim()).length ? questions.filter((q) => q.label.trim()) : null,
       })
       await updateServiceHiddenFields(service.id, hidden)
@@ -283,6 +286,10 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
           </div>
         </div>
         <div className="mt-1 text-[11px] text-faint">{t('adminServices.directPriceHint')}</div>
+        <label className="mt-2 flex items-center gap-2 text-[12.5px] font-medium text-navy">
+          <input type="checkbox" checked={hidePrice} onChange={(e) => setHidePrice(e.target.checked)} className="h-4 w-4" />
+          {t('adminServices.hidePrice')}
+        </label>
       </div>
 
       <div className="mt-3">
