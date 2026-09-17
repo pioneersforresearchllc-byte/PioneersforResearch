@@ -6,6 +6,7 @@ import { useLanguage } from '@/lib/i18n'
 import { fetchSiteContent, resolveSocialLink } from '@/lib/content'
 import { AnnouncementPopup } from '@/components/AnnouncementPopup'
 import { PageTransition } from '@/components/ui/motion'
+import { buttonClasses } from '@/components/ui/Button'
 
 const dashboardPathFor = (role: string) =>
   role === 'student'
@@ -84,36 +85,20 @@ export function MarketingLayout() {
         {t('lang.toggle')}
       </button>
       {!isTeacherSession && (
-        <Link
-          to="/courses"
-          onClick={() => setMenuOpen(false)}
-          className="rounded-md border border-navy px-4 py-2 text-[13px] text-navy no-underline hover:bg-bg-soft"
-        >
+        <Link to="/courses" onClick={() => setMenuOpen(false)} className={buttonClasses('outline', 'sm')}>
           {t('nav.browseCourses')}
         </Link>
       )}
       {session && profile ? (
-        <Link
-          to={dashboardPathFor(profile.role)}
-          className="rounded-md border border-gold bg-gold px-5.5 py-2.5 text-sm text-white no-underline hover:bg-gold-hover"
-          onClick={() => setMenuOpen(false)}
-        >
+        <Link to={dashboardPathFor(profile.role)} className={buttonClasses('gold', 'sm')} onClick={() => setMenuOpen(false)}>
           {t('nav.backToDashboard')}
         </Link>
       ) : (
         <>
-          <Link
-            to="/login"
-            className="rounded-md border border-navy px-5.5 py-2.5 text-sm text-navy no-underline hover:bg-bg-soft"
-            onClick={() => setMenuOpen(false)}
-          >
+          <Link to="/login" className={buttonClasses('outline', 'sm')} onClick={() => setMenuOpen(false)}>
             {t('nav.login')}
           </Link>
-          <Link
-            to="/register"
-            className="rounded-md border border-navy bg-navy px-5.5 py-2.5 text-sm text-white no-underline hover:bg-navy-hover"
-            onClick={() => setMenuOpen(false)}
-          >
+          <Link to="/register" className={buttonClasses('primary', 'sm')} onClick={() => setMenuOpen(false)}>
             {t('nav.register')}
           </Link>
         </>

@@ -358,7 +358,7 @@ export function CourseDetailPage() {
                   <button
                     onClick={() => void subscribe()}
                     disabled={enrollBusy || isFull}
-                    className="w-full rounded-md bg-navy py-4 text-[15px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+                    className="btn-sheen w-full rounded-xl bg-navy py-4 text-[15px] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(11,31,58,0.6)] transition-all hover:bg-navy-hover active:scale-[0.98] disabled:opacity-50"
                   >
                     {isFull
                       ? t('course.full')
