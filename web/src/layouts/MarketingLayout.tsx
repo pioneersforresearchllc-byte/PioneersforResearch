@@ -185,9 +185,6 @@ export function MarketingLayout() {
           <Link to="/privacy" className="text-muted no-underline hover:text-navy">
             {t('footer.privacy')}
           </Link>
-          <Link to="/owner-login" className="text-[#9aa6b5] no-underline">
-            {t('footer.adminPortal')}
-          </Link>
         </span>
       </div>
     </div>
