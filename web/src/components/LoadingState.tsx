@@ -1,11 +1,14 @@
+import { LogoLoader } from '@/components/LogoLoader'
+
 /**
- * Centered spinner for lists/pages while their data loads.
+ * Centered branded loader for lists/pages while their data loads — the logo
+ * fills with its colour so a fetch in flight reads as intentional, not broken.
+ * Unified across the app (see LogoLoader).
  */
 export function LoadingState({ label }: { label?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-      <Spinner />
-      {label && <div className="text-[13px] text-muted">{label}</div>}
+    <div className="py-12">
+      <LogoLoader size={60} label={label} />
     </div>
   )
 }

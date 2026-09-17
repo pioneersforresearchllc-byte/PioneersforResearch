@@ -5,15 +5,10 @@
     <link rel="icon" type="image/png" href="/favicon.png?v=2" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
-    <!-- PWA: installable app + home-screen icon -->
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- Not an installable app: no web manifest / standalone meta, so browsers
+         never offer "Install app". A service worker is still registered for
+         web-push notifications only. -->
     <meta name="theme-color" content="#0b1f3a" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Pioneers" />
-    <meta name="application-name" content="Pioneers" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -31,7 +26,7 @@
       name="keywords"
       content="البحث العلمي, تدريب على البحث, منهجية البحث, التحليل الإحصائي, النشر العلمي, دورات بحثية, استشارات بحثية, إشراف بحثي, بحث طبي, Pioneers Health Research, pioneersresearch"
     />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="author" content="Pioneers Health Research" />
     <link rel="canonical" href="https://pioneersresearch.com/" />
 
@@ -59,24 +54,79 @@
     />
     <meta name="twitter:image" content="https://pioneersresearch.com/og-image.png" />
 
-    <!-- Structured data: helps Google show a rich, branded result -->
+    <!-- Structured data: helps Google show a rich, branded result and connect
+         the brand name to this site. Add your real social URLs to "sameAs". -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "EducationalOrganization",
-        "name": "Pioneers Health Research",
-        "alternateName": "بيونيرز للأبحاث الصحية",
-        "url": "https://pioneersresearch.com/",
-        "logo": "https://pioneersresearch.com/pwa-512.png",
-        "image": "https://pioneersresearch.com/og-image.png",
-        "description": "تدريب وإشراف أكاديمي على البحث العلمي من صياغة السؤال البحثي حتى النشر، مع دورات معتمدة وخدمات بحثية وشهادات موثّقة.",
-        "email": "pioneersforresearchllc@gmail.com",
-        "sameAs": []
+        "@graph": [
+          {
+            "@type": ["EducationalOrganization", "ProfessionalService"],
+            "@id": "https://pioneersresearch.com/#organization",
+            "name": "Pioneers Health Research",
+            "alternateName": [
+              "Pioneers Research",
+              "Pioneers Health Research Consulting",
+              "بيونيرز للأبحاث الصحية",
+              "بايونيرز للأبحاث الصحية"
+            ],
+            "url": "https://pioneersresearch.com/",
+            "logo": "https://pioneersresearch.com/pwa-512.png",
+            "image": "https://pioneersresearch.com/og-image.png",
+            "email": "pioneersforresearchllc@gmail.com",
+            "description": "تدريب وإشراف أكاديمي على البحث العلمي من صياغة السؤال البحثي حتى النشر، مع دورات معتمدة وخدمات بحثية وشهادات موثّقة.",
+            "areaServed": "SA",
+            "knowsLanguage": ["ar", "en"],
+            "sameAs": []
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://pioneersresearch.com/#website",
+            "url": "https://pioneersresearch.com/",
+            "name": "Pioneers Health Research",
+            "alternateName": ["Pioneers Research", "بيونيرز للأبحاث الصحية"],
+            "inLanguage": "ar",
+            "publisher": { "@id": "https://pioneersresearch.com/#organization" }
+          }
+        ]
       }
     </script>
+
+    <!-- Branded first-paint splash: the logo fills with liquid until the app
+         mounts (React replaces #root's contents, removing it). -->
+    <style>
+      #app-splash { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #fff; z-index: 9999; }
+      #app-splash .asp-box { position: relative; width: 104px; height: 104px; animation: asp-pulse 2s ease-in-out infinite; }
+      #app-splash .asp-logo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+      #app-splash .asp-jar { position: absolute; inset: 0; overflow: hidden; opacity: .55; -webkit-mask: url(/logo.png) center/contain no-repeat; mask: url(/logo.png) center/contain no-repeat; }
+      #app-splash .asp-water { position: absolute; left: 0; right: 0; bottom: 0; height: 8%; background: linear-gradient(180deg, #e6c476, #c9a24b 48%, #17406f); animation: asp-fill 2.9s cubic-bezier(.45,0,.25,1) infinite alternate; }
+      #app-splash .asp-water::before, #app-splash .asp-water::after { content: ""; position: absolute; left: 50%; top: 0; width: 200%; height: 200%; transform: translate(-50%, -75%); }
+      #app-splash .asp-water::before { background: #c9a24b; border-radius: 41%; animation: asp-swirl 6s linear infinite; }
+      #app-splash .asp-water::after { background: rgba(230,196,118,.55); border-radius: 46%; animation: asp-swirl 10s linear infinite reverse; }
+      @keyframes asp-fill { 0% { height: 8%; } 100% { height: 100%; } }
+      @keyframes asp-swirl { to { transform: translate(-50%, -75%) rotate(360deg); } }
+      @keyframes asp-pulse { 0%, 100% { opacity: .92; } 50% { opacity: 1; } }
+      @media (prefers-reduced-motion: reduce) { #app-splash .asp-water, #app-splash .asp-water::before, #app-splash .asp-water::after, #app-splash .asp-box { animation: none; } #app-splash .asp-water { height: 100%; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="app-splash">
+        <div class="asp-box">
+          <img class="asp-logo" src="/logo.png" alt="Pioneers Health Research" />
+          <div class="asp-jar"><div class="asp-water"></div></div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Failsafe: the app normally replaces #root (removing the splash) the
+      // moment it mounts. This inline script runs even if the module bundle
+      // fails to load, so a visitor is never left stuck on the splash.
+      setTimeout(function () {
+        var s = document.getElementById('app-splash')
+        if (s) { s.style.transition = 'opacity .3s'; s.style.opacity = '0'; setTimeout(function () { if (s && s.parentNode) s.parentNode.removeChild(s) }, 350) }
+      }, 6000)
+    </script>
   </body>
 </html>
