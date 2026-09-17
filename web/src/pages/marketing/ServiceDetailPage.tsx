@@ -7,7 +7,9 @@ import {
   getServiceBySlug,
   submitServiceRequest,
   uploadRequestFile,
+  type CustomAnswer,
   type ServicePackage,
+  type ServiceQuestion,
 } from '@/lib/services'
 
 const MAX_FILE_BYTES = 20 * 1024 * 1024
@@ -76,6 +78,8 @@ export function ServiceDetailPage() {
   const [referenceFile, setReferenceFile] = useState<File | null>(null)
   const [deliveryDate, setDeliveryDate] = useState('')
   const [software, setSoftware] = useState('')
+  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [qFiles, setQFiles] = useState<Record<string, File | null>>({})
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -102,6 +106,11 @@ export function ServiceDetailPage() {
   const pkgTitle = (p: ServicePackage) => (lang === 'en' ? p.title_en || p.title : p.title)
   const pkgDesc = (p: ServicePackage) => (lang === 'en' ? p.description_en || p.description : p.description)
 
+  const questions = service.questions ?? []
+  const hasCustom = questions.length > 0
+  const qLabel = (q: ServiceQuestion) => (lang === 'en' ? q.label_en || q.label : q.label)
+  const qOptions = (q: ServiceQuestion) => (lang === 'en' && q.options_en?.length ? q.options_en : q.options ?? [])
+
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
@@ -114,32 +123,71 @@ export function ServiceDetailPage() {
       setError(t('service.errSubject'))
       return
     }
-    if (showField('quantity') && (!quantity.trim() || Number.isNaN(Number(quantity)))) {
-      setError(t('service.errQuantity'))
-      return
-    }
-    // Either ready content to format, or a written brief — one is enough.
-    if (!contentText.trim() && !contentFile) {
-      setError(t('service.errContent'))
-      return
-    }
     if (!deliveryDate) {
       setError(t('service.errDate'))
       return
     }
-    for (const f of [contentFile, referenceFile]) {
-      if (f && f.size > MAX_FILE_BYTES) {
-        setError(t('service.errFileSize'))
+
+    if (hasCustom) {
+      for (const q of questions) {
+        if (!q.required) continue
+        const missing = q.type === 'file' ? !qFiles[q.id] : !(answers[q.id] ?? '').trim()
+        if (missing) {
+          setError(t('service.errRequiredQ', { label: qLabel(q) }))
+          return
+        }
+      }
+      for (const q of questions) {
+        const f = qFiles[q.id]
+        if (f && f.size > MAX_FILE_BYTES) {
+          setError(t('service.errFileSize'))
+          return
+        }
+      }
+    } else {
+      if (showField('quantity') && (!quantity.trim() || Number.isNaN(Number(quantity)))) {
+        setError(t('service.errQuantity'))
         return
+      }
+      // Either ready content to format, or a written brief — one is enough.
+      if (!contentText.trim() && !contentFile) {
+        setError(t('service.errContent'))
+        return
+      }
+      for (const f of [contentFile, referenceFile]) {
+        if (f && f.size > MAX_FILE_BYTES) {
+          setError(t('service.errFileSize'))
+          return
+        }
       }
     }
 
     setBusy(true)
     try {
-      const [contentPath, referencePath] = await Promise.all([
-        contentFile ? uploadRequestFile(contentFile) : Promise.resolve(null),
-        referenceFile ? uploadRequestFile(referenceFile) : Promise.resolve(null),
-      ])
+      let contentPath: string | null = null
+      let referencePath: string | null = null
+      let customAnswers: CustomAnswer[] | null = null
+
+      if (hasCustom) {
+        customAnswers = []
+        for (const q of questions) {
+          if (q.type === 'file') {
+            const f = qFiles[q.id]
+            if (f) {
+              const path = await uploadRequestFile(f)
+              customAnswers.push({ label: q.label, label_en: q.label_en ?? null, type: q.type, value: path, fileName: f.name })
+            }
+          } else {
+            const v = (answers[q.id] ?? '').trim()
+            if (v) customAnswers.push({ label: q.label, label_en: q.label_en ?? null, type: q.type, value: v })
+          }
+        }
+      } else {
+        ;[contentPath, referencePath] = await Promise.all([
+          contentFile ? uploadRequestFile(contentFile) : Promise.resolve(null),
+          referenceFile ? uploadRequestFile(referenceFile) : Promise.resolve(null),
+        ])
+      }
 
       await submitServiceRequest({
         service_id: service.id,
@@ -150,17 +198,18 @@ export function ServiceDetailPage() {
         email: email.trim(),
         phone: phone.trim(),
         subject: subject.trim(),
-        purpose: purpose.trim() || null,
-        target_audience: audience.trim() || null,
-        quantity: showField('quantity') ? Number(quantity) : null,
-        language,
-        content_text: contentText.trim() || null,
+        purpose: hasCustom ? null : purpose.trim() || null,
+        target_audience: hasCustom ? null : audience.trim() || null,
+        quantity: !hasCustom && showField('quantity') ? Number(quantity) : null,
+        language: hasCustom ? null : language,
+        content_text: hasCustom ? null : contentText.trim() || null,
         content_file_url: contentPath,
-        brand_colors: brandColors.trim() || null,
-        reference_url: referenceUrl.trim() || null,
+        brand_colors: hasCustom ? null : brandColors.trim() || null,
+        reference_url: hasCustom ? null : referenceUrl.trim() || null,
         reference_file_url: referencePath,
         delivery_date: deliveryDate,
-        details: software ? { software } : {},
+        details: !hasCustom && software ? { software } : {},
+        custom_answers: customAnswers,
       })
       setSubmitted(true)
     } catch (err) {
@@ -292,6 +341,43 @@ export function ServiceDetailPage() {
             <input value={subject} onChange={(e) => setSubject(e.target.value)} className={inputClass} />
           </div>
 
+          {/* CUSTOM QUESTIONS — when the owner has defined them for this service */}
+          {hasCustom &&
+            questions.map((q) => (
+              <div key={q.id} className="mb-3">
+                <label className={labelClass}>
+                  {qLabel(q)} {q.required && '*'}
+                </label>
+                {q.type === 'long' ? (
+                  <textarea
+                    value={answers[q.id] ?? ''}
+                    onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                    rows={4}
+                    className={`${inputClass} resize-y font-[inherit]`}
+                  />
+                ) : q.type === 'number' ? (
+                  <input type="number" value={answers[q.id] ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))} className={inputClass} />
+                ) : q.type === 'date' ? (
+                  <input type="date" value={answers[q.id] ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))} className={inputClass} />
+                ) : q.type === 'select' ? (
+                  <select value={answers[q.id] ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))} className={inputClass}>
+                    <option value="">—</option>
+                    {qOptions(q).map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                ) : q.type === 'file' ? (
+                  <input type="file" onChange={(e) => setQFiles((f) => ({ ...f, [q.id]: e.target.files?.[0] ?? null }))} className="text-[13px]" />
+                ) : (
+                  <input value={answers[q.id] ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))} className={inputClass} />
+                )}
+              </div>
+            ))}
+
+          {!hasCustom && (
+          <>
           {(showField('purpose') || (layout.showTargetAudience && showField('audience'))) && (
             <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {showField('purpose') && (
@@ -411,6 +497,8 @@ export function ServiceDetailPage() {
               </>
             )}
           </div>
+          </>
+          )}
 
           <div className="mb-5">
             <label className={labelClass}>{t('service.deliveryDate')} *</label>

@@ -200,6 +200,23 @@ function StudentDetail({
         {r.details?.software && <Field label={t('service.software')} value={r.details.software} />}
       </div>
 
+      {r.custom_answers && r.custom_answers.length > 0 && (
+        <div className="mb-3 flex flex-col gap-1.5 rounded-md bg-bg-soft p-3 text-[13px]">
+          {r.custom_answers.map((a, i) => (
+            <div key={i}>
+              <span className="font-semibold text-muted">{a.label}: </span>
+              {a.type === 'file' ? (
+                <button onClick={() => onOpenFile(a.value)} className="text-navy underline underline-offset-2">
+                  {a.fileName || t('adminRequests.openFile')}
+                </button>
+              ) : (
+                <span className="whitespace-pre-wrap text-navy">{a.value}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       {r.content_text && (
         <div className="mb-3 whitespace-pre-wrap rounded-md bg-bg-soft p-3 text-[13px] leading-7 text-muted-2">{r.content_text}</div>
       )}

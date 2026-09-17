@@ -14,6 +14,28 @@ export interface ServicePackage {
   sort_order: number
 }
 
+export type QuestionType = 'short' | 'long' | 'number' | 'select' | 'date' | 'file'
+
+/** An owner-defined question on a service's request form (0056). */
+export interface ServiceQuestion {
+  id: string
+  label: string
+  label_en?: string | null
+  type: QuestionType
+  options?: string[]
+  options_en?: string[]
+  required?: boolean
+}
+
+/** A visitor's answer, denormalised onto the request so it's self-describing. */
+export interface CustomAnswer {
+  label: string
+  label_en?: string | null
+  type: QuestionType
+  value: string
+  fileName?: string | null
+}
+
 export interface Service {
   id: string
   slug: string
@@ -28,6 +50,8 @@ export interface Service {
   // Direct price used when the service has no packages (nullable — 0055).
   price_cents: number | null
   original_price_cents: number | null
+  // Owner-defined custom request questions (0056). Null/empty → legacy form.
+  questions: ServiceQuestion[] | null
   packages: ServicePackage[]
 }
 
@@ -124,6 +148,7 @@ export interface ServiceRequestInput {
   reference_file_url: string | null
   delivery_date: string
   details: Record<string, string>
+  custom_answers?: CustomAnswer[] | null
 }
 
 export async function submitServiceRequest(input: ServiceRequestInput) {
@@ -329,6 +354,7 @@ export async function updateService(
     description_en: string | null
     price_cents?: number | null
     original_price_cents?: number | null
+    questions?: ServiceQuestion[] | null
   },
 ) {
   const { error } = await supabase.from('services').update(values).eq('id', id)

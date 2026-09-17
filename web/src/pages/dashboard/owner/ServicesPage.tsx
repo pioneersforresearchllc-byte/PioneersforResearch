@@ -13,8 +13,100 @@ import {
   TOGGLEABLE_SERVICE_FIELDS,
   type Service,
   type ServicePackage,
+  type ServiceQuestion,
+  type QuestionType,
 } from '@/lib/services'
 import { LoadingState } from '@/components/LoadingState'
+
+const QUESTION_TYPES: QuestionType[] = ['short', 'long', 'number', 'select', 'date', 'file']
+
+function genQid(): string {
+  return `q_${Math.random().toString(36).slice(2, 8)}`
+}
+
+/** Owner tool: build the custom questions a service's request form asks. */
+function QuestionsEditor({ value, onChange }: { value: ServiceQuestion[]; onChange: (q: ServiceQuestion[]) => void }) {
+  const { t } = useLanguage()
+  const update = (i: number, patch: Partial<ServiceQuestion>) =>
+    onChange(value.map((q, idx) => (idx === i ? { ...q, ...patch } : q)))
+  const remove = (i: number) => onChange(value.filter((_, idx) => idx !== i))
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir
+    if (j < 0 || j >= value.length) return
+    const next = [...value]
+    ;[next[i], next[j]] = [next[j], next[i]]
+    onChange(next)
+  }
+  const add = () => onChange([...value, { id: genQid(), label: '', type: 'short', required: false }])
+
+  return (
+    <div className="mt-3 rounded-lg border border-dashed border-border-2 bg-bg-soft/60 p-3">
+      <div className="mb-2 text-[11.5px] font-semibold text-muted">{t('adminServices.questionsBuilder')}</div>
+      <div className="mb-1.5 text-[11px] text-faint">{t('adminServices.questionsBuilderHint')}</div>
+
+      <div className="flex flex-col gap-2.5">
+        {value.map((q, i) => (
+          <div key={q.id} className="rounded-lg border border-border bg-white p-2.5">
+            <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <input
+                value={q.label}
+                onChange={(e) => update(i, { label: e.target.value })}
+                placeholder={t('adminServices.qLabelPh')}
+                className={inputClass}
+              />
+              <input
+                value={q.label_en ?? ''}
+                onChange={(e) => update(i, { label_en: e.target.value })}
+                dir="ltr"
+                placeholder={t('adminServices.qLabelEnPh')}
+                className={inputClass}
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <select value={q.type} onChange={(e) => update(i, { type: e.target.value as QuestionType })} className="rounded-md border border-border px-2 py-1.5 text-[12.5px]">
+                {QUESTION_TYPES.map((tp) => (
+                  <option key={tp} value={tp}>
+                    {t(`adminServices.qType.${tp}` as 'adminServices.qType.short')}
+                  </option>
+                ))}
+              </select>
+              <label className="flex items-center gap-1.5 text-[12px] text-navy">
+                <input type="checkbox" checked={!!q.required} onChange={(e) => update(i, { required: e.target.checked })} className="h-3.5 w-3.5" />
+                {t('adminServices.qRequired')}
+              </label>
+              <div className="ms-auto flex items-center gap-1">
+                <button onClick={() => move(i, -1)} disabled={i === 0} className="rounded px-1.5 text-[13px] text-muted hover:text-navy disabled:opacity-30">↑</button>
+                <button onClick={() => move(i, 1)} disabled={i === value.length - 1} className="rounded px-1.5 text-[13px] text-muted hover:text-navy disabled:opacity-30">↓</button>
+                <button onClick={() => remove(i)} className="rounded px-1.5 text-[13px] text-faint hover:text-error">🗑</button>
+              </div>
+            </div>
+            {q.type === 'select' && (
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <input
+                  value={(q.options ?? []).join('، ')}
+                  onChange={(e) => update(i, { options: e.target.value.split(/[،,]/).map((x) => x.trim()).filter(Boolean) })}
+                  placeholder={t('adminServices.qOptionsPh')}
+                  className={inputClass}
+                />
+                <input
+                  value={(q.options_en ?? []).join(', ')}
+                  onChange={(e) => update(i, { options_en: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) })}
+                  dir="ltr"
+                  placeholder={t('adminServices.qOptionsEnPh')}
+                  className={inputClass}
+                />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <button onClick={add} className="mt-2.5 rounded-md border border-navy/50 px-3 py-1.5 text-[12px] font-semibold text-navy hover:bg-white">
+        + {t('adminServices.addQuestion')}
+      </button>
+    </div>
+  )
+}
 
 const inputClass = 'w-full box-border rounded-md border border-border px-3 py-2 text-[13.5px]'
 
@@ -30,6 +122,7 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
     service.original_price_cents != null ? String(service.original_price_cents / 100) : '',
   )
   const [hidden, setHidden] = useState<string[]>(service.hidden_fields ?? [])
+  const [questions, setQuestions] = useState<ServiceQuestion[]>(service.questions ?? [])
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
@@ -45,6 +138,7 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
     (descEn.trim() || '') !== (service.description_en ?? '') ||
     priceRiyal.trim() !== curPrice ||
     originalRiyal.trim() !== curOriginal ||
+    JSON.stringify(questions) !== JSON.stringify(service.questions ?? []) ||
     sortedKey(hidden) !== sortedKey(service.hidden_fields ?? [])
 
   const toggleField = (k: string) =>
@@ -78,6 +172,7 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
         description_en: descEn.trim() || null,
         price_cents: priceRiyal.trim() ? Math.round(Number(priceRiyal) * 100) : null,
         original_price_cents: originalRiyal.trim() ? Math.round(Number(originalRiyal) * 100) : null,
+        questions: questions.filter((q) => q.label.trim()).length ? questions.filter((q) => q.label.trim()) : null,
       })
       await updateServiceHiddenFields(service.id, hidden)
       setSaved(true)
@@ -140,6 +235,8 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
         </div>
         <div className="mt-1 text-[11px] text-faint">{t('adminServices.questionsHint')}</div>
       </div>
+
+      <QuestionsEditor value={questions} onChange={setQuestions} />
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
         <span className="text-[12px] text-faint">/{service.slug}</span>
