@@ -194,7 +194,19 @@ export function ServiceDetailPage() {
         <h1 className="font-heading mb-3 text-[26px] font-bold text-navy">{title}</h1>
         <p className="mb-8 text-[15.5px] leading-[2] text-muted-2">{description}</p>
 
+        {/* DIRECT PRICE — for a service sold without packages */}
+        {service.packages.length === 0 && service.price_cents != null && (
+          <div className="mb-8 flex flex-wrap items-baseline gap-3 rounded-xl border border-border bg-bg-soft/60 p-5">
+            <span className="text-[13px] font-semibold text-muted">{t('service.price')}</span>
+            {service.original_price_cents != null && service.original_price_cents > service.price_cents && (
+              <span className="text-[15px] text-faint line-through">{formatSar(service.original_price_cents, t('course.currency'))}</span>
+            )}
+            <span className="text-[22px] font-bold text-navy">{formatSar(service.price_cents, t('course.currency'))}</span>
+          </div>
+        )}
+
         {/* PACKAGES */}
+        {service.packages.length > 0 && (
         <div className="mb-8">
           <div className="mb-3.5 font-heading text-lg font-bold text-navy">{t('service.choosePackage')}</div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -232,6 +244,7 @@ export function ServiceDetailPage() {
             })}
           </div>
         </div>
+        )}
 
         {/* REQUEST FORM — sign-in only, matching the insert policy on
             service_requests (the DB is the real gate; this is just so a

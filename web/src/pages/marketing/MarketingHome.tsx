@@ -233,53 +233,67 @@ export function ServicesSection() {
   const ct = useContentText()
   const { data: services } = useQuery({ queryKey: ['marketing-services'], queryFn: listServices })
 
-  const fromPrice = (s: Service) => {
+  // Fixed-price packages give a "from" price; otherwise the service's own
+  // direct price is shown (with a struck-through original when discounted).
+  const priceInfo = (s: Service) => {
     const prices = s.packages.filter((p) => !p.is_custom && p.price_cents != null).map((p) => p.price_cents!)
-    return prices.length > 0 ? Math.min(...prices) : null
+    if (prices.length > 0) return { from: true, price: Math.min(...prices), original: null as number | null }
+    if (s.price_cents != null) return { from: false, price: s.price_cents, original: s.original_price_cents }
+    return null
   }
 
   return (
     <div id="services" className="px-4 py-12 md:px-16 md:py-20">
       <div className="mb-12.5 text-center">
+        <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-accent">{t('home.services.eyebrow')}</div>
         <h2 className="font-heading text-2xl font-bold md:text-[30px]">{ct('home.services.title')}</h2>
       </div>
       {services && services.length > 0 ? (
         <div className="grid grid-cols-1 gap-6.5 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((s) => {
-            const min = fromPrice(s)
+            const info = priceInfo(s)
+            const discounted = info && info.original != null && info.original > info.price
+            const pct = discounted ? Math.round((1 - info!.price / info!.original!) * 100) : 0
             return (
-              <div
+              <Reveal
                 key={s.id}
-                className="flex flex-col overflow-hidden rounded-[10px] border border-border bg-white transition-all duration-200 hover:-translate-y-1 hover:border-navy hover:shadow-[0_14px_32px_rgba(11,31,58,0.12)]"
+                className="group flex flex-col overflow-hidden rounded-[14px] border border-border bg-white transition-all duration-300 hover:-translate-y-1.5 hover:border-navy hover:shadow-[0_18px_40px_rgba(11,31,58,0.14)]"
               >
-                {s.image_url ? (
-                  <img src={s.image_url} className="aspect-[1.9] w-full object-cover" alt="" />
-                ) : (
-                  <div className="flex aspect-[1.9] w-full items-center justify-center bg-gradient-to-br from-[#14335c] to-[#1f8a5b] text-[38px]">
-                    🧩
-                  </div>
-                )}
-                <div className="flex flex-1 flex-col p-7">
-                <h3 className="mb-3 text-lg text-navy">{lang === 'en' ? s.title_en || s.title : s.title}</h3>
-                <p className="mb-4 flex-1 text-[14.5px] leading-[1.9] text-muted">
-                  {lang === 'en' ? s.description_en || s.description : s.description}
-                </p>
-                {min != null && (
-                  <div className="mb-4 text-[13px] text-muted">
-                    {t('home.services.from')}{' '}
-                    <span className="text-[15px] font-bold text-navy">
-                      {(min / 100).toLocaleString('ar-SA')} {t('course.currency')}
+                <div className="relative">
+                  {s.image_url ? (
+                    <img src={s.image_url} className="aspect-[1.9] w-full object-cover transition-transform duration-500 group-hover:scale-105" alt="" />
+                  ) : (
+                    <div className="flex aspect-[1.9] w-full items-center justify-center bg-gradient-to-br from-[#14335c] to-[#1f8a5b] text-[38px] transition-transform duration-500 group-hover:scale-105">
+                      🧩
+                    </div>
+                  )}
+                  {discounted && (
+                    <span className="absolute end-3 top-3 rounded-full bg-gold px-2.5 py-1 text-[11px] font-bold text-white shadow-md">
+                      −{pct}%
                     </span>
-                  </div>
-                )}
-                <Link
-                  to={`/service/${s.slug}`}
-                  className="block w-full rounded-md bg-navy py-2.75 text-center text-[13.5px] font-semibold text-white no-underline hover:bg-navy-hover"
-                >
-                  {t('home.services.cta')}
-                </Link>
+                  )}
                 </div>
-              </div>
+                <div className="flex flex-1 flex-col p-7">
+                  <h3 className="mb-3 text-lg font-semibold text-navy">{lang === 'en' ? s.title_en || s.title : s.title}</h3>
+                  <p className="mb-4 flex-1 text-[14.5px] leading-[1.9] text-muted">
+                    {lang === 'en' ? s.description_en || s.description : s.description}
+                  </p>
+                  {info && (
+                    <div className="mb-4 flex items-baseline gap-2">
+                      {info.from && <span className="text-[12.5px] text-muted">{t('home.services.from')}</span>}
+                      {discounted && <span className="text-[13px] text-faint line-through">{formatSar(info.original!, t)}</span>}
+                      <span className="text-[17px] font-bold text-navy">{formatSar(info.price, t)}</span>
+                    </div>
+                  )}
+                  <Link
+                    to={`/service/${s.slug}`}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-navy py-2.75 text-center text-[13.5px] font-semibold text-white no-underline transition-colors hover:bg-navy-hover"
+                  >
+                    {t('home.services.cta')}
+                    <span className="transition-transform duration-200 group-hover:translate-x-1 rtl:group-hover:-translate-x-1">←</span>
+                  </Link>
+                </div>
+              </Reveal>
             )
           })}
         </div>
@@ -388,6 +402,9 @@ export function MarketingHome() {
       {/* WHO WE SERVE — individuals & institutions */}
       {!isTeacherSession && <AudienceSection />}
 
+      {/* SERVICES — shown first (before courses) */}
+      {!isTeacherSession && <ServicesSection />}
+
       {/* COURSES */}
       {!isTeacherSession && (
         <OfferingSection
@@ -400,9 +417,6 @@ export function MarketingHome() {
           items={(courses ?? []).filter((c) => c.kind === 'course')}
         />
       )}
-
-      {/* SERVICES */}
-      {!isTeacherSession && <ServicesSection />}
 
       {/* RESOURCES */}
       <div id="resources" className="px-4 py-12 md:px-16 md:py-20">

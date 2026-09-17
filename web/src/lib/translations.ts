@@ -705,8 +705,10 @@ export const translations = {
   'home.services.empty': { ar: 'لا توجد خدمات متاحة حاليًا.', en: 'No services available right now.' },
   'home.services.cta': { ar: 'اطلب الخدمة', en: 'Request Service' },
   'home.services.from': { ar: 'تبدأ من', en: 'From' },
+  'home.services.eyebrow': { ar: 'خدماتنا الاحترافية', en: 'OUR SERVICES' },
 
   'service.notFound': { ar: 'الخدمة غير موجودة', en: 'Service not found' },
+  'service.price': { ar: 'السعر', en: 'Price' },
   'service.back': { ar: '→ رجوع للخدمات', en: '→ Back to Services' },
   'service.choosePackage': { ar: 'اختر الباقة', en: 'Choose a package' },
   'service.contactUs': { ar: 'تواصل معنا', en: 'Contact us' },
@@ -795,6 +797,20 @@ export const translations = {
   'adminServices.custom': { ar: 'تواصل معنا (بدون سعر ثابت)', en: 'Contact us (no fixed price)' },
   'adminServices.save': { ar: 'حفظ', en: 'Save' },
   'adminServices.saved': { ar: 'تم الحفظ', en: 'Saved' },
+  'adminServices.create': { ar: 'إنشاء', en: 'Create' },
+  'adminServices.addService': { ar: 'خدمة جديدة', en: 'New service' },
+  'adminServices.addPackage': { ar: 'إضافة باقة', en: 'Add package' },
+  'adminServices.deleteService': { ar: 'حذف الخدمة', en: 'Delete service' },
+  'adminServices.confirmDeleteService': { ar: 'حذف الخدمة وكل باقاتها؟', en: 'Delete the service and all its packages?' },
+  'adminServices.noPackages': {
+    ar: 'لا باقات — ستُباع الخدمة بالسعر المباشر أعلاه. أضِف باقات إن أردت خيارات متعددة.',
+    en: 'No packages — the service is sold at the direct price above. Add packages for multiple options.',
+  },
+  'adminServices.directPrice': { ar: 'السعر المباشر (يُستخدم إن لم تضف باقات)', en: 'Direct price (used when there are no packages)' },
+  'adminServices.directPriceHint': {
+    ar: 'يظهر هذا السعر على البطاقة وصفحة الخدمة عندما لا توجد باقات.',
+    en: 'Shown on the card and service page when the service has no packages.',
+  },
 
   'adminRequests.title': { ar: 'طلبات الخدمات', en: 'Service Requests' },
   'adminRequests.empty': { ar: 'لا توجد طلبات بعد.', en: 'No requests yet.' },

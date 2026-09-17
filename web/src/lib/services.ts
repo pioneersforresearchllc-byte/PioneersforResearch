@@ -25,6 +25,9 @@ export interface Service {
   active: boolean
   sort_order: number
   hidden_fields: string[]
+  // Direct price used when the service has no packages (nullable — 0055).
+  price_cents: number | null
+  original_price_cents: number | null
   packages: ServicePackage[]
 }
 
@@ -314,13 +317,89 @@ export async function deletePackage(id: string) {
   if (error) throw error
 }
 
-/** Owner-only: edit a service's name + description (Arabic + English). RLS
- * (services_write_owner) restricts this to a verified owner. */
+/** Owner-only: edit a service's name + description (Arabic + English) and its
+ * direct price (used when it has no packages). RLS (services_write_owner)
+ * restricts this to a verified owner. */
 export async function updateService(
   id: string,
-  values: { title: string; title_en: string | null; description: string; description_en: string | null },
+  values: {
+    title: string
+    title_en: string | null
+    description: string
+    description_en: string | null
+    price_cents?: number | null
+    original_price_cents?: number | null
+  },
 ) {
   const { error } = await supabase.from('services').update(values).eq('id', id)
+  if (error) throw error
+}
+
+/** A URL-safe slug from a title, plus a short random suffix so two services
+ * with similar names never collide on the unique slug column. */
+function slugify(input: string): string {
+  const base = input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9؀-ۿ]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40)
+  const suffix = Math.random().toString(36).slice(2, 7)
+  return base ? `${base}-${suffix}` : `service-${suffix}`
+}
+
+/** Owner-only: create a new service. Starts active with no packages (it can be
+ * sold via its direct price, or the owner adds packages after). */
+export async function createService(values: {
+  title: string
+  title_en: string | null
+  description: string
+  description_en: string | null
+}): Promise<string> {
+  // Place the new one at the end.
+  const { data: last } = await supabase.from('services').select('sort_order').order('sort_order', { ascending: false }).limit(1)
+  const nextOrder = ((last?.[0]?.sort_order as number | undefined) ?? 0) + 1
+  const { data, error } = await supabase
+    .from('services')
+    .insert({
+      slug: slugify(values.title_en || values.title),
+      title: values.title,
+      title_en: values.title_en,
+      description: values.description,
+      description_en: values.description_en,
+      active: true,
+      sort_order: nextOrder,
+      hidden_fields: [],
+    })
+    .select('id')
+    .single()
+  if (error) throw error
+  return data.id as string
+}
+
+/** Owner-only: delete a service (its packages cascade; existing requests keep
+ * their copy — service_id is set null on delete). */
+export async function deleteService(id: string) {
+  const { error } = await supabase.from('services').delete().eq('id', id)
+  if (error) throw error
+}
+
+/** Owner-only: add a package to a service. */
+export async function createPackage(serviceId: string): Promise<void> {
+  const { data: last } = await supabase
+    .from('service_packages')
+    .select('sort_order')
+    .eq('service_id', serviceId)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+  const nextOrder = ((last?.[0]?.sort_order as number | undefined) ?? 0) + 1
+  const { error } = await supabase.from('service_packages').insert({
+    service_id: serviceId,
+    title: 'باقة جديدة',
+    price_cents: null,
+    is_custom: false,
+    sort_order: nextOrder,
+  })
   if (error) throw error
 }
 
