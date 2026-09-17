@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { fetchProfile } from '@/lib/profile'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { GoogleButton } from '@/components/GoogleButton'
+import { Button } from '@/components/ui/Button'
 import { useLanguage } from '@/lib/i18n'
 
 export function LoginPage() {
@@ -158,13 +159,9 @@ export function LoginPage() {
           </Link>
         </div>
         <FieldError>{error}</FieldError>
-        <button
-          type="submit"
-          disabled={busy}
-          className="rounded-md bg-navy py-3.25 text-[15px] font-semibold text-white hover:bg-navy-hover disabled:opacity-60"
-        >
-          {busy ? '...' : t('login.submit')}
-        </button>
+        <Button type="submit" loading={busy} fullWidth size="lg" className="mt-0.5">
+          {t('login.submit')}
+        </Button>
       </form>
 
       {role === 'teacher' && (

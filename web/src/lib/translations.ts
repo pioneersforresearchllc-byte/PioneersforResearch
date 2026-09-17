@@ -43,6 +43,7 @@ export const translations = {
     ar: 'من صياغة السؤال البحثي إلى التحليل والنشر — نرافق الأفراد والمؤسسات ببرامج تدريبية وإشراف مباشر من مدرّبين متخصصين.',
     en: 'From framing the research question to analysis and publication — we support individuals and institutions with training programs and direct supervision from specialized mentors.',
   },
+  'home.hero.browse': { ar: 'تصفّح خدماتنا', en: 'Explore our services' },
 
   'audience.eyebrow': { ar: 'لمن نقدّم خدماتنا', en: 'WHO WE SERVE' },
   'audience.title': { ar: 'نخدم الأفراد والمؤسسات', en: 'We serve individuals and institutions' },

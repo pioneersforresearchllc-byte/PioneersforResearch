@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { fetchSiteContent, resolveSocialLink } from '@/lib/content'
 import { AnnouncementPopup } from '@/components/AnnouncementPopup'
+import { PageTransition } from '@/components/ui/motion'
 
 const dashboardPathFor = (role: string) =>
   role === 'student'
@@ -49,26 +50,26 @@ export function MarketingLayout() {
 
   const navLinks = (
     <>
-      <Link to="/" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
+      <Link to="/" className="nav-underline text-navy no-underline" onClick={() => setMenuOpen(false)}>
         {t('nav.home')}
       </Link>
-      <Link to="/about" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
+      <Link to="/about" className="nav-underline text-navy no-underline" onClick={() => setMenuOpen(false)}>
         {t('nav.about')}
       </Link>
       {!isTeacherSession && (
         <>
-          <Link to="/courses" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
+          <Link to="/courses" className="nav-underline text-navy no-underline" onClick={() => setMenuOpen(false)}>
             {t('nav.courses')}
           </Link>
-          <Link to="/services" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
+          <Link to="/services" className="nav-underline text-navy no-underline" onClick={() => setMenuOpen(false)}>
             {t('nav.services')}
           </Link>
         </>
       )}
-      <a href="/#resources" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
+      <a href="/#resources" className="nav-underline text-navy no-underline" onClick={() => setMenuOpen(false)}>
         {t('nav.resources')}
       </a>
-      <Link to="/contact" className="text-navy no-underline" onClick={() => setMenuOpen(false)}>
+      <Link to="/contact" className="nav-underline text-navy no-underline" onClick={() => setMenuOpen(false)}>
         {t('nav.contact')}
       </Link>
     </>
@@ -123,7 +124,7 @@ export function MarketingLayout() {
   return (
     <div dir={dir} lang={lang} className="min-h-screen w-full bg-white text-navy">
       <AnnouncementPopup />
-      <div className="sticky top-0 z-10 border-b border-border bg-white">
+      <div className="glass elev-1 sticky top-0 z-20 border-b border-border/70">
         <div className="flex items-center justify-between px-4 py-4 md:px-16 md:py-5">
           <Link to="/" className="flex items-center gap-2.5 no-underline">
             <img src="/logo.png" alt="" className="h-10 w-10 md:h-11 md:w-11" />
@@ -150,7 +151,9 @@ export function MarketingLayout() {
         )}
       </div>
 
-      <Outlet />
+      <PageTransition>
+        <Outlet />
+      </PageTransition>
 
       <div className="flex flex-col gap-4 px-4 py-6.5 text-[13px] text-muted md:flex-row md:items-center md:justify-between md:px-16">
         <span>{t('footer.copyright')}</span>

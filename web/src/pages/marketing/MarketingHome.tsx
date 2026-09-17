@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
@@ -10,6 +10,8 @@ import { listTeamMembers } from '@/lib/team'
 import { Reveal } from '@/components/Reveal'
 import { SiteComments } from '@/components/SiteComments'
 import { AudienceSection } from '@/components/AudienceSection'
+import { buttonClasses } from '@/components/ui/Button'
+import { CountUp, Magnetic } from '@/components/ui/motion'
 
 type TeamEntry = { name: string; role: string; bio: string }
 
@@ -305,13 +307,29 @@ export function ServicesSection() {
 }
 
 export function MarketingHome() {
-  const { profile } = useAuth()
+  const { profile, session } = useAuth()
   const { t, lang } = useLanguage()
   const ct = useContentText()
   const TEAM = useTeam(lang, t)
   const { data: courses } = useCourses()
   const { data: articles } = useArticlePreviews()
   const isTeacherSession = profile?.role === 'teacher'
+
+  // Hero mouse-parallax: nudge the background orbs opposite/with the cursor.
+  const orb1 = useRef<HTMLDivElement>(null)
+  const orb2 = useRef<HTMLDivElement>(null)
+  const onHeroMove = (e: React.MouseEvent) => {
+    if (!window.matchMedia('(pointer:fine)').matches) return
+    const r = e.currentTarget.getBoundingClientRect()
+    const nx = (e.clientX - r.left) / r.width - 0.5
+    const ny = (e.clientY - r.top) / r.height - 0.5
+    if (orb1.current) orb1.current.style.transform = `translate3d(${nx * 34}px, ${ny * 34}px, 0)`
+    if (orb2.current) orb2.current.style.transform = `translate3d(${nx * -26}px, ${ny * -26}px, 0)`
+  }
+  const resetHero = () => {
+    if (orb1.current) orb1.current.style.transform = ''
+    if (orb2.current) orb2.current.style.transform = ''
+  }
 
   const [contactName, setContactName] = useState('')
   const [contactEmail, setContactEmail] = useState('')
@@ -341,11 +359,19 @@ export function MarketingHome() {
   return (
     <div>
       {/* HERO */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-[#e9eef5] via-bg-soft/50 to-white px-4 pb-12 pt-14 md:px-16 md:pb-17.5 md:pt-22.5">
-        {/* Animated depth: soft gradient orbs drifting behind the content. */}
+      <div
+        onMouseMove={onHeroMove}
+        onMouseLeave={resetHero}
+        className="relative overflow-hidden bg-gradient-to-b from-[#e9eef5] via-bg-soft/50 to-white px-4 pb-12 pt-14 md:px-16 md:pb-17.5 md:pt-22.5"
+      >
+        {/* Animated depth: soft gradient orbs that drift with the cursor. */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-          <div className="animate-gradient absolute -top-32 h-[26rem] w-[26rem] rounded-full bg-gradient-to-br from-gold/25 via-gold/10 to-transparent blur-3xl ltr:-right-24 rtl:-left-24" />
-          <div className="animate-float absolute bottom-[-6rem] h-72 w-72 rounded-full bg-gradient-to-tr from-navy/12 to-gold/10 blur-3xl ltr:left-[-4rem] rtl:right-[-4rem]" />
+          <div ref={orb1} className="absolute -top-32 transition-transform duration-300 ease-out ltr:-right-24 rtl:-left-24">
+            <div className="animate-gradient h-[26rem] w-[26rem] rounded-full bg-gradient-to-br from-gold/25 via-gold/10 to-transparent blur-3xl" />
+          </div>
+          <div ref={orb2} className="absolute bottom-[-6rem] transition-transform duration-300 ease-out ltr:left-[-4rem] rtl:right-[-4rem]">
+            <div className="animate-float h-72 w-72 rounded-full bg-gradient-to-tr from-navy/12 to-gold/10 blur-3xl" />
+          </div>
         </div>
         <div className="absolute -left-10 top-10 hidden h-0.5 w-85 rotate-[-18deg] bg-navy opacity-15 md:block" />
         <div className="animate-float absolute left-67.5 top-3.5 hidden h-2.5 w-2.5 rounded-full bg-gold md:block" />
@@ -356,7 +382,22 @@ export function MarketingHome() {
           <h1 className="font-heading mb-5.5 text-[28px] font-bold leading-[1.4] text-navy md:text-[46px]">
             {ct('home.hero.title')}
           </h1>
-          <p className="text-base leading-[1.9] text-muted md:text-lg">{ct('home.hero.subtitle')}</p>
+          <p className="mb-8 text-base leading-[1.9] text-muted md:text-lg">{ct('home.hero.subtitle')}</p>
+          <div className="flex flex-wrap items-center gap-3.5">
+            {!session && (
+              <Magnetic>
+                <Link to="/register" className={buttonClasses('primary', 'lg')}>
+                  {t('nav.register')}
+                </Link>
+              </Magnetic>
+            )}
+            <Magnetic>
+              <a href="#services" className={buttonClasses(session ? 'primary' : 'outline', 'lg')}>
+                {t('home.hero.browse')}
+                <span aria-hidden>←</span>
+              </a>
+            </Magnetic>
+          </div>
         </Reveal>
       </div>
 
@@ -371,7 +412,7 @@ export function MarketingHome() {
           <div key={i} className="bg-white px-4 py-6 text-center transition-colors hover:bg-bg-soft md:px-7 md:py-8.5">
             <div className="mb-1.5 text-[20px] md:text-[24px]">{s.icon}</div>
             <div className={`font-heading text-[26px] font-bold md:text-[34px] ${s.gold ? 'text-gold' : 'text-navy'}`}>
-              {s.value}
+              {/^\d+$/.test(s.value) ? <CountUp to={Number(s.value)} /> : s.value}
             </div>
             <div className="mt-1.5 text-[13.5px] text-muted">{s.label}</div>
           </div>

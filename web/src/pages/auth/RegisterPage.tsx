@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
+import { Button } from '@/components/ui/Button'
 import { GoogleButton } from '@/components/GoogleButton'
 import { useLanguage } from '@/lib/i18n'
 
@@ -222,13 +223,9 @@ export function RegisterPage() {
             </Link>
           </div>
         )}
-        <button
-          type="submit"
-          disabled={busy}
-          className="rounded-md bg-navy py-3.25 text-[15px] font-semibold text-white hover:bg-navy-hover disabled:opacity-60"
-        >
-          {busy ? '...' : t('register.submit')}
-        </button>
+        <Button type="submit" loading={busy} fullWidth size="lg" className="mt-0.5">
+          {t('register.submit')}
+        </Button>
       </form>
 
       <div className="mt-5 text-center text-[13.5px] text-muted">
