@@ -1,7 +1,6 @@
-// A branded loading indicator: the Pioneers logo is a "glass" that fills with
-// liquid colour from the bottom, with a live wavy surface — like something
-// being poured into it. Uses the logo as a CSS mask so the liquid takes the
-// exact logo silhouette.
+// A branded loading indicator: the Pioneers logo stays clearly visible, and a
+// translucent liquid rises over it with a live wavy surface — like colour being
+// poured into it. The logo (used as a mask) shapes the liquid to its outline.
 
 const STYLE_ID = 'phr-logo-loader-style'
 function ensureStyle() {
@@ -10,7 +9,7 @@ function ensureStyle() {
   el.id = STYLE_ID
   el.textContent = `
     .phr-jar {
-      position: absolute; inset: 0; overflow: hidden;
+      position: absolute; inset: 0; overflow: hidden; opacity: .55;
       -webkit-mask: url(/logo.png) center/contain no-repeat;
       mask: url(/logo.png) center/contain no-repeat;
     }
@@ -28,8 +27,8 @@ function ensureStyle() {
     @keyframes phr-fill { 0% { height: 8%; } 100% { height: 100%; } }
     @keyframes phr-swirl { to { transform: translate(-50%, -75%) rotate(360deg); } }
     @media (prefers-reduced-motion: reduce) {
-      .phr-water { animation: none; height: 100%; }
-      .phr-water::before, .phr-water::after { animation: none; }
+      .phr-water, .phr-water::before, .phr-water::after { animation: none; }
+      .phr-water { height: 100%; }
     }
   `
   document.head.appendChild(el)
@@ -39,9 +38,10 @@ export function LogoLoader({ size = 64, label }: { size?: number; label?: string
   ensureStyle()
   return (
     <div className="flex flex-col items-center justify-center gap-3 text-center" role="status" aria-label={label ?? 'loading'}>
-      <div className="relative" style={{ width: size, height: size }}>
-        {/* faint logo so the empty (unfilled) part is still visible */}
-        <img src="/logo.png" alt="" className="absolute inset-0 h-full w-full object-contain opacity-[0.12] grayscale" />
+      <div className="relative animate-pulse" style={{ width: size, height: size }}>
+        {/* The logo, clearly visible */}
+        <img src="/logo.png" alt="" className="absolute inset-0 h-full w-full object-contain" />
+        {/* Translucent liquid rising over it */}
         <div className="phr-jar">
           <div className="phr-water" />
         </div>
