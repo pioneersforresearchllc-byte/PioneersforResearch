@@ -27,6 +27,7 @@ function genQid(): string {
 /** Owner tool: build the custom questions a service's request form asks. */
 function QuestionsEditor({ value, onChange }: { value: ServiceQuestion[]; onChange: (q: ServiceQuestion[]) => void }) {
   const { t } = useLanguage()
+  const [open, setOpen] = useState(false)
   const update = (i: number, patch: Partial<ServiceQuestion>) =>
     onChange(value.map((q, idx) => (idx === i ? { ...q, ...patch } : q)))
   const remove = (i: number) => onChange(value.filter((_, idx) => idx !== i))
@@ -41,10 +42,29 @@ function QuestionsEditor({ value, onChange }: { value: ServiceQuestion[]; onChan
 
   return (
     <div className="mt-3 rounded-lg border border-dashed border-border-2 bg-bg-soft/60 p-3">
-      <div className="mb-2 text-[11.5px] font-semibold text-muted">{t('adminServices.questionsBuilder')}</div>
-      <div className="mb-1.5 text-[11px] text-faint">{t('adminServices.questionsBuilderHint')}</div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-2 text-start"
+      >
+        <span className="text-[11.5px] font-semibold text-muted">
+          {t('adminServices.questionsBuilder')}
+          {value.length > 0 && <span className="ms-1 text-accent">({value.length})</span>}
+        </span>
+        <span className={`text-[13px] text-muted transition-transform ${open ? 'rotate-90' : ''}`}>‹</span>
+      </button>
 
-      <div className="flex flex-col gap-2.5">
+      {!open && (
+        <div className="mt-1 text-[11px] text-faint">
+          {value.length > 0 ? t('adminServices.questionsCollapsed') : t('adminServices.questionsBuilderHint')}
+        </div>
+      )}
+
+      {open && (
+        <div className="mt-2.5">
+          <div className="mb-1.5 text-[11px] text-faint">{t('adminServices.questionsBuilderHint')}</div>
+
+          <div className="flex flex-col gap-2.5">
         {value.map((q, i) => (
           <div key={q.id} className="rounded-lg border border-border bg-white p-2.5">
             <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -101,9 +121,11 @@ function QuestionsEditor({ value, onChange }: { value: ServiceQuestion[]; onChan
         ))}
       </div>
 
-      <button onClick={add} className="mt-2.5 rounded-md border border-navy/50 px-3 py-1.5 text-[12px] font-semibold text-navy hover:bg-white">
-        + {t('adminServices.addQuestion')}
-      </button>
+          <button onClick={add} className="mt-2.5 rounded-md border border-navy/50 px-3 py-1.5 text-[12px] font-semibold text-navy hover:bg-white">
+            + {t('adminServices.addQuestion')}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

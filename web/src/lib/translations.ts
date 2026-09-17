@@ -877,6 +877,7 @@ export const translations = {
     en: 'If you add questions here, the request form shows them instead of the default fields. Leave empty to use the default form.',
   },
   'adminServices.addQuestion': { ar: 'إضافة سؤال', en: 'Add question' },
+  'adminServices.questionsCollapsed': { ar: 'اضغط للدخول وتعديل الأسئلة.', en: 'Click to open and edit the questions.' },
   'adminServices.qLabelPh': { ar: 'نص السؤال (عربي)', en: 'Question (Arabic)' },
   'adminServices.qLabelEnPh': { ar: 'نص السؤال (إنجليزي — اختياري)', en: 'Question (English — optional)' },
   'adminServices.qRequired': { ar: 'إلزامي', en: 'Required' },
