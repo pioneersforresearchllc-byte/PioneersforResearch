@@ -361,6 +361,48 @@ export async function updateService(
   if (error) throw error
 }
 
+/** Sensible default request questions every NEW service starts with — tuned
+ * for research/training services (the owner can edit or remove them). */
+export const DEFAULT_SERVICE_QUESTIONS: ServiceQuestion[] = [
+  {
+    id: 'q_topic',
+    label: 'اشرح فكرتك أو طلبك بالتفصيل',
+    label_en: 'Describe your idea or request in detail',
+    type: 'long',
+    required: true,
+  },
+  {
+    id: 'q_field',
+    label: 'التخصص أو المجال البحثي',
+    label_en: 'Field / research area',
+    type: 'short',
+    required: false,
+  },
+  {
+    id: 'q_stage',
+    label: 'المرحلة الدراسية',
+    label_en: 'Academic stage',
+    type: 'select',
+    options: ['بكالوريوس', 'ماجستير', 'دكتوراه', 'باحث مستقل', 'أخرى'],
+    options_en: ['Bachelor', 'Master', 'PhD', 'Independent researcher', 'Other'],
+    required: false,
+  },
+  {
+    id: 'q_deadline',
+    label: 'الموعد المطلوب لإنجاز الخدمة',
+    label_en: 'Preferred completion date',
+    type: 'date',
+    required: false,
+  },
+  {
+    id: 'q_file',
+    label: 'أرفق ملفًا داعمًا (إن وُجد)',
+    label_en: 'Attach a supporting file (optional)',
+    type: 'file',
+    required: false,
+  },
+]
+
 /** A URL-safe slug from a title, plus a short random suffix so two services
  * with similar names never collide on the unique slug column. */
 function slugify(input: string): string {
@@ -396,6 +438,7 @@ export async function createService(values: {
       active: true,
       sort_order: nextOrder,
       hidden_fields: [],
+      questions: DEFAULT_SERVICE_QUESTIONS,
     })
     .select('id')
     .single()
