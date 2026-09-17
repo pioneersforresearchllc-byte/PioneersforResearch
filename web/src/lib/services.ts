@@ -355,10 +355,21 @@ export async function updateService(
     price_cents?: number | null
     original_price_cents?: number | null
     questions?: ServiceQuestion[] | null
+    image_url?: string | null
   },
 ) {
   const { error } = await supabase.from('services').update(values).eq('id', id)
   if (error) throw error
+}
+
+/** Owner-only: upload a service card image (reuses the public images bucket). */
+export async function uploadServiceImage(file: File): Promise<string> {
+  const safe = file.name.replace(/[^\w.\-]+/g, '_')
+  const path = `service-${crypto.randomUUID()}-${safe}`
+  const { error } = await supabase.storage.from('course-images').upload(path, file)
+  if (error) throw error
+  const { data } = supabase.storage.from('course-images').getPublicUrl(path)
+  return data.publicUrl
 }
 
 /** Sensible default request questions every NEW service starts with — tuned

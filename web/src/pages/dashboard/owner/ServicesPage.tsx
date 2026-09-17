@@ -10,6 +10,7 @@ import {
   updatePackage,
   updateService,
   updateServiceHiddenFields,
+  uploadServiceImage,
   TOGGLEABLE_SERVICE_FIELDS,
   type Service,
   type ServicePackage,
@@ -145,6 +146,8 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
   )
   const [hidden, setHidden] = useState<string[]>(service.hidden_fields ?? [])
   const [questions, setQuestions] = useState<ServiceQuestion[]>(service.questions ?? [])
+  const [imageUrl, setImageUrl] = useState<string | null>(service.image_url)
+  const [uploadingImg, setUploadingImg] = useState(false)
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
@@ -160,11 +163,24 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
     (descEn.trim() || '') !== (service.description_en ?? '') ||
     priceRiyal.trim() !== curPrice ||
     originalRiyal.trim() !== curOriginal ||
+    imageUrl !== service.image_url ||
     JSON.stringify(questions) !== JSON.stringify(service.questions ?? []) ||
     sortedKey(hidden) !== sortedKey(service.hidden_fields ?? [])
 
   const toggleField = (k: string) =>
     setHidden((h) => (h.includes(k) ? h.filter((x) => x !== k) : [...h, k]))
+
+  const onImage = async (f: File) => {
+    setUploadingImg(true)
+    setError('')
+    try {
+      setImageUrl(await uploadServiceImage(f))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setUploadingImg(false)
+    }
+  }
 
   const remove = async () => {
     setBusy(true)
@@ -194,6 +210,7 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
         description_en: descEn.trim() || null,
         price_cents: priceRiyal.trim() ? Math.round(Number(priceRiyal) * 100) : null,
         original_price_cents: originalRiyal.trim() ? Math.round(Number(originalRiyal) * 100) : null,
+        image_url: imageUrl,
         questions: questions.filter((q) => q.label.trim()).length ? questions.filter((q) => q.label.trim()) : null,
       })
       await updateServiceHiddenFields(service.id, hidden)
@@ -208,6 +225,29 @@ function ServiceHeader({ service, onSaved }: { service: Service; onSaved: () => 
 
   return (
     <div className="mb-4 border-b border-border-2 pb-4">
+      {/* Service card image */}
+      <div className="mb-3">
+        <label className="mb-1 block text-[11.5px] font-semibold text-muted">{t('adminServices.image')}</label>
+        <div className="flex items-center gap-3">
+          {imageUrl ? (
+            <img src={imageUrl} alt="" className="h-16 w-28 shrink-0 rounded-lg border border-border object-cover" />
+          ) : (
+            <div className="flex h-16 w-28 shrink-0 items-center justify-center rounded-lg border border-dashed border-border-2 bg-bg-soft text-[22px]">🧩</div>
+          )}
+          <div className="flex flex-col gap-1.5">
+            <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && void onImage(e.target.files[0])} className="text-[12px]" />
+            <div className="flex items-center gap-2">
+              {uploadingImg && <span className="text-[11.5px] text-muted">{t('adminServices.uploading')}</span>}
+              {imageUrl && (
+                <button type="button" onClick={() => setImageUrl(null)} className="text-[11.5px] text-error hover:underline">
+                  {t('adminServices.removeImage')}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         <div>
           <label className="mb-1 block text-[11.5px] font-semibold text-muted">{t('adminServices.serviceName')}</label>

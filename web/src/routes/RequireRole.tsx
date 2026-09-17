@@ -3,7 +3,6 @@ import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { supabase } from '@/lib/supabase'
-import { FullPageLoader } from '@/components/LogoLoader'
 import type { UserRole } from '@/types/profile'
 
 function SuspendedNotice() {
@@ -50,7 +49,7 @@ export function RequireRole({ role }: { role: UserRole }) {
     }
   }, [role, session, profile])
 
-  if (loading) return <FullPageLoader />
+  if (loading) return null
   if (!session || !profile) return <Navigate to="/login" replace />
   if (profile.suspended) return <SuspendedNotice />
   if (profile.role !== role) return <Navigate to="/" replace />
