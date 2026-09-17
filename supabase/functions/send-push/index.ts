@@ -276,5 +276,40 @@ async function resolve(
     }
   }
 
+  // The student delivered a file for a task → notify the assigned teacher.
+  // The teacher graded a task → notify the student. id = the service_task id.
+  if (type === 'service_submit' || type === 'service_grade') {
+    const { data: task } = await admin.from('service_tasks').select('request_id, title, grade').eq('id', id).maybeSingle()
+    if (!task?.request_id) return null
+    const { data: reqRow } = await admin
+      .from('service_requests')
+      .select('user_id, assigned_teacher_id')
+      .eq('id', task.request_id as string)
+      .maybeSingle()
+    if (!reqRow?.user_id) return null
+    const studentId = reqRow.user_id as string
+    const teacherId = (reqRow.assigned_teacher_id as string | null) ?? null
+
+    if (type === 'service_submit') {
+      if (caller.id !== studentId) return null // only the student submits
+      if (!teacherId) return null
+      return {
+        userIds: [teacherId],
+        title: '📎 تسليم جديد — Pioneers',
+        body: `${caller.name}: سلّم ملف المهمة «${task.title ?? ''}». بانتظار تصحيحك.`,
+        urlFor: servicePathForRole,
+      }
+    }
+    // service_grade
+    const callerIsManager = caller.id === teacherId || caller.role === 'owner'
+    if (!callerIsManager) return null
+    return {
+      userIds: [studentId],
+      title: '💯 تم تصحيح مهمتك — Pioneers',
+      body: `حصلت على ${task.grade ?? ''}/100 في «${task.title ?? ''}». اضغط لعرض الملاحظات.`,
+      urlFor: servicePathForRole,
+    }
+  }
+
   return null
 }

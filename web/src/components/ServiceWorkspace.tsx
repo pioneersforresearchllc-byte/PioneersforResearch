@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import {
@@ -8,7 +8,11 @@ import {
   deleteTask,
   listSessions,
   listTasks,
-  setTaskDone,
+  submitServiceTask,
+  clearServiceTaskSubmission,
+  gradeServiceTask,
+  uploadServiceAttachment,
+  taskState,
   sessionPhase,
   sessionStartMs,
   type SessionPhase,
@@ -17,6 +21,7 @@ import {
 } from '@/lib/serviceWorkspace'
 import { triggerPush } from '@/lib/push'
 import { ServiceChat } from '@/components/ServiceChat'
+import { ServiceAttachmentView } from '@/components/ServiceAttachmentView'
 
 const field = 'w-full box-border rounded-md border border-border px-3 py-2 text-[13px]'
 
@@ -308,10 +313,8 @@ function TasksPanel({
     },
   })
   const del = useMutation({ mutationFn: (id: string) => deleteTask(id), onSuccess: onChange })
-  const toggle = useMutation({ mutationFn: (v: { id: string; done: boolean }) => setTaskDone(v.id, v.done), onSuccess: onChange })
 
-  const today = new Date().toISOString().slice(0, 10)
-  const doneCount = tasks.filter((x) => x.done).length
+  const doneCount = tasks.filter((x) => taskState(x) === 'graded').length
 
   return (
     <div className="rounded-xl border border-border bg-white p-4">
@@ -349,44 +352,202 @@ function TasksPanel({
       {!loading && tasks.length === 0 && <div className="py-4 text-center text-[13px] text-faint">{t('workspace.noTasks')}</div>}
 
       <div className="flex flex-col gap-2.5">
-        {tasks.map((tk) => {
-          const overdue = !tk.done && tk.due_date && tk.due_date < today
-          return (
-            <div key={tk.id} className={`rounded-lg border p-3 ${tk.done ? 'border-success/30 bg-success/5' : 'border-border-2 bg-bg-soft'}`}>
-              <div className="flex items-start gap-2.5">
-                <input
-                  type="checkbox"
-                  checked={tk.done}
-                  disabled={!isStudent && !manage}
-                  onChange={(e) => toggle.mutate({ id: tk.id, done: e.target.checked })}
-                  className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-success)]"
-                />
-                <div className="min-w-0 flex-1">
-                  <div className={`text-[13.5px] font-semibold ${tk.done ? 'text-muted line-through' : 'text-navy'}`}>{tk.title}</div>
-                  {tk.description && <div className="mt-0.5 whitespace-pre-wrap text-[12.5px] leading-6 text-muted-2">{tk.description}</div>}
-                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                    {tk.due_date && (
-                      <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${overdue ? 'bg-error-bg text-error' : 'bg-white text-muted'}`}>
-                        {t('workspace.due')}: {fmtDate(tk.due_date, locale)}
-                      </span>
-                    )}
-                    {tk.link && (
-                      <a href={tk.link} target="_blank" rel="noreferrer" className="text-[12px] font-semibold text-navy underline underline-offset-2">
-                        {t('workspace.openLink')}
-                      </a>
-                    )}
-                  </div>
-                </div>
-                {manage && (
-                  <button onClick={() => del.mutate(tk.id)} className="shrink-0 rounded px-1.5 text-[13px] text-faint hover:text-error" title={t('workspace.delete')}>
-                    🗑
-                  </button>
-                )}
-              </div>
-            </div>
-          )
-        })}
+        {tasks.map((tk) => (
+          <TaskCard
+            key={tk.id}
+            task={tk}
+            manage={manage}
+            isStudent={isStudent}
+            requestId={requestId}
+            locale={locale}
+            t={t}
+            onChange={onChange}
+            onDelete={() => del.mutate(tk.id)}
+          />
+        ))}
       </div>
     </div>
   )
+}
+
+/* ── Single task: submit a file → teacher grades /100 → stays for reference ── */
+function TaskCard({
+  task,
+  manage,
+  isStudent,
+  requestId,
+  locale,
+  t,
+  onChange,
+  onDelete,
+}: {
+  task: ServiceTask
+  manage: boolean
+  isStudent: boolean
+  requestId: string
+  locale: string
+  t: TFn
+  onChange: () => void
+  onDelete: () => void
+}) {
+  const state = taskState(task)
+  const today = new Date().toISOString().slice(0, 10)
+  const overdue = state === 'open' && task.due_date && task.due_date < today
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [grading, setGrading] = useState(false)
+  const [grade, setGrade] = useState(String(task.grade ?? ''))
+  const [feedback, setFeedback] = useState(task.feedback ?? '')
+
+  const submit = useMutation({
+    mutationFn: async (f: File) => {
+      const att = await uploadServiceAttachment(requestId, f, `tasks/${task.id}`)
+      await submitServiceTask(task.id, att)
+    },
+    onSuccess: () => {
+      triggerPush('service_submit', task.id)
+      onChange()
+    },
+  })
+  const withdraw = useMutation({ mutationFn: () => clearServiceTaskSubmission(task.id), onSuccess: onChange })
+  const saveGrade = useMutation({
+    mutationFn: () => gradeServiceTask(task.id, Math.max(0, Math.min(100, Number(grade) || 0)), feedback.trim() || null),
+    onSuccess: () => {
+      triggerPush('service_grade', task.id)
+      setGrading(false)
+      onChange()
+    },
+  })
+
+  const border = state === 'graded' ? 'border-success/40 bg-success/5' : state === 'submitted' ? 'border-accent/40 bg-accent/5' : 'border-border-2 bg-bg-soft'
+
+  return (
+    <div className={`rounded-lg border p-3.5 ${border}`}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[13.5px] font-semibold text-navy">{task.title}</span>
+            <TaskStateChip state={state} t={t} />
+          </div>
+          {task.description && <div className="mt-0.5 whitespace-pre-wrap text-[12.5px] leading-6 text-muted-2">{task.description}</div>}
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+            {task.due_date && (
+              <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${overdue ? 'bg-error-bg text-error' : 'bg-white text-muted'}`}>
+                {t('workspace.due')}: {fmtDate(task.due_date, locale)}
+              </span>
+            )}
+            {task.link && (
+              <a href={task.link} target="_blank" rel="noreferrer" className="text-[12px] font-semibold text-navy underline underline-offset-2">
+                {t('workspace.openLink')}
+              </a>
+            )}
+          </div>
+        </div>
+        {manage && (
+          <button onClick={onDelete} className="shrink-0 rounded px-1.5 text-[13px] text-faint hover:text-error" title={t('workspace.delete')}>
+            🗑
+          </button>
+        )}
+      </div>
+
+      {/* Submission area */}
+      <div className="mt-3 border-t border-border-2/70 pt-3">
+        {/* The delivered file (once submitted) — stays visible for reference. */}
+        {task.submission_url && (
+          <div className="mb-2">
+            <div className="mb-1 text-[11.5px] font-semibold text-muted">
+              {t('task.delivered')}
+              {task.submitted_at ? ` · ${fmtDate(task.submitted_at.slice(0, 10), locale)}` : ''}
+            </div>
+            <ServiceAttachmentView path={task.submission_url} name={task.submission_name ?? null} kind="file" compact />
+          </div>
+        )}
+
+        {/* Grade result (once graded) — persists. */}
+        {state === 'graded' && (
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <span className={`rounded-lg px-2.5 py-1 text-[13px] font-bold ${(task.grade ?? 0) >= 50 ? 'bg-success/15 text-success' : 'bg-error-bg text-error'}`}>
+              {task.grade}/100
+            </span>
+            {task.feedback && <span className="text-[12.5px] text-muted-2">💬 {task.feedback}</span>}
+          </div>
+        )}
+
+        {/* Student actions */}
+        {isStudent && (
+          <div>
+            <input ref={fileRef} type="file" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) submit.mutate(f); e.target.value = '' }} />
+            {state === 'open' && (
+              <button onClick={() => fileRef.current?.click()} disabled={submit.isPending} className="rounded-md bg-navy px-3.5 py-1.5 text-[12px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50">
+                {submit.isPending ? t('task.uploading') : `📎 ${t('task.submit')}`}
+              </button>
+            )}
+            {state === 'submitted' && (
+              <div className="flex flex-wrap items-center gap-2 text-[12px]">
+                <span className="text-accent">{t('task.awaitingGrade')}</span>
+                <button onClick={() => fileRef.current?.click()} disabled={submit.isPending} className="font-semibold text-navy underline underline-offset-2">
+                  {t('task.replace')}
+                </button>
+                <button onClick={() => withdraw.mutate()} className="text-faint hover:text-error">
+                  {t('task.withdraw')}
+                </button>
+              </div>
+            )}
+            {state === 'graded' && (
+              <button onClick={() => fileRef.current?.click()} disabled={submit.isPending} className="text-[12px] font-semibold text-navy underline underline-offset-2">
+                {t('task.resubmit')}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Teacher/owner actions */}
+        {manage && state === 'open' && <div className="text-[12px] text-muted">{t('task.awaitingSubmission')}</div>}
+        {manage && (state === 'submitted' || grading) && (
+          <div className="mt-1 flex flex-col gap-2 rounded-lg border border-border-2 bg-white p-2.5">
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={grade}
+                onChange={(e) => setGrade(e.target.value)}
+                placeholder="0-100"
+                className="w-24 rounded-md border border-border px-2.5 py-1.5 text-[13px]"
+              />
+              <span className="text-[13px] font-semibold text-muted">/ 100</span>
+            </div>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              rows={2}
+              placeholder={t('task.feedbackPh')}
+              className={`${field} resize-y`}
+            />
+            <button
+              onClick={() => saveGrade.mutate()}
+              disabled={grade === '' || saveGrade.isPending}
+              className="self-end rounded-md bg-success px-4 py-1.5 text-[12.5px] font-semibold text-white hover:opacity-90 disabled:opacity-50"
+            >
+              {t('task.saveGrade')}
+            </button>
+          </div>
+        )}
+        {manage && state === 'graded' && !grading && (
+          <button onClick={() => setGrading(true)} className="text-[12px] font-semibold text-navy underline underline-offset-2">
+            {t('task.editGrade')}
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function TaskStateChip({ state, t }: { state: 'open' | 'submitted' | 'graded'; t: TFn }) {
+  const map = {
+    open: { label: t('task.state.open'), cls: 'bg-bg-soft text-muted' },
+    submitted: { label: t('task.state.submitted'), cls: 'bg-accent/15 text-accent' },
+    graded: { label: t('task.state.graded'), cls: 'bg-success/15 text-success' },
+  }
+  const c = map[state]
+  return <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-bold ${c.cls}`}>{c.label}</span>
 }

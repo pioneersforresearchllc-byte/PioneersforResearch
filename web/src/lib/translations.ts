@@ -548,6 +548,23 @@ export const translations = {
   'workspace.chatEmpty': { ar: 'ابدأ المحادثة مع مشرفك 👋', en: 'Start the conversation with your mentor 👋' },
   'workspace.chatPlaceholder': { ar: 'اكتب رسالة…', en: 'Type a message…' },
   'workspace.chatSend': { ar: 'إرسال', en: 'Send' },
+  'workspace.attach': { ar: 'إرفاق ملف', en: 'Attach file' },
+
+  // Task submission + grading
+  'task.state.open': { ar: 'بانتظار التسليم', en: 'To submit' },
+  'task.state.submitted': { ar: 'تم التسليم', en: 'Submitted' },
+  'task.state.graded': { ar: 'مُصحّحة', en: 'Graded' },
+  'task.submit': { ar: 'تسليم ملف', en: 'Submit file' },
+  'task.resubmit': { ar: 'إعادة تسليم ملف جديد', en: 'Submit a new file' },
+  'task.replace': { ar: 'استبدال الملف', en: 'Replace file' },
+  'task.withdraw': { ar: 'سحب التسليم', en: 'Withdraw' },
+  'task.uploading': { ar: 'جارِ الرفع…', en: 'Uploading…' },
+  'task.delivered': { ar: 'الملف المُسلَّم', en: 'Delivered file' },
+  'task.awaitingGrade': { ar: 'بانتظار تصحيح المشرف.', en: 'Awaiting your mentor’s grade.' },
+  'task.awaitingSubmission': { ar: 'بانتظار تسليم الطالب.', en: 'Waiting for the student’s submission.' },
+  'task.feedbackPh': { ar: 'ملاحظات للطالب (اختياري)', en: 'Feedback for the student (optional)' },
+  'task.saveGrade': { ar: 'حفظ الدرجة', en: 'Save grade' },
+  'task.editGrade': { ar: 'تعديل الدرجة', en: 'Edit grade' },
 
   'comments.eyebrow': { ar: 'المجتمع', en: 'COMMUNITY' },
   'comments.title': { ar: 'آراء وتعليقات زوّارنا', en: 'What our community says' },

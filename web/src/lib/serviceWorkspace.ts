@@ -44,7 +44,51 @@ export interface ServiceTask {
   due_date: string | null
   link: string | null
   done: boolean
+  submission_url?: string | null
+  submission_name?: string | null
+  submitted_at?: string | null
+  grade?: number | null
+  feedback?: string | null
+  graded_at?: string | null
   created_at: string
+}
+
+export type TaskState = 'open' | 'submitted' | 'graded'
+
+export function taskState(t: ServiceTask): TaskState {
+  if (t.graded_at || typeof t.grade === 'number') return 'graded'
+  if (t.submission_url) return 'submitted'
+  return 'open'
+}
+
+export interface ServiceAttachment {
+  url: string // storage path
+  kind: 'image' | 'audio' | 'file'
+  name: string
+}
+
+/** Upload a file into the private per-service bucket. Everything is stored
+ * under "<requestId>/..." so the storage RLS can authorize by request. */
+export async function uploadServiceAttachment(
+  requestId: string,
+  file: File,
+  folder = 'chat',
+): Promise<ServiceAttachment> {
+  const kind: ServiceAttachment['kind'] = file.type.startsWith('image/')
+    ? 'image'
+    : file.type.startsWith('audio/')
+      ? 'audio'
+      : 'file'
+  const safe = file.name.replace(/[^\w.\-]+/g, '_')
+  const path = `${requestId}/${folder}/${Date.now()}-${safe}`
+  const { error } = await supabase.storage.from('service-files').upload(path, file)
+  if (error) throw error
+  return { url: path, kind, name: file.name }
+}
+
+export async function signServiceAttachment(path: string): Promise<string | null> {
+  const { data } = await supabase.storage.from('service-files').createSignedUrl(path, 60 * 60)
+  return data?.signedUrl ?? null
 }
 
 /** One of the student's subscribed services (a paid/active request). */
@@ -167,6 +211,32 @@ export async function setTaskDone(taskId: string, done: boolean) {
   if (error) throw error
 }
 
+/** Student submits (or replaces) their deliverable file for a task. Clears any
+ * previous grade so the teacher reviews the new file. */
+export async function submitServiceTask(taskId: string, attachment: ServiceAttachment) {
+  const { error } = await supabase.rpc('submit_service_task', {
+    p_task: taskId,
+    p_url: attachment.url,
+    p_name: attachment.name,
+  })
+  if (error) throw error
+}
+
+/** Student withdraws their submission (only allowed before it's graded). */
+export async function clearServiceTaskSubmission(taskId: string) {
+  const { error } = await supabase.rpc('clear_service_task_submission', { p_task: taskId })
+  if (error) throw error
+}
+
+/** Teacher/owner grades a submitted task out of 100 (write policy enforced). */
+export async function gradeServiceTask(taskId: string, grade: number, feedback: string | null) {
+  const { error } = await supabase
+    .from('service_tasks')
+    .update({ grade, feedback, graded_at: new Date().toISOString(), done: true })
+    .eq('id', taskId)
+  if (error) throw error
+}
+
 // ── Service chat (assigned teacher ↔ student, scoped to the request) ──────
 export interface ServiceMessage {
   id: string
@@ -192,10 +262,20 @@ export async function listServiceMessages(requestId: string): Promise<ServiceMes
   return (data ?? []) as unknown as ServiceMessage[]
 }
 
-export async function sendServiceMessage(input: { request_id: string; sender_id: string; text: string }) {
-  const { error } = await supabase
-    .from('service_messages')
-    .insert({ request_id: input.request_id, sender_id: input.sender_id, text: input.text.trim() })
+export async function sendServiceMessage(input: {
+  request_id: string
+  sender_id: string
+  text: string
+  attachment?: ServiceAttachment | null
+}) {
+  const { error } = await supabase.from('service_messages').insert({
+    request_id: input.request_id,
+    sender_id: input.sender_id,
+    text: input.text.trim() || null,
+    attachment_url: input.attachment?.url ?? null,
+    attachment_kind: input.attachment?.kind ?? null,
+    attachment_name: input.attachment?.name ?? null,
+  })
   if (error) throw error
 }
 

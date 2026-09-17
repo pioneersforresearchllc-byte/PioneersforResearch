@@ -95,10 +95,13 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div
-          dir={dir}
-          className="absolute end-0 z-30 mt-2 w-[300px] max-w-[86vw] overflow-hidden rounded-xl border border-border bg-white shadow-[0_16px_40px_-12px_rgba(11,31,58,0.35)]"
-        >
+        <>
+          {/* Mobile backdrop so the sheet reads as an overlay, not broken layout */}
+          <div className="fixed inset-0 z-30 bg-black/20 sm:hidden" onClick={() => setOpen(false)} />
+          <div
+            dir={dir}
+            className="fixed inset-x-3 top-16 z-40 max-h-[75vh] overflow-hidden rounded-xl border border-border bg-white shadow-[0_16px_40px_-12px_rgba(11,31,58,0.35)] sm:absolute sm:inset-x-auto sm:end-0 sm:top-auto sm:mt-2 sm:max-h-none sm:w-[320px]"
+          >
           <div className="flex items-center justify-between border-b border-border-2 px-3.5 py-2.5">
             <span className="text-[13.5px] font-bold text-navy">{t('notifBell.title')}</span>
             {unread > 0 && (
@@ -124,7 +127,8 @@ export function NotificationBell() {
               </button>
             ))}
           </div>
-        </div>
+          </div>
+        </>
       )}
     </div>
   )
