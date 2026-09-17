@@ -64,6 +64,13 @@ function chatPathForRole(role: string): string {
   return '/'
 }
 
+// Where a service-workspace notification lands, per recipient role.
+function servicePathForRole(role: string): string {
+  if (role === 'teacher') return '/teacher/assigned'
+  if (role === 'owner') return '/owner/service-requests'
+  return '/student/services'
+}
+
 interface Resolved {
   userIds: string[]
   title: string
@@ -111,12 +118,27 @@ async function handle(req: Request): Promise<Response> {
   if (!resolved) return json({ error: 'not authorized for this notification' }, 403)
   if (resolved.userIds.length === 0) return json({ sent: 0, reason: 'no recipients' })
 
-  if (!VAPID_PRIVATE_KEY) return json({ sent: 0, reason: 'vapid not configured' })
-  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
-
   // Roles of the recipients, to build each one's deep link.
   const { data: recipProfiles } = await admin.from('profiles').select('id, role').in('id', resolved.userIds)
   const roleById = new Map((recipProfiles ?? []).map((p) => [p.id as string, p.role as string]))
+
+  // Persist an in-site notification for each recipient FIRST — the bell must
+  // work even for users who never enabled browser push. Best-effort.
+  try {
+    const rows = resolved.userIds.map((uid) => ({
+      user_id: uid,
+      kind: body.type,
+      title: resolved.title,
+      body: resolved.body,
+      url: resolved.urlFor(roleById.get(uid) || ''),
+    }))
+    await admin.from('notifications').insert(rows)
+  } catch (err) {
+    console.error('notification insert failed', err)
+  }
+
+  if (!VAPID_PRIVATE_KEY) return json({ sent: 0, reason: 'vapid not configured' })
+  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
 
   const { data: subs } = await admin
     .from('push_subscriptions')
@@ -224,7 +246,33 @@ async function resolve(
       body: isTask
         ? 'أضاف مشرفك مهمة جديدة في خدمتك. اضغط للعرض.'
         : 'أضاف مشرفك حصة جديدة إلى جدولك. اضغط للعرض.',
-      urlFor: () => '/student/services',
+      urlFor: servicePathForRole,
+    }
+  }
+
+  // A message in a service's private chat. id = the service_request id. The
+  // recipient is the OTHER party (student → their teacher, teacher/owner → the
+  // student).
+  if (type === 'service_chat') {
+    const { data: reqRow } = await admin
+      .from('service_requests')
+      .select('user_id, assigned_teacher_id')
+      .eq('id', id)
+      .maybeSingle()
+    if (!reqRow?.user_id) return null
+    const studentId = reqRow.user_id as string
+    const teacherId = (reqRow.assigned_teacher_id as string | null) ?? null
+    const callerIsStudent = caller.id === studentId
+    const callerIsManager = caller.id === teacherId || caller.role === 'owner'
+    if (!callerIsStudent && !callerIsManager) return null
+    // Student writes → notify the teacher. Teacher/owner writes → notify student.
+    const recipient = callerIsStudent ? teacherId : studentId
+    if (!recipient) return null
+    return {
+      userIds: [recipient],
+      title: '💬 رسالة جديدة في الخدمة — Pioneers',
+      body: `${caller.name}: أرسل لك رسالة في محادثة الخدمة.`,
+      urlFor: servicePathForRole,
     }
   }
 

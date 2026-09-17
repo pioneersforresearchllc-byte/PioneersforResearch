@@ -7,7 +7,33 @@ export interface ServiceSession {
   session_date: string | null
   session_time: string | null
   link: string | null
+  reminder_sent_at?: string | null
   created_at: string
+}
+
+// Saudi Arabia is a fixed UTC+3 (no DST). Sessions are scheduled in local Saudi
+// time, so we anchor date+time to +03:00 to get the true instant — correct no
+// matter what timezone the viewer's browser is in.
+export function sessionStartMs(s: Pick<ServiceSession, 'session_date' | 'session_time'>): number | null {
+  if (!s.session_date || !s.session_time) return null
+  const t = s.session_time.length === 5 ? `${s.session_time}:00` : s.session_time
+  const ms = Date.parse(`${s.session_date}T${t}+03:00`)
+  return Number.isNaN(ms) ? null : ms
+}
+
+export const JOIN_WINDOW_MS = 15 * 60 * 1000 // door opens 15 min before start
+export const SESSION_GRACE_MS = 3 * 60 * 60 * 1000 // "join" stays live 3h after
+
+export type SessionPhase = 'no_time' | 'upcoming' | 'joinable' | 'live' | 'ended'
+
+/** What state a session is in right now, driving the join button + countdown. */
+export function sessionPhase(s: ServiceSession, now = Date.now()): SessionPhase {
+  const start = sessionStartMs(s)
+  if (start === null) return 'no_time'
+  if (now < start - JOIN_WINDOW_MS) return 'upcoming'
+  if (now < start) return 'joinable'
+  if (now < start + SESSION_GRACE_MS) return 'live'
+  return 'ended'
 }
 
 export interface ServiceTask {
@@ -139,4 +165,50 @@ export async function deleteTask(id: string) {
 export async function setTaskDone(taskId: string, done: boolean) {
   const { error } = await supabase.rpc('set_service_task_done', { p_task: taskId, p_done: done })
   if (error) throw error
+}
+
+// ── Service chat (assigned teacher ↔ student, scoped to the request) ──────
+export interface ServiceMessage {
+  id: string
+  request_id: string
+  sender_id: string
+  text: string | null
+  attachment_url: string | null
+  attachment_kind: string | null
+  attachment_name: string | null
+  created_at: string
+  sender?: { id: string; name: string; role: string } | null
+}
+
+export async function listServiceMessages(requestId: string): Promise<ServiceMessage[]> {
+  const { data, error } = await supabase
+    .from('service_messages')
+    .select('*, sender:profiles!service_messages_sender_id_fkey(id, name, role)')
+    .eq('request_id', requestId)
+    .order('created_at', { ascending: true })
+  // Deploy-safe: if the table isn't migrated yet, show an empty thread rather
+  // than throwing into the workspace UI.
+  if (error) return []
+  return (data ?? []) as unknown as ServiceMessage[]
+}
+
+export async function sendServiceMessage(input: { request_id: string; sender_id: string; text: string }) {
+  const { error } = await supabase
+    .from('service_messages')
+    .insert({ request_id: input.request_id, sender_id: input.sender_id, text: input.text.trim() })
+  if (error) throw error
+}
+
+export function subscribeServiceMessages(requestId: string, onInsert: () => void): () => void {
+  const channel = supabase
+    .channel(`svc-msgs:${requestId}`)
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'service_messages', filter: `request_id=eq.${requestId}` },
+      onInsert,
+    )
+    .subscribe()
+  return () => {
+    void supabase.removeChannel(channel)
+  }
 }

@@ -526,6 +526,29 @@ export const translations = {
   'workspace.noSessions': { ar: 'لا حصص مجدولة بعد.', en: 'No sessions scheduled yet.' },
   'workspace.noTasks': { ar: 'لا مهام بعد.', en: 'No tasks yet.' },
 
+  // Session join states
+  'session.upcoming': { ar: 'قادمة', en: 'Upcoming' },
+  'session.soon': { ar: 'يفتح الآن', en: 'Open now' },
+  'session.live': { ar: 'مباشرة الآن', en: 'Live now' },
+  'session.ended': { ar: 'انتهت', en: 'Ended' },
+  'session.opensBefore': { ar: 'يفتح قبل ١٥ دقيقة', en: 'Opens 15 min before' },
+  'session.startsIn': { ar: 'تبدأ بعد', en: 'starts in' },
+  'session.addLinkHint': { ar: 'أضِف رابط الحصة', en: 'Add the session link' },
+  'session.noLinkYet': { ar: 'لم تُجهَّز الحصة بعد', en: 'Session not ready yet' },
+  'session.notReady': { ar: 'غير متاحة الآن', en: 'Not available now' },
+
+  // Notifications bell
+  'notifBell.title': { ar: 'الإشعارات', en: 'Notifications' },
+  'notifBell.markAll': { ar: 'تعليم الكل كمقروء', en: 'Mark all read' },
+  'notifBell.empty': { ar: 'لا إشعارات بعد.', en: 'No notifications yet.' },
+
+  // Service chat
+  'workspace.chat': { ar: 'محادثة الخدمة', en: 'Service chat' },
+  'workspace.chatHint': { ar: 'بينك وبين مشرفك فقط', en: 'Private — you and your mentor' },
+  'workspace.chatEmpty': { ar: 'ابدأ المحادثة مع مشرفك 👋', en: 'Start the conversation with your mentor 👋' },
+  'workspace.chatPlaceholder': { ar: 'اكتب رسالة…', en: 'Type a message…' },
+  'workspace.chatSend': { ar: 'إرسال', en: 'Send' },
+
   'comments.eyebrow': { ar: 'المجتمع', en: 'COMMUNITY' },
   'comments.title': { ar: 'آراء وتعليقات زوّارنا', en: 'What our community says' },
   'comments.subtitle': {
@@ -783,6 +806,15 @@ export const translations = {
     ar: 'بانتظار إتمام العميل للدفع قبل بدء التنفيذ.',
     en: 'Waiting for the customer to pay before work can start.',
   },
+  'assignedRequests.students': { ar: 'الطلاب المشتركون', en: 'Subscribed students' },
+  'assignedRequests.searchPh': { ar: 'ابحث باسم الطالب…', en: 'Search by student name…' },
+  'assignedRequests.selectPrompt': {
+    ar: 'اختر طالبًا من القائمة لعرض منطقته: حصصه، مهامه، ومحادثته.',
+    en: 'Pick a student from the list to open their area: sessions, tasks, and chat.',
+  },
+  'assignedRequests.backToList': { ar: '‹ رجوع لقائمة الطلاب', en: '‹ Back to students' },
+  'assignedRequests.noMatch': { ar: 'لا طالب بهذا الاسم.', en: 'No student by that name.' },
+  'assignedRequests.oneService': { ar: 'خدمة', en: 'service' },
   'tab.assignedRequests': { ar: 'الخدمات المكلّف بها', en: 'Assigned Services' },
 
   'homeContent.title': { ar: 'محتوى الصفحة الرئيسية', en: 'Homepage Content' },

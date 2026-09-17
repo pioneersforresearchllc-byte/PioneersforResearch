@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import type { translations } from '@/lib/translations'
 import { navIcon } from './navIcons'
+import { NotificationBell } from '@/components/NotificationBell'
 
 export interface DashboardTab {
   key: string
@@ -40,6 +41,7 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
         </div>
         <div className="flex items-center gap-2.5 md:gap-4.5">
           <span className="hidden text-sm text-navy sm:inline">{userName}</span>
+          <NotificationBell />
           <button
             onClick={toggleLang}
             className="shrink-0 whitespace-nowrap rounded-md border border-border px-3 py-1.75 text-[12.5px] text-navy hover:border-navy md:px-4 md:py-2 md:text-[13.5px]"

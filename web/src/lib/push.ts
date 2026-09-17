@@ -17,6 +17,7 @@ export type PushEvent =
   | 'service_request'
   | 'service_session'
   | 'service_task'
+  | 'service_chat'
 
 export function pushSupported(): boolean {
   return (
