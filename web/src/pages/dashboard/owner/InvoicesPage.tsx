@@ -107,7 +107,13 @@ export function OwnerInvoicesPage() {
       ? t('finance.period.all')
       : period === 'month'
         ? new Date().toLocaleDateString(locale, { month: 'long', year: 'numeric' })
-        : `${from || '…'} — ${to || '…'}`
+        : `${t('finance.rangeFrom')} ${from || '…'} ${t('finance.rangeTo')} ${to || '…'}`
+
+  // A stable statement reference: date range (or today) encoded.
+  const stmtNo =
+    'PHR-FS-' +
+    (period === 'range' && from ? from.replace(/-/g, '') : new Date().toISOString().slice(0, 10).replace(/-/g, '')) +
+    (period === 'range' && to ? '-' + to.replace(/-/g, '') : '')
 
   return (
     <div>
@@ -178,6 +184,7 @@ export function OwnerInvoicesPage() {
             </div>
             <div className="text-end">
               <div className="text-[15px] font-bold text-navy">{t('finance.statementTitle')}</div>
+              <div className="text-[11.5px] text-muted">{t('finance.stmtNo')}: {stmtNo}</div>
               <div className="text-[11.5px] text-muted">{t('finance.period.label')}: {periodLabel}</div>
               <div className="text-[11px] text-faint">{t('finance.generatedOn')}: {new Date().toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })}</div>
             </div>
@@ -245,6 +252,12 @@ export function OwnerInvoicesPage() {
             </table>
           </div>
         )}
+
+        {/* Signature / certification area — for the accountant to stamp. */}
+        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div className="border-t border-border pt-2 text-[11.5px] text-muted">{t('finance.preparedBy')}</div>
+          <div className="border-t border-border pt-2 text-[11.5px] text-muted">{t('finance.certifiedBy')}</div>
+        </div>
 
         <div className="mt-4 text-[10.5px] leading-6 text-faint">{t('finance.vatNote')}</div>
       </div>
