@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
+import { Price } from '@/components/Riyal'
 import { listActiveTeachers } from '@/lib/courses'
 import {
   assignRequestTeacher,
@@ -263,7 +264,7 @@ export function OwnerServiceRequestsPage() {
                 <div className="mb-3 rounded-lg bg-bg-soft p-3 text-[13px] text-navy">
                   {t('adminRequests.fixedPrice')}:{' '}
                   <span className="font-bold">
-                    {((r.final_price_cents ?? r.packagePriceCents) / 100).toLocaleString('en-US')} {t('course.currency')}
+                    <Price cents={r.final_price_cents ?? r.packagePriceCents ?? 0} />
                   </span>
                 </div>
               ) : (

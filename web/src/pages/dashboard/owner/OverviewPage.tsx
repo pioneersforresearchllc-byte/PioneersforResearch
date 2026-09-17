@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import { getOverviewStats } from '@/lib/owner'
 import { LoadingState } from '@/components/LoadingState'
+import { Price } from '@/components/Riyal'
 
 type TFn = ReturnType<typeof useLanguage>['t']
 
@@ -27,7 +28,7 @@ export function OwnerOverviewPage() {
   const { t } = useLanguage()
   const { data, isLoading } = useQuery({ queryKey: ['owner-overview-stats'], queryFn: getOverviewStats })
 
-  const fmtSar = (cents: number) => `${(cents / 100).toLocaleString('en-US')} ${t('course.currency')}`
+  const fmtSar = (cents: number) => <Price cents={cents} />
 
   const weekly = data
     ? [

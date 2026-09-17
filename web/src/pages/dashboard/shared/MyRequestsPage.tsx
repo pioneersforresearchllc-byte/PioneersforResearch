@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
+import { Price } from '@/components/Riyal'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
@@ -177,16 +178,16 @@ export function MyRequestsPage() {
                   {applied[r.id]?.valid ? (
                     <>
                       <span className="text-faint line-through">
-                        {((applied[r.id].original_cents ?? 0) / 100).toLocaleString('en-US')} {t('course.currency')}
+                        <Price cents={applied[r.id].original_cents ?? 0} />
                       </span>{' '}
                       <span className="font-bold">
-                        {((applied[r.id].discounted_cents ?? 0) / 100).toLocaleString('en-US')} {t('course.currency')}
+                        <Price cents={applied[r.id].discounted_cents ?? 0} />
                       </span>{' '}
                       <span className="text-accent">(−{applied[r.id].percent_off}%)</span>
                     </>
                   ) : (
                     <span className="font-bold">
-                      {(r.final_price_cents / 100).toLocaleString('en-US')} {t('course.currency')}
+                      <Price cents={r.final_price_cents} />
                     </span>
                   )}
                 </div>

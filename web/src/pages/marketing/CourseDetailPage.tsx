@@ -6,10 +6,11 @@ import { useAuth } from '@/context/AuthContext'
 import { enrollFree, redeemCourseCode } from '@/lib/courses'
 import { validateDiscount, type DiscountPreview } from '@/lib/discounts'
 import { useLanguage } from '@/lib/i18n'
+import { Price, money } from '@/components/Riyal'
 
 function formatSar(cents: number, t: ReturnType<typeof useLanguage>['t']) {
   if (cents === 0) return t('course.free')
-  return `${(cents / 100).toLocaleString('ar-SA')} ${t('course.currency')}`
+  return <Price cents={cents} locale="ar-SA" />
 }
 
 interface CourseDetail {
@@ -369,7 +370,7 @@ export function CourseDetailPage() {
                         : course.price_cents === 0
                           ? t('course.enrollFree')
                           : t('course.subscribeAndPay', {
-                              price: formatSar(applied?.valid ? applied.discounted_cents ?? 0 : course.price_cents, t),
+                              price: money(applied?.valid ? applied.discounted_cents ?? 0 : course.price_cents, 'ar-SA'),
                             })}
                   </button>
                 )}

@@ -1,11 +1,12 @@
 import { useLanguage } from '@/lib/i18n'
 import type { PaymentStatus } from '@/lib/invoices'
+import { Price } from '@/components/Riyal'
 
 type TFunc = ReturnType<typeof useLanguage>['t']
 
-/** Format a cents amount with the site's currency label (e.g. "150 USD"). */
-export function formatAmount(cents: number, t: TFunc): string {
-  return `${(cents / 100).toLocaleString('en-US')} ${t('course.currency')}`
+/** A cents amount rendered with the new Saudi Riyal symbol. */
+export function formatAmount(cents: number, _t?: TFunc) {
+  return <Price cents={cents} />
 }
 
 const STYLES: Record<PaymentStatus, string> = {

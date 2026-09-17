@@ -12,6 +12,7 @@ import { SiteComments } from '@/components/SiteComments'
 import { AudienceSection } from '@/components/AudienceSection'
 import { buttonClasses } from '@/components/ui/Button'
 import { CountUp, Magnetic } from '@/components/ui/motion'
+import { Price } from '@/components/Riyal'
 
 type TeamEntry = { name: string; role: string; bio: string }
 
@@ -36,7 +37,7 @@ export function useTeam(lang: 'ar' | 'en', t: (key: 'team.sara.role' | 'team.kha
 
 export function formatSar(cents: number, t: ReturnType<typeof useLanguage>['t']) {
   if (cents === 0) return t('course.free')
-  return `${(cents / 100).toLocaleString('ar-SA')} ${t('course.currency')}`
+  return <Price cents={cents} locale="ar-SA" />
 }
 
 function Stars({ avg }: { avg: number }) {

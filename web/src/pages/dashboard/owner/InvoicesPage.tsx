@@ -16,6 +16,7 @@ import { listAllServicesForOwner } from '@/lib/services'
 import { LoadingState } from '@/components/LoadingState'
 import { formatAmount } from '@/components/invoiceBits'
 import { Button } from '@/components/ui/Button'
+import { RiyalIcon } from '@/components/Riyal'
 
 // The establishment's official identity — printed on the statement header so
 // the document is ready to hand to the commercial registrar / ZATCA.
@@ -349,7 +350,7 @@ function RecordCashForm({
           )}
         </div>
         <div>
-          <label className="mb-1 block text-[11.5px] font-semibold text-muted">{t('finance.amount')} (﷼)</label>
+          <label className="mb-1 flex items-center gap-1 text-[11.5px] font-semibold text-muted">{t('finance.amount')} <RiyalIcon /></label>
           <input type="number" min={0} value={amount} onChange={(e) => setAmount(e.target.value)} className={inputCls} />
         </div>
         <div>

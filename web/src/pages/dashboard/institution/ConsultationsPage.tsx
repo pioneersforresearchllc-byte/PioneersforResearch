@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Price } from '@/components/Riyal'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { useSearchParams } from 'react-router-dom'
@@ -157,8 +158,7 @@ export function InstitutionConsultationsPage() {
                 <div className="mb-2.5 text-[14px] text-navy">
                   {t('instConsult.amountDue')}:{' '}
                   <span className="font-bold">
-                    {(c.final_price_cents / 100).toLocaleString(lang === 'ar' ? 'ar-SA' : 'en-US')}{' '}
-                    {t('course.currency')}
+                    <Price cents={c.final_price_cents} locale={lang === 'ar' ? 'ar-SA' : 'en-US'} />
                   </span>
                 </div>
                 <button
@@ -188,7 +188,7 @@ export function InstitutionConsultationsPage() {
           <div key={inv.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-white p-3.5">
             <div className="text-[13.5px] text-navy">
               <span className="font-bold">
-                {(inv.amount_cents / 100).toLocaleString(lang === 'ar' ? 'ar-SA' : 'en-US')} {t('course.currency')}
+                <Price cents={inv.amount_cents} locale={lang === 'ar' ? 'ar-SA' : 'en-US'} />
               </span>
               <span className="ms-2 text-[12px] text-muted">
                 {inv.method === 'stripe' ? t('instPay.methodStripe') : t('instPay.methodBank')}

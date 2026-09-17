@@ -20,10 +20,11 @@ import {
 } from '@/lib/courses'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
+import { Price } from '@/components/Riyal'
 
 function formatSar(cents: number, t: ReturnType<typeof useLanguage>['t']) {
   if (cents === 0) return t('course.free')
-  return `${(cents / 100).toLocaleString('en-US')} ${t('course.currency')}`
+  return <Price cents={cents} />
 }
 
 const emptyForm: CourseFormValues = {
