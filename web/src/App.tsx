@@ -106,7 +106,7 @@ const ownerTabs: DashboardTab[] = [
   { key: 'courses', labelKey: 'tab.coursesPrograms', to: '/owner/courses' },
   { key: 'services', labelKey: 'tab.services', to: '/owner/services' },
   { key: 'service-requests', labelKey: 'tab.serviceRequests', to: '/owner/service-requests' },
-  { key: 'invoices', labelKey: 'tab.invoices', to: '/owner/invoices' },
+  { key: 'invoices', labelKey: 'tab.finance', to: '/owner/invoices' },
   { key: 'discounts', labelKey: 'tab.discounts', to: '/owner/discounts' },
   { key: 'institutions', labelKey: 'tab.institutions', to: '/owner/institutions' },
   { key: 'inst-consultations', labelKey: 'tab.instConsultations', to: '/owner/institution-consultations' },
