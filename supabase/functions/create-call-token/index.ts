@@ -22,6 +22,9 @@ const SERVICE_ROLE_KEY =
   firstFromJsonDict(Deno.env.get('SUPABASE_SECRET_KEYS')) || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANON_KEY = firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) || Deno.env.get('SUPABASE_ANON_KEY')!
 const DAILY_API_KEY = (Deno.env.get('DAILY_API_KEY') || '').trim()
+// Cloud recording is a PAID Daily feature. Off by default so the free plan
+// works; set the secret DAILY_RECORDING=cloud once on a paid plan to enable it.
+const RECORDING_ENABLED = (Deno.env.get('DAILY_RECORDING') || '').trim() === 'cloud'
 const DAILY_API = 'https://api.daily.co/v1'
 
 const CORS_HEADERS = {
@@ -107,8 +110,8 @@ async function handle(req: Request): Promise<Response> {
       properties: {
         enable_screenshare: true,
         enable_chat: true,
-        enable_recording: 'cloud',
         enable_people_ui: true,
+        ...(RECORDING_ENABLED ? { enable_recording: 'cloud' } : {}),
         exp: Math.floor(Date.now() / 1000) + 12 * 3600, // room valid 12h
       },
     })
@@ -124,8 +127,7 @@ async function handle(req: Request): Promise<Response> {
       room_name: roomName,
       user_name: caller.name || (isStaff ? 'Mentor' : 'Student'),
       is_owner: isStaff,
-      start_cloud_recording: false,
-      enable_recording_ui: isStaff,
+      enable_recording_ui: RECORDING_ENABLED && isStaff,
       eject_at_token_exp: true,
       exp: Math.floor(Date.now() / 1000) + 4 * 3600,
     },
