@@ -523,6 +523,8 @@ export const translations = {
   'workspace.save': { ar: 'حفظ', en: 'Save' },
   'workspace.cancel': { ar: 'إلغاء', en: 'Cancel' },
   'workspace.delete': { ar: 'حذف', en: 'Delete' },
+  'workspace.edit': { ar: 'تعديل', en: 'Edit' },
+  'workspace.confirmDelete': { ar: 'تأكيد الحذف', en: 'Confirm delete' },
   'workspace.join': { ar: 'انضمام للحصة', en: 'Join session' },
   'workspace.openLink': { ar: 'فتح الرابط ↗', en: 'Open link ↗' },
   'workspace.due': { ar: 'الاستحقاق', en: 'Due' },

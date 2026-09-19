@@ -262,6 +262,16 @@ export async function listServiceMessages(requestId: string): Promise<ServiceMes
   return (data ?? []) as unknown as ServiceMessage[]
 }
 
+export async function editServiceMessage(id: string, text: string) {
+  const { error } = await supabase.from('service_messages').update({ text: text.trim() || null }).eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteServiceMessage(id: string) {
+  const { error } = await supabase.from('service_messages').delete().eq('id', id)
+  if (error) throw error
+}
+
 export async function sendServiceMessage(input: {
   request_id: string
   sender_id: string

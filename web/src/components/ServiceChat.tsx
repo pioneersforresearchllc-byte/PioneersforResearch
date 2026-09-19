@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import {
+  deleteServiceMessage,
+  editServiceMessage,
   listServiceMessages,
   sendServiceMessage,
   subscribeServiceMessages,
@@ -80,27 +82,16 @@ export function ServiceChat({ requestId }: { requestId: string }) {
         {!isLoading && list.length === 0 && (
           <div className="my-auto text-center text-[12.5px] text-faint">{t('workspace.chatEmpty')}</div>
         )}
-        {list.map((m: ServiceMessage) => {
-          const mine = m.sender_id === myId
-          return (
-            <div key={m.id} className={`flex flex-col ${mine ? 'items-end' : 'items-start'}`}>
-              <div
-                className={`flex max-w-[82%] flex-col gap-1.5 rounded-2xl px-3.5 py-2 text-[13px] leading-6 ${
-                  mine ? 'rounded-br-sm bg-navy text-white' : 'rounded-bl-sm bg-bg-soft text-navy'
-                }`}
-              >
-                {!mine && m.sender?.name && <div className="text-[11px] font-bold text-accent">{m.sender.name}</div>}
-                {m.text && <div className="whitespace-pre-wrap break-words">{m.text}</div>}
-                {m.attachment_url && (
-                  <div className={mine ? 'rounded-lg bg-white/10 p-1' : ''}>
-                    <ServiceAttachmentView path={m.attachment_url} name={m.attachment_name} kind={m.attachment_kind} compact />
-                  </div>
-                )}
-              </div>
-              <span className="mt-0.5 px-1 text-[10.5px] text-faint">{fmtWhen(m.created_at, locale)}</span>
-            </div>
-          )
-        })}
+        {list.map((m: ServiceMessage) => (
+          <Bubble
+            key={m.id}
+            m={m}
+            mine={m.sender_id === myId}
+            locale={locale}
+            t={t}
+            onChanged={() => qc.invalidateQueries({ queryKey: ['svc-chat', requestId] })}
+          />
+        ))}
       </div>
 
       {file && (
@@ -149,6 +140,108 @@ export function ServiceChat({ requestId }: { requestId: string }) {
           {send.isPending ? '…' : t('workspace.chatSend')}
         </button>
       </div>
+    </div>
+  )
+}
+
+function Bubble({
+  m,
+  mine,
+  locale,
+  t,
+  onChanged,
+}: {
+  m: ServiceMessage
+  mine: boolean
+  locale: string
+  t: ReturnType<typeof useLanguage>['t']
+  onChanged: () => void
+}) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(m.text ?? '')
+  const [confirmDel, setConfirmDel] = useState(false)
+
+  const save = useMutation({
+    mutationFn: () => editServiceMessage(m.id, draft),
+    onSuccess: () => {
+      setEditing(false)
+      onChanged()
+    },
+  })
+  const del = useMutation({
+    mutationFn: () => deleteServiceMessage(m.id),
+    onSuccess: () => {
+      setConfirmDel(false)
+      setMenuOpen(false)
+      onChanged()
+    },
+  })
+
+  return (
+    <div className={`group flex flex-col ${mine ? 'items-end' : 'items-start'}`}>
+      <div className="flex items-center gap-1.5">
+        {mine && !editing && (
+          <div className="relative self-center opacity-0 transition-opacity group-hover:opacity-100">
+            <button onClick={() => setMenuOpen((v) => !v)} className="rounded-full border border-border-2 bg-white px-1.5 text-[13px] leading-none text-muted hover:text-navy" aria-label="⋯">
+              ⋯
+            </button>
+            {menuOpen && (
+              <div className="absolute end-0 z-10 mt-1 flex min-w-[110px] flex-col overflow-hidden rounded-lg border border-border bg-white text-[12px] shadow-[0_10px_28px_-10px_rgba(11,31,58,0.4)]">
+                {!confirmDel ? (
+                  <>
+                    {m.text && (
+                      <button onClick={() => { setEditing(true); setDraft(m.text ?? ''); setMenuOpen(false) }} className="px-3 py-1.5 text-start text-navy hover:bg-bg-soft">
+                        {t('workspace.edit')}
+                      </button>
+                    )}
+                    <button onClick={() => setConfirmDel(true)} className="px-3 py-1.5 text-start text-error hover:bg-error/5">
+                      {t('workspace.delete')}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => del.mutate()} disabled={del.isPending} className="px-3 py-1.5 text-start font-semibold text-error hover:bg-error/5">
+                      {t('workspace.confirmDelete')}
+                    </button>
+                    <button onClick={() => setConfirmDel(false)} className="px-3 py-1.5 text-start text-muted hover:bg-bg-soft">
+                      {t('workspace.cancel')}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+        <div className={`flex max-w-[82%] flex-col gap-1.5 rounded-2xl px-3.5 py-2 text-[13px] leading-6 ${mine ? 'rounded-br-sm bg-navy text-white' : 'rounded-bl-sm bg-bg-soft text-navy'}`}>
+          {!mine && m.sender?.name && <div className="text-[11px] font-bold text-accent">{m.sender.name}</div>}
+          {editing ? (
+            <div className="flex flex-col gap-1.5">
+              <textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                rows={2}
+                autoFocus
+                className="w-56 max-w-full resize-none rounded-md border border-white/30 bg-white/10 px-2 py-1 text-[13px] text-white outline-none"
+              />
+              <div className="flex justify-end gap-2.5 text-[11.5px]">
+                <button onClick={() => setEditing(false)} className="opacity-80 hover:opacity-100">{t('workspace.cancel')}</button>
+                <button onClick={() => draft.trim() && save.mutate()} disabled={save.isPending} className="font-semibold">{t('workspace.save')}</button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {m.text && <div className="whitespace-pre-wrap break-words">{m.text}</div>}
+              {m.attachment_url && (
+                <div className={mine ? 'rounded-lg bg-white/10 p-1' : ''}>
+                  <ServiceAttachmentView path={m.attachment_url} name={m.attachment_name} kind={m.attachment_kind} compact />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+      <span className="mt-0.5 px-1 text-[10.5px] text-faint">{fmtWhen(m.created_at, locale)}</span>
     </div>
   )
 }
