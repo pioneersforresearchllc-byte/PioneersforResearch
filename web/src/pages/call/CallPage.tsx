@@ -46,13 +46,17 @@ export function CallPage() {
           if (joined) navigate(-1)
         })
         frame.on('error', (e) => {
-          setError((e as { errorMsg?: string })?.errorMsg || 'call error')
+          console.error('[call] daily error', e)
+          const ee = e as { errorMsg?: string; error?: { msg?: string } }
+          setError(ee?.errorMsg || ee?.error?.msg || JSON.stringify(e))
           setStatus('error')
         })
         await frame.join({ url: roomUrl, token })
       } catch (e) {
         if (cancelled) return
-        setError(e instanceof Error ? e.message : String(e))
+        console.error('[call] join failed', e)
+        const ee = e as { errorMsg?: string; message?: string }
+        setError(e instanceof Error ? e.message : ee?.errorMsg || ee?.message || JSON.stringify(e))
         setStatus('error')
       }
     })()
