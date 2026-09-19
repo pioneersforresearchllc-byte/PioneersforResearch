@@ -112,6 +112,9 @@ export function CallPage() {
         {status === 'error' && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-[#0a1626] px-6 text-center text-white">
             <div className="text-[15px] font-semibold">{error === 'video not configured' ? t('call.notConfigured') : error === 'not allowed' ? t('call.notAllowed') : t('call.failed')}</div>
+            {error && error !== 'video not configured' && error !== 'not allowed' && (
+              <div className="max-w-md break-words text-[12px] text-white/45" dir="ltr">{error}</div>
+            )}
             <button onClick={() => navigate(-1)} className="rounded-lg bg-white/15 px-5 py-2.5 text-[13.5px] font-semibold hover:bg-white/25">
               {t('call.back')}
             </button>
