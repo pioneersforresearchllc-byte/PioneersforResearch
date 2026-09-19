@@ -24,6 +24,7 @@ export function CallPage() {
     if (!sessionId) return
     let cancelled = false
     let frame: DailyCall | null = null
+    let joined = false
 
     ;(async () => {
       try {
@@ -35,8 +36,15 @@ export function CallPage() {
           iframeStyle: { width: '100%', height: '100%', border: '0' },
         })
         frameRef.current = frame
-        frame.on('left-meeting', () => navigate(-1))
-        frame.on('joined-meeting', () => setStatus('joined'))
+        frame.on('joined-meeting', () => {
+          joined = true
+          setStatus('joined')
+        })
+        // Only auto-return when the user actually leaves a joined call — never
+        // on a failed join (otherwise the error flashes and the page "closes").
+        frame.on('left-meeting', () => {
+          if (joined) navigate(-1)
+        })
         frame.on('error', (e) => {
           setError((e as { errorMsg?: string })?.errorMsg || 'call error')
           setStatus('error')
