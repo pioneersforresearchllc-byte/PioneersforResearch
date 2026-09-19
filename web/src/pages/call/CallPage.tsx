@@ -38,7 +38,6 @@ export function CallPage() {
         frameRef.current = frame
         frame.on('joined-meeting', () => {
           joined = true
-          setStatus('joined')
         })
         // Only auto-return when the user actually leaves a joined call — never
         // on a failed join (otherwise the error flashes and the page "closes").
@@ -51,6 +50,9 @@ export function CallPage() {
           setError(ee?.errorMsg || ee?.error?.msg || JSON.stringify(e))
           setStatus('error')
         })
+        // Reveal Daily's own UI immediately (it shows its device / join screen
+        // and its own connecting spinner) — our overlay must not cover it.
+        setStatus('joined')
         await frame.join({ url: roomUrl, token })
       } catch (e) {
         if (cancelled) return
