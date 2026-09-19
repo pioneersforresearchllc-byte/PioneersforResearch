@@ -74,20 +74,14 @@ export function CallPage() {
     }
   }, [sessionId, navigate])
 
-  // Deterrent: cover the call with a black screen while this tab is hidden /
-  // unfocused (e.g. when a screen-recorder or another window is brought up).
+  // Deterrent: cover the call with a black screen only while this tab is truly
+  // hidden (switched away / minimized). We deliberately do NOT use window blur
+  // — clicking inside the video iframe or DevTools blurs the window and would
+  // wrongly hide the call.
   useEffect(() => {
     const onVis = () => setAwayCover(document.hidden)
-    const onBlur = () => setAwayCover(true)
-    const onFocus = () => setAwayCover(document.hidden)
     document.addEventListener('visibilitychange', onVis)
-    window.addEventListener('blur', onBlur)
-    window.addEventListener('focus', onFocus)
-    return () => {
-      document.removeEventListener('visibilitychange', onVis)
-      window.removeEventListener('blur', onBlur)
-      window.removeEventListener('focus', onFocus)
-    }
+    return () => document.removeEventListener('visibilitychange', onVis)
   }, [])
 
   const wmSvg = encodeURIComponent(
