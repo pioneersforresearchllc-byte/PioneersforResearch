@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import {
@@ -84,17 +85,22 @@ function SessionJoin({
   t: TFn
 }) {
   const start = sessionStartMs(session)
+  const isVideo = !!session.is_video
   const hasLink = !!session.link?.trim()
-  const canJoin = (phase === 'joinable' || phase === 'live' || phase === 'no_time') && hasLink
+  const btnClass =
+    'mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-success px-4 py-2 text-[12.5px] font-bold text-white no-underline shadow-sm transition-transform hover:scale-[1.02] hover:opacity-95'
+  const canJoin = (phase === 'joinable' || phase === 'live' || phase === 'no_time') && (isVideo || hasLink)
 
   if (canJoin) {
+    if (isVideo) {
+      return (
+        <Link to={`/call/${session.id}`} className={btnClass}>
+          🎥 {t('workspace.join')}
+        </Link>
+      )
+    }
     return (
-      <a
-        href={session.link!}
-        target="_blank"
-        rel="noreferrer"
-        className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-success px-4 py-2 text-[12.5px] font-bold text-white no-underline shadow-sm transition-transform hover:scale-[1.02] hover:opacity-95"
-      >
+      <a href={session.link!} target="_blank" rel="noreferrer" className={btnClass}>
         ▶ {t('workspace.join')}
       </a>
     )
@@ -103,7 +109,7 @@ function SessionJoin({
   let msg: string
   if (phase === 'ended') msg = t('session.ended')
   else if (phase === 'upcoming' && start) msg = `${t('session.opensBefore')} · ${t('session.startsIn')} ${countdown(start - now, lang)}`
-  else if (!hasLink) msg = manage ? t('session.addLinkHint') : t('session.noLinkYet')
+  else if (!isVideo && !hasLink) msg = manage ? t('session.addLinkHint') : t('session.noLinkYet')
   else msg = t('session.notReady')
 
   return (
@@ -197,13 +203,21 @@ function SessionsPanel({
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
   const [link, setLink] = useState('')
+  const [isVideo, setIsVideo] = useState(true)
 
   const add = useMutation({
     mutationFn: () =>
-      addSession({ request_id: requestId, title: title.trim(), session_date: date || null, session_time: time || null, link: link.trim() || null }),
+      addSession({
+        request_id: requestId,
+        title: title.trim(),
+        session_date: date || null,
+        session_time: time || null,
+        link: isVideo ? null : link.trim() || null,
+        is_video: isVideo,
+      }),
     onSuccess: () => {
       triggerPush('service_session', requestId)
-      setTitle(''); setDate(''); setTime(''); setLink(''); setOpen(false); onChange()
+      setTitle(''); setDate(''); setTime(''); setLink(''); setIsVideo(true); setOpen(false); onChange()
     },
   })
   const del = useMutation({ mutationFn: (id: string) => deleteSession(id), onSuccess: onChange })
@@ -228,7 +242,13 @@ function SessionsPanel({
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={field} />
             <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className={field} />
           </div>
-          <input value={link} onChange={(e) => setLink(e.target.value)} dir="ltr" placeholder={t('workspace.linkPh')} className={field} />
+          <label className="flex items-center gap-2 text-[12.5px] font-medium text-navy">
+            <input type="checkbox" checked={isVideo} onChange={(e) => setIsVideo(e.target.checked)} className="h-4 w-4" />
+            🎥 {t('workspace.videoSession')}
+          </label>
+          {!isVideo && (
+            <input value={link} onChange={(e) => setLink(e.target.value)} dir="ltr" placeholder={t('workspace.linkPh')} className={field} />
+          )}
           <button
             onClick={() => title.trim() && add.mutate()}
             disabled={!title.trim() || add.isPending}

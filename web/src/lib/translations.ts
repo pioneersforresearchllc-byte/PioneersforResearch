@@ -554,6 +554,17 @@ export const translations = {
   'workspace.chatPlaceholder': { ar: 'اكتب رسالة…', en: 'Type a message…' },
   'workspace.chatSend': { ar: 'إرسال', en: 'Send' },
   'workspace.attach': { ar: 'إرفاق ملف', en: 'Attach file' },
+  'workspace.videoSession': { ar: 'حصة فيديو داخل الموقع (بلا رابط خارجي)', en: 'In-app video call (no external link)' },
+
+  // Live video call
+  'call.title': { ar: 'الحصة المباشرة — Pioneers', en: 'Live session — Pioneers' },
+  'call.leave': { ar: '‹ مغادرة', en: '‹ Leave' },
+  'call.back': { ar: 'رجوع', en: 'Back' },
+  'call.connecting': { ar: 'جارِ الاتصال بالحصة…', en: 'Connecting to the session…' },
+  'call.paused': { ar: '⏸ الحصة متوقفة — عُد إلى هذا التبويب للمتابعة', en: '⏸ Paused — return to this tab to continue' },
+  'call.notConfigured': { ar: 'الحصص المباشرة غير مُفعّلة بعد. يرجى من الإدارة إضافة مفتاح الفيديو.', en: 'Live video is not enabled yet. The admin needs to add the video key.' },
+  'call.notAllowed': { ar: 'غير مصرّح لك بدخول هذه الحصة.', en: 'You are not allowed in this session.' },
+  'call.failed': { ar: 'تعذّر الاتصال بالحصة. حاول مرة أخرى.', en: 'Could not connect to the session. Please try again.' },
 
   // Task submission + grading
   'task.state.open': { ar: 'بانتظار التسليم', en: 'To submit' },

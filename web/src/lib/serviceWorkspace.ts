@@ -7,8 +7,31 @@ export interface ServiceSession {
   session_date: string | null
   session_time: string | null
   link: string | null
+  is_video?: boolean
+  daily_room_url?: string | null
   reminder_sent_at?: string | null
   created_at: string
+}
+
+/** Asks the backend for a Daily room + per-user token for an in-app video
+ * session (access is verified server-side). */
+export async function getCallToken(sessionId: string): Promise<{ roomUrl: string; token: string; isStaff: boolean }> {
+  const { data, error } = await supabase.functions.invoke('create-call-token', { body: { sessionId } })
+  if (error) {
+    const ctx = (error as { context?: Response }).context
+    if (ctx && typeof ctx.text === 'function') {
+      try {
+        const parsed = JSON.parse(await ctx.text()) as { error?: string }
+        throw new Error(parsed.error || error.message)
+      } catch (e) {
+        if (e instanceof Error && e.message) throw e
+      }
+    }
+    throw error
+  }
+  const r = data as { roomUrl?: string; token?: string; isStaff?: boolean; error?: string }
+  if (r.error || !r.roomUrl || !r.token) throw new Error(r.error || 'call failed')
+  return { roomUrl: r.roomUrl, token: r.token, isStaff: !!r.isStaff }
 }
 
 // Saudi Arabia is a fixed UTC+3 (no DST). Sessions are scheduled in local Saudi
@@ -168,6 +191,7 @@ export async function addSession(input: {
   session_date: string | null
   session_time: string | null
   link: string | null
+  is_video?: boolean
 }) {
   const { error } = await supabase.from('service_sessions').insert(input)
   if (error) throw error

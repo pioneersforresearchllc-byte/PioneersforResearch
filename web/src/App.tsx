@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { MarketingLayout } from '@/layouts/MarketingLayout'
@@ -26,6 +27,8 @@ import { OwnerInstitutionsPage } from '@/pages/dashboard/owner/InstitutionsPage'
 import { OwnerInstitutionConsultationsPage } from '@/pages/dashboard/owner/InstitutionConsultationsPage'
 import { OwnerLoginPage } from '@/pages/auth/OwnerLoginPage'
 import { OwnerOtpPage } from '@/pages/auth/OwnerOtpPage'
+// Lazy — pulls in the (large) Daily video SDK only when a call is opened.
+const CallPage = lazy(() => import('@/pages/call/CallPage').then((m) => ({ default: m.CallPage })))
 import { MarketingHome } from '@/pages/marketing/MarketingHome'
 import { TermsPage, PrivacyPage } from '@/pages/marketing/LegalPages'
 import { CookieConsent } from '@/components/CookieConsent'
@@ -220,6 +223,7 @@ export default function App() {
         <Route path="/institution-pending" element={<InstitutionPendingPage />} />
         <Route path="/owner-login" element={<OwnerLoginPage />} />
         <Route path="/owner-otp" element={<OwnerOtpPage />} />
+        <Route path="/call/:sessionId" element={<Suspense fallback={null}><CallPage /></Suspense>} />
 
         <Route element={<RequireRole role="student" />}>
           <Route element={<StudentDashboard />}>
