@@ -49,6 +49,15 @@ export function OwnerLoginPage() {
         body: { deviceId: getOwnerDeviceId() },
       })
       if (otpErr) {
+        // Supabase flags any non-2xx as an error. A 429 here means a code was
+        // already sent moments ago and is still valid (10-min window) — don't
+        // dead-end the owner on a "send failed" message; send them to the code
+        // screen to enter the code they already received.
+        const ctx = (otpErr as { context?: Response }).context
+        if (ctx?.status === 429) {
+          navigate('/owner-otp', { state: { devCode: null } })
+          return
+        }
         setError(t('ownerLogin.otpSendError'))
         return
       }
