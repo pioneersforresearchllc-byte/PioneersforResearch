@@ -39,13 +39,29 @@ export function OwnerOtpPage() {
 
   const resend = async () => {
     setError('')
-    const { data } = await supabase.functions.invoke('send-otp')
-    const result = data as { devCode?: string; error?: string; retryAfterSeconds?: number } | null
-    if (result?.error === 'rate_limited') {
-      const minutes = Math.max(1, Math.ceil((result.retryAfterSeconds ?? 300) / 60))
-      setError(t('ownerOtp.rateLimited', { minutes: String(minutes) }))
+    // No deviceId here on purpose: resend must always force a real send,
+    // never take the trusted-device skip path.
+    const { data, error } = await supabase.functions.invoke('send-otp')
+    if (error) {
+      // Supabase flags any non-2xx as an error with the body on error.context;
+      // a 429 carries the cooldown (retryAfterSeconds) in that JSON body.
+      const ctx = (error as { context?: Response }).context
+      if (ctx?.status === 429) {
+        let seconds = 300
+        try {
+          const parsed = JSON.parse(await ctx.text()) as { retryAfterSeconds?: number }
+          seconds = parsed.retryAfterSeconds ?? 300
+        } catch {
+          // fall back to the default 5-min cooldown
+        }
+        const minutes = Math.max(1, Math.ceil(seconds / 60))
+        setError(t('ownerOtp.rateLimited', { minutes: String(minutes) }))
+        return
+      }
+      setError(t('ownerLogin.otpSendError'))
       return
     }
+    const result = data as { devCode?: string } | null
     setDevCode(result?.devCode ?? null)
   }
 
