@@ -5,9 +5,12 @@ import { translations } from '@/lib/translations'
 import {
   EDITABLE_CONTENT,
   fetchSiteContent,
+  normalizeWhatsapp,
   resolveSocialLink,
+  resolveWhatsapp,
   saveSiteContent,
   SOCIAL_KEYS,
+  WHATSAPP_KEY,
   type ContentKey,
   type ContentMap,
   type SocialKey,
@@ -262,6 +265,56 @@ function TeamEditor() {
   )
 }
 
+function WhatsAppEditor({ content, onSaved }: { content: ContentMap | undefined; onSaved: () => void }) {
+  const { t } = useLanguage()
+  const [num, setNum] = useState(resolveWhatsapp(content))
+  const [busy, setBusy] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const digits = normalizeWhatsapp(num)
+
+  const save = async () => {
+    setBusy(true)
+    setSaved(false)
+    try {
+      // Store bare digits (empty = hide the floating button) in both columns.
+      await saveSiteContent(WHATSAPP_KEY, digits, digits)
+      setSaved(true)
+      onSaved()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div>
+      <div className="mb-1 text-[14px] font-bold text-navy">{t('cms.whatsapp.title')}</div>
+      <div className="mb-2.5 text-[12.5px] text-muted">{t('cms.whatsapp.hint')}</div>
+      <div className="flex flex-wrap items-center gap-2.5 rounded-lg border border-border-2 bg-bg-soft p-3.5">
+        <input
+          dir="ltr"
+          value={num}
+          onChange={(e) => setNum(e.target.value)}
+          placeholder={t('cms.whatsapp.ph')}
+          className="min-w-0 flex-1 rounded-md border border-border px-3 py-2 text-[13.5px]"
+        />
+        {digits && (
+          <span className="text-[12px] text-muted" dir="ltr">
+            wa.me/{digits}
+          </span>
+        )}
+        {saved && <span className="text-[12px] text-success">{t('homeContent.saved')}</span>}
+        <button
+          onClick={() => void save()}
+          disabled={busy}
+          className="rounded-md bg-navy px-4 py-1.75 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+        >
+          {t('homeContent.save')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function BankDetailsEditor({ content, onSaved }: { content: ContentMap | undefined; onSaved: () => void }) {
   const { t } = useLanguage()
   const [ar, setAr] = useState(content?.['bank.details']?.ar ?? '')
@@ -394,6 +447,7 @@ export function OwnerHomeContentPage() {
         ))}
 
         <SocialLinksEditor content={content} onSaved={refresh} />
+        <WhatsAppEditor key={content ? 'wa-loaded' : 'wa-loading'} content={content} onSaved={refresh} />
         <AnnouncementEditor key={content ? 'loaded' : 'loading'} content={content} onSaved={refresh} />
         <BankDetailsEditor key={content ? 'bank-loaded' : 'bank-loading'} content={content} onSaved={refresh} />
         <TeamEditor />

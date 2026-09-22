@@ -89,6 +89,23 @@ export function resolveSocialLink(content: ContentMap | undefined, key: SocialKe
   return entry.en ?? ''
 }
 
+// ── WhatsApp contact (floating button) ─────────────────────────────────────
+// The owner-editable WhatsApp number, stored in site_content under this key.
+// Kept as bare international digits (no '+', spaces or dashes) so it drops
+// straight into a wa.me link. No default: the floating button stays hidden
+// until the owner sets a number from the admin panel.
+export const WHATSAPP_KEY = 'contact.whatsapp'
+
+/** Strips everything but digits (wa.me wants e.g. 9665XXXXXXXX, no '+'). */
+export function normalizeWhatsapp(raw: string): string {
+  return (raw || '').replace(/\D/g, '')
+}
+
+/** The saved WhatsApp number as bare digits, or '' when unset/blank. */
+export function resolveWhatsapp(content: ContentMap | undefined): string {
+  return normalizeWhatsapp(content?.[WHATSAPP_KEY]?.en ?? '')
+}
+
 /**
  * Returns a resolver that prefers the owner's edited copy for a key and
  * falls back to the built-in translation. Use it exactly like `t()` for the

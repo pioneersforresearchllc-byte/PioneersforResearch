@@ -3,8 +3,9 @@ import { Link, Outlet } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
-import { fetchSiteContent, resolveSocialLink } from '@/lib/content'
+import { fetchSiteContent, resolveSocialLink, resolveWhatsapp } from '@/lib/content'
 import { AnnouncementPopup } from '@/components/AnnouncementPopup'
+import { WhatsAppFab } from '@/components/WhatsAppFab'
 import { PageTransition } from '@/components/ui/motion'
 import { buttonClasses } from '@/components/ui/Button'
 
@@ -48,6 +49,7 @@ export function MarketingLayout() {
     x: resolveSocialLink(siteContent, 'social.x'),
     discord: resolveSocialLink(siteContent, 'social.discord'),
   }
+  const whatsapp = resolveWhatsapp(siteContent)
 
   const navLinks = (
     <>
@@ -109,6 +111,7 @@ export function MarketingLayout() {
   return (
     <div dir={dir} lang={lang} className="min-h-screen w-full bg-white text-navy">
       <AnnouncementPopup />
+      <WhatsAppFab number={whatsapp} />
       <div className="glass elev-1 sticky top-0 z-20 border-b border-border/70">
         <div className="flex items-center justify-between px-4 py-4 md:px-16 md:py-5">
           <Link to="/" className="flex items-center gap-2.5 no-underline">

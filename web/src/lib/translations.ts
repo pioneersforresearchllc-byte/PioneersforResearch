@@ -1364,6 +1364,18 @@ export const translations = {
   'cms.social.title': { ar: 'روابط التواصل الاجتماعي', en: 'Social links' },
   'cms.social.hint': { ar: 'اترك الحقل فارغًا لإخفاء الأيقونة من التذييل.', en: 'Leave a field empty to hide that icon from the footer.' },
   'cms.social.urlPh': { ar: 'الرابط (فارغ = إخفاء)', en: 'URL (empty = hidden)' },
+  'cms.whatsapp.title': { ar: 'زر واتساب العائم', en: 'Floating WhatsApp button' },
+  'cms.whatsapp.hint': {
+    ar: 'رقم واتساب برمز الدولة بدون + أو مسافات (مثال: 9665XXXXXXXX). اتركه فارغًا لإخفاء الزر.',
+    en: 'WhatsApp number with country code, no + or spaces (e.g. 9665XXXXXXXX). Leave empty to hide the button.',
+  },
+  'cms.whatsapp.ph': { ar: 'رقم واتساب (فارغ = إخفاء)', en: 'WhatsApp number (empty = hidden)' },
+  'whatsapp.label': { ar: 'تواصل معنا', en: 'Chat with us' },
+  'whatsapp.aria': { ar: 'تواصل معنا عبر واتساب', en: 'Chat with us on WhatsApp' },
+  'whatsapp.prefill': {
+    ar: 'مرحبًا، أود الاستفسار عن خدمات بايونيرز للأبحاث الصحية.',
+    en: "Hello, I'd like to ask about Pioneers Health Research services.",
+  },
 
   // Team editor
   'cms.team.title': { ar: 'فريق العمل', en: 'Our team' },
