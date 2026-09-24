@@ -52,10 +52,13 @@ export async function listStudents(): Promise<StudentOption[]> {
 }
 
 /** Emails the invoice (as a formatted invoice) to the student from the company
- * address. Best-effort: the invoice already exists whether or not this sends. */
-export async function sendInvoiceEmail(invoiceId: string): Promise<void> {
-  const { error } = await supabase.functions.invoke('send-invoice-email', { body: { invoiceId } })
-  if (error) throw error
+ * address. Returns whether it was actually sent — the function replies 200 with
+ * { sent:false } when SMTP isn't configured, so we must read the body, not just
+ * the transport error. Never throws; the invoice exists regardless. */
+export async function sendInvoiceEmail(invoiceId: string): Promise<boolean> {
+  const { data, error } = await supabase.functions.invoke('send-invoice-email', { body: { invoiceId } })
+  if (error) return false
+  return !!(data as { sent?: boolean } | null)?.sent
 }
 
 /** Owner issues an invoice to a student (found by email or username). */

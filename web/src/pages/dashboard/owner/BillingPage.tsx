@@ -35,13 +35,9 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
   const create = useMutation({
     mutationFn: async () => {
       const id = await createInvoice(username, title, description, Math.round((Number(amount) || 0) * 100))
-      // Best-effort email; the invoice is created regardless of delivery.
-      try {
-        await sendInvoiceEmail(id)
-        return true
-      } catch {
-        return false
-      }
+      // Best-effort email; the invoice is created regardless of delivery. The
+      // returned flag reflects whether SMTP actually sent it.
+      return await sendInvoiceEmail(id)
     },
     onSuccess: (sent) => {
       setEmailed(sent)
