@@ -76,6 +76,8 @@ import { TeacherStudentsPage } from '@/pages/dashboard/teacher/StudentsPage'
 import { TeacherAssignedRequestsPage } from '@/pages/dashboard/teacher/AssignedRequestsPage'
 import { WorkshopsPage } from '@/pages/dashboard/shared/WorkshopsPage'
 import { OwnerWorkshopsPage } from '@/pages/dashboard/owner/WorkshopsPage'
+import { StudentBillingPage } from '@/pages/dashboard/student/BillingPage'
+import { OwnerBillingPage } from '@/pages/dashboard/owner/BillingPage'
 
 const studentTabs: DashboardTab[] = [
   { key: 'overview', labelKey: 'tab.overview', to: '/student' },
@@ -88,6 +90,7 @@ const studentTabs: DashboardTab[] = [
   { key: 'my-services', labelKey: 'tab.myServices', to: '/student/services' },
   { key: 'workshops', labelKey: 'tab.workshops', to: '/student/workshops' },
   { key: 'requests', labelKey: 'tab.myRequests', to: '/student/requests' },
+  { key: 'billing', labelKey: 'tab.billing', to: '/student/billing' },
   { key: 'invoices', labelKey: 'tab.invoices', to: '/student/invoices' },
   { key: 'chat', labelKey: 'tab.messages', to: '/student/chat' },
   { key: 'account', labelKey: 'tab.myAccount', to: '/student/account' },
@@ -114,6 +117,7 @@ const ownerTabs: DashboardTab[] = [
   { key: 'services', labelKey: 'tab.services', to: '/owner/services' },
   { key: 'service-requests', labelKey: 'tab.serviceRequests', to: '/owner/service-requests' },
   { key: 'workshops', labelKey: 'tab.workshops', to: '/owner/workshops' },
+  { key: 'billing', labelKey: 'tab.billingIssue', to: '/owner/billing' },
   { key: 'invoices', labelKey: 'tab.finance', to: '/owner/invoices' },
   { key: 'discounts', labelKey: 'tab.discounts', to: '/owner/discounts' },
   { key: 'institutions', labelKey: 'tab.institutions', to: '/owner/institutions' },
@@ -241,6 +245,7 @@ export default function App() {
             <Route path="/student/invoices" element={<StudentInvoicesPage />} />
             <Route path="/student/services" element={<StudentServicesPage />} />
             <Route path="/student/workshops" element={<WorkshopsPage />} />
+            <Route path="/student/billing" element={<StudentBillingPage />} />
             <Route path="/student/certificates" element={<StudentCertificatesPage />} />
             <Route path="/student/feedback" element={<StudentFeedbackPage />} />
             <Route path="/student/articles" element={<StudentArticlesPage />} />
@@ -276,6 +281,7 @@ export default function App() {
             <Route path="/owner/services" element={<OwnerServicesPage />} />
             <Route path="/owner/service-requests" element={<OwnerServiceRequestsPage />} />
             <Route path="/owner/workshops" element={<OwnerWorkshopsPage />} />
+            <Route path="/owner/billing" element={<OwnerBillingPage />} />
             <Route path="/owner/invoices" element={<OwnerInvoicesPage />} />
             <Route path="/owner/certificates" element={<OwnerCertificatesPage />} />
             <Route path="/owner/admins" element={<OwnerAdminsPage />} />
