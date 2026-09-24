@@ -32,22 +32,21 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
-  const [emailed, setEmailed] = useState<null | boolean>(null)
+  const [done, setDone] = useState(false)
 
   const create = useMutation({
-    mutationFn: async () => {
-      const id = await createInvoice(username, title, description, Math.round((Number(amount) || 0) * 100))
-      // Best-effort email; the invoice is created regardless of delivery. The
-      // returned flag reflects whether SMTP actually sent it.
-      return await sendInvoiceEmail(id)
-    },
-    onSuccess: (sent) => {
-      setEmailed(sent)
+    // Create the invoice only — fast. The email is fired in the background
+    // (onSuccess) so the UI never waits on the SMTP round-trip, which is slow
+    // and can even report a false failure after actually delivering.
+    mutationFn: () => createInvoice(username, title, description, Math.round((Number(amount) || 0) * 100)),
+    onSuccess: (id) => {
+      setDone(true)
       setUsername('')
       setTitle('')
       setDescription('')
       setAmount('')
       onCreated()
+      void sendInvoiceEmail(id)
     },
   })
 
@@ -94,14 +93,9 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
           {t('ownerBilling.createError')}
         </div>
       )}
-      {emailed === true && (
+      {done && (
         <div className="mt-3 rounded-lg border border-success bg-success-bg px-3.5 py-2.5 text-[13px] font-semibold text-success">
           {t('ownerBilling.issuedEmailed')}
-        </div>
-      )}
-      {emailed === false && (
-        <div className="mt-3 rounded-lg border border-[#ecdfb8] bg-[#faf6ea] px-3.5 py-2.5 text-[13px] font-semibold text-[#92600a]">
-          {t('ownerBilling.issuedNoEmail')}
         </div>
       )}
       <div className="mt-3 flex justify-end">
