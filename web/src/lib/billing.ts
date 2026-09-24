@@ -39,6 +39,13 @@ export interface StudentOption {
   username: string
 }
 
+/** Service titles, offered as preset line items when issuing an invoice. */
+export async function listServiceTitles(): Promise<string[]> {
+  const { data, error } = await supabase.from('services').select('title').order('sort_order')
+  if (error) return []
+  return (data ?? []).map((r) => (r as { title: string }).title).filter(Boolean)
+}
+
 /** Active student accounts, for the invoice recipient picker. */
 export async function listStudents(): Promise<StudentOption[]> {
   const { data, error } = await supabase

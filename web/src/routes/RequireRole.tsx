@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { supabase } from '@/lib/supabase'
@@ -37,6 +37,7 @@ function SuspendedNotice() {
  */
 export function RequireRole({ role }: { role: UserRole }) {
   const { session, profile, loading } = useAuth()
+  const location = useLocation()
   const [ownerVerified, setOwnerVerified] = useState<boolean | null>(null)
 
   useEffect(() => {
@@ -51,7 +52,13 @@ export function RequireRole({ role }: { role: UserRole }) {
   }, [role, session, profile])
 
   if (loading) return <FullPageLoader />
-  if (!session || !profile) return <Navigate to="/login" replace />
+  if (!session || !profile) {
+    // Preserve where they were headed (e.g. an emailed invoice link) so login
+    // can return them there instead of the default dashboard.
+    const dest = `${location.pathname}${location.search}`
+    const to = dest && dest !== '/' ? `/login?redirect=${encodeURIComponent(dest)}` : '/login'
+    return <Navigate to={to} replace />
+  }
   if (profile.suspended) return <SuspendedNotice />
   if (profile.role !== role) return <Navigate to="/" replace />
   if (profile.role === 'teacher' && profile.status !== 'active') {

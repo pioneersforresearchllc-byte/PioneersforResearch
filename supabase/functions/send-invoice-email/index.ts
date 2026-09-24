@@ -35,6 +35,8 @@ const IDENTITY = {
   address: 'JHJA8230',
 }
 const LOGO_URL = 'https://pioneersresearch.com/logo.png'
+const SITE_URL = 'https://pioneersresearch.com'
+const BILLING_PATH = '/student/billing'
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -65,52 +67,70 @@ function invoiceHtml(inv: {
   const date = new Intl.DateTimeFormat('ar-u-ca-gregory', { dateStyle: 'long', timeZone: 'Asia/Riyadh' }).format(
     new Date(inv.created_at),
   )
+  const payUrl = `${SITE_URL}/login?redirect=${encodeURIComponent(BILLING_PATH)}`
   const bankBlock = inv.bank
-    ? `<div style="margin-top:16px;padding:12px 14px;background:#f6f8fb;border:1px solid #e6ebf2;border-radius:10px;font-size:13px;color:#0b1f3a;white-space:pre-wrap">${esc(inv.bank)}</div>`
+    ? `<tr><td style="padding:0 22px"><div style="margin-top:16px;padding:12px 14px;background:#f6f8fb;border:1px solid #e6ebf2;border-radius:10px;font-size:13px;color:#0b1f3a;white-space:pre-wrap">${esc(inv.bank)}</div></td></tr>`
     : ''
-  return `
-  <div style="max-width:600px;margin:0 auto;font-family:Tahoma,Arial,sans-serif;color:#0b1f3a" dir="rtl">
-    <div style="background:linear-gradient(90deg,#12325c,#0b1f3a);color:#fff;border-radius:12px 12px 0 0;padding:18px 20px;display:flex;justify-content:space-between;gap:12px">
-      <div style="display:flex;gap:12px;align-items:center">
-        <img src="${LOGO_URL}" width="44" height="44" alt="" style="background:#fff;border-radius:8px;padding:3px"/>
-        <div>
-          <div style="font-weight:bold;font-size:15px">${IDENTITY.nameAr}</div>
-          <div style="font-size:11px;color:#c9d6ea;margin-top:3px">الرقم الموحّد: ${IDENTITY.unified} · الرقم الضريبي: ${IDENTITY.tax}</div>
-          <div style="font-size:11px;color:#c9d6ea">رخصة الاستثمار: ${IDENTITY.misa} · العنوان الوطني: ${IDENTITY.address}</div>
-        </div>
-      </div>
-      <div style="text-align:left">
-        <div style="font-weight:bold;font-size:13px">فاتورة</div>
-        <div style="font-size:11px;color:#c9d6ea;margin-top:4px" dir="ltr">${num}</div>
-        <div style="font-size:11px;color:#c9d6ea">${date}</div>
-      </div>
-    </div>
-    <div style="border:1px solid #e6ebf2;border-top:0;border-radius:0 0 12px 12px;padding:18px 20px">
-      <div style="font-size:13px;margin-bottom:12px"><span style="color:#6b7787">فاتورة إلى:</span> <b>${esc(inv.studentName || '—')}</b></div>
-      <table style="width:100%;border-collapse:collapse;font-size:13px">
-        <thead>
-          <tr style="background:#f6f8fb;color:#6b7787">
-            <th style="text-align:right;padding:8px 10px;border:1px solid #e6ebf2">البند</th>
-            <th style="text-align:left;padding:8px 10px;border:1px solid #e6ebf2">المبلغ</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="padding:10px;border:1px solid #e6ebf2">
-              <b>${esc(inv.title)}</b>${inv.description ? `<div style="color:#6b7787;font-size:12px;margin-top:3px">${esc(inv.description)}</div>` : ''}
-            </td>
-            <td style="padding:10px;border:1px solid #e6ebf2;text-align:left;white-space:nowrap">${sar(inv.amount_cents)}</td>
-          </tr>
-        </tbody>
+  // Light background + dark text throughout so mobile dark-mode engines don't
+  // hide text on a colored block. A full document lets us set color-scheme.
+  return `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<meta name="supported-color-schemes" content="light only"/>
+</head>
+<body style="margin:0;background:#eef1f5;padding:20px 0;font-family:Tahoma,Arial,sans-serif">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef1f5"><tr><td align="center">
+  <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border:1px solid #e6ebf2;border-radius:14px;overflow:hidden;color:#0b1f3a">
+    <tr><td style="height:5px;background:#0b1f3a;font-size:0;line-height:0">&nbsp;</td></tr>
+    <tr><td style="padding:18px 22px;border-bottom:1px solid #eef1f5">
+      <table role="presentation" width="100%"><tr>
+        <td style="vertical-align:top">
+          <img src="${LOGO_URL}" width="42" height="42" alt="" style="vertical-align:middle;border-radius:8px"/>
+          <span style="font-weight:bold;font-size:15px;color:#0b1f3a;margin-inline-start:8px">${IDENTITY.nameAr}</span>
+          <div style="font-size:11px;color:#6b7787;margin-top:6px">الرقم الموحّد: ${IDENTITY.unified} · الرقم الضريبي: ${IDENTITY.tax}</div>
+          <div style="font-size:11px;color:#6b7787">رخصة الاستثمار: ${IDENTITY.misa} · العنوان الوطني: ${IDENTITY.address}</div>
+        </td>
+        <td style="vertical-align:top;text-align:left;white-space:nowrap">
+          <div style="font-weight:bold;font-size:14px;color:#0b1f3a">فاتورة</div>
+          <div style="font-size:11px;color:#6b7787;margin-top:4px" dir="ltr">${num}</div>
+          <div style="font-size:11px;color:#6b7787">${date}</div>
+        </td>
+      </tr></table>
+    </td></tr>
+    <tr><td style="padding:16px 22px 4px">
+      <span style="color:#6b7787;font-size:13px">فاتورة إلى:</span> <b style="font-size:13px">${esc(inv.studentName || '—')}</b>
+    </td></tr>
+    <tr><td style="padding:8px 22px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px">
+        <tr style="background:#f6f8fb;color:#6b7787">
+          <th style="text-align:right;padding:8px 10px;border:1px solid #e6ebf2">البند</th>
+          <th style="text-align:left;padding:8px 10px;border:1px solid #e6ebf2">المبلغ</th>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e6ebf2;color:#0b1f3a">
+            <b>${esc(inv.title)}</b>${inv.description ? `<div style="color:#6b7787;font-size:12px;margin-top:3px">${esc(inv.description)}</div>` : ''}
+          </td>
+          <td style="padding:10px;border:1px solid #e6ebf2;text-align:left;white-space:nowrap;color:#0b1f3a">${sar(inv.amount_cents)}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;border:1px solid #e6ebf2;font-weight:bold">الإجمالي المستحق</td>
+          <td style="padding:10px;border:1px solid #e6ebf2;text-align:left;white-space:nowrap;font-weight:bold;font-size:15px">${sar(inv.amount_cents)}</td>
+        </tr>
       </table>
-      <div style="margin-top:12px;margin-inline-start:auto;max-width:280px;font-size:13px">
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid #e6ebf2;font-weight:bold;font-size:15px"><span>الإجمالي المستحق</span><span>${sar(inv.amount_cents)}</span></div>
-      </div>
-      <div style="margin-top:14px;font-size:13px;font-weight:bold">طريقة الدفع — تحويل بنكي</div>
-      ${bankBlock}
-      <div style="margin-top:16px;color:#8a94a3;font-size:11.5px;text-align:center">بعد التحويل، يُرجى رفع صورة الإيصال من حسابك في قسم «الفواتير المستحقة» لتأكيد الدفع.</div>
-    </div>
-  </div>`
+    </td></tr>
+    <tr><td style="padding:18px 22px 4px" align="center">
+      <a href="${payUrl}" style="display:inline-block;background:#1aa851;color:#ffffff;text-decoration:none;font-weight:bold;font-size:14px;padding:12px 26px;border-radius:10px">عرض الفاتورة والدفع</a>
+    </td></tr>
+    <tr><td style="padding:14px 22px 0;font-size:13px;font-weight:bold">طريقة الدفع — تحويل بنكي</td></tr>
+    ${bankBlock}
+    <tr><td style="padding:14px 22px 22px;color:#8a94a3;font-size:11.5px;text-align:center">بعد التحويل، افتح الرابط أعلاه (سجّل الدخول إن لزم) وارفع صورة الإيصال في «الفواتير المستحقة» لتأكيد الدفع.</td></tr>
+  </table>
+  </td></tr></table>
+</body>
+</html>`
 }
 
 Deno.serve(async (req) => {

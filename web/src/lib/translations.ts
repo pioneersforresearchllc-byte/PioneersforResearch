@@ -532,6 +532,7 @@ export const translations = {
   'ownerBilling.create': { ar: 'فاتورة جديدة', en: 'New invoice' },
   'ownerBilling.student': { ar: 'الطالب (البريد أو اسم المستخدم)', en: 'Student (email or username)' },
   'ownerBilling.studentPh': { ar: 'student@email.com أو اسم المستخدم', en: 'student@email.com or username' },
+  'ownerBilling.titleLabel': { ar: 'بند الفاتورة (اختر خدمة أو اكتب يدويًا)', en: 'Invoice item (pick a service or type)' },
   'ownerBilling.titlePh': { ar: 'عنوان الفاتورة (مثال: رسوم خدمة تحليل إحصائي)', en: 'Invoice title (e.g. Statistical analysis fee)' },
   'ownerBilling.descPh': { ar: 'وصف/تفاصيل (اختياري)', en: 'Description (optional)' },
   'ownerBilling.amount': { ar: 'المبلغ (ريال)', en: 'Amount (SAR)' },

@@ -5,6 +5,7 @@ import {
   cancelInvoice,
   createInvoice,
   listAllInvoices,
+  listServiceTitles,
   listStudents,
   markInvoicePaid,
   receiptUrl,
@@ -26,6 +27,7 @@ const STATUS_KEY = {
 function CreateForm({ onCreated }: { onCreated: () => void }) {
   const { t } = useLanguage()
   const { data: students } = useQuery({ queryKey: ['students-list'], queryFn: listStudents })
+  const { data: titles } = useQuery({ queryKey: ['service-titles'], queryFn: listServiceTitles })
   const [username, setUsername] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -66,16 +68,42 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
             ))}
           </select>
         </label>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('ownerBilling.titlePh')} className={`${field} sm:col-span-2`} />
+        <label className="text-[12px] text-muted sm:col-span-2">
+          {t('ownerBilling.titleLabel')}
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            list="invoice-title-options"
+            placeholder={t('ownerBilling.titlePh')}
+            className={`${field} mt-1`}
+          />
+          <datalist id="invoice-title-options">
+            {(titles ?? []).map((tt) => (
+              <option key={tt} value={tt} />
+            ))}
+          </datalist>
+        </label>
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder={t('ownerBilling.descPh')} className={`${field} resize-y sm:col-span-2`} />
         <label className="text-[12px] text-muted">
           {t('ownerBilling.amount')}
           <input type="number" min={0} step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className={`${field} mt-1`} dir="ltr" />
         </label>
       </div>
-      {create.isError && <div className="mt-2 text-[12px] text-error">{t('ownerBilling.createError')}</div>}
-      {emailed === true && <div className="mt-2 text-[12px] text-success">{t('ownerBilling.issuedEmailed')}</div>}
-      {emailed === false && <div className="mt-2 text-[12px] text-[#92600a]">{t('ownerBilling.issuedNoEmail')}</div>}
+      {create.isError && (
+        <div className="mt-3 rounded-lg border border-error bg-error-bg px-3.5 py-2.5 text-[13px] font-semibold text-error">
+          {t('ownerBilling.createError')}
+        </div>
+      )}
+      {emailed === true && (
+        <div className="mt-3 rounded-lg border border-success bg-success-bg px-3.5 py-2.5 text-[13px] font-semibold text-success">
+          {t('ownerBilling.issuedEmailed')}
+        </div>
+      )}
+      {emailed === false && (
+        <div className="mt-3 rounded-lg border border-[#ecdfb8] bg-[#faf6ea] px-3.5 py-2.5 text-[13px] font-semibold text-[#92600a]">
+          {t('ownerBilling.issuedNoEmail')}
+        </div>
+      )}
       <div className="mt-3 flex justify-end">
         <button
           disabled={!valid || create.isPending}

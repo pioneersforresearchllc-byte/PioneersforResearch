@@ -17,6 +17,9 @@ export function LoginPage() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const passwordResetDone = !!(location.state as { passwordResetDone?: boolean } | null)?.passwordResetDone
+  // A safe internal path to return to after login (e.g. from an emailed link).
+  const rawRedirect = new URLSearchParams(location.search).get('redirect')
+  const redirect = rawRedirect && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : null
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -79,7 +82,7 @@ export function LoginPage() {
       }
 
       void supabase.from('login_events').insert({ user_id: data.user.id })
-      navigate(profile.role === 'student' ? '/student' : '/teacher')
+      navigate(redirect ?? (profile.role === 'student' ? '/student' : '/teacher'))
     } finally {
       setBusy(false)
     }
@@ -184,7 +187,7 @@ export function LoginPage() {
 
       <div className="mt-4 text-center text-[13.5px] text-muted">
         {t('login.noAccountYet')}{' '}
-        <Link to="/register" className="font-semibold text-navy no-underline">
+        <Link to={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'} className="font-semibold text-navy no-underline">
           {t('login.createAccount')}
         </Link>
       </div>
