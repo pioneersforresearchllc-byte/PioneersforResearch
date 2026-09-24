@@ -6,6 +6,7 @@ import { useLanguage } from '@/lib/i18n'
 import { fetchSiteContent, resolveSocialLink, resolveWhatsapp } from '@/lib/content'
 import { AnnouncementPopup } from '@/components/AnnouncementPopup'
 import { WhatsAppFab } from '@/components/WhatsAppFab'
+import { NationalDayCelebration } from '@/components/NationalDayCelebration'
 import { PageTransition } from '@/components/ui/motion'
 import { buttonClasses } from '@/components/ui/Button'
 
@@ -111,6 +112,7 @@ export function MarketingLayout() {
   return (
     <div dir={dir} lang={lang} className="min-h-screen w-full bg-white text-navy">
       <AnnouncementPopup />
+      <NationalDayCelebration />
       <WhatsAppFab number={whatsapp} />
       <div className="glass elev-1 sticky top-0 z-20 border-b border-border/70">
         <div className="flex items-center justify-between px-4 py-4 md:px-16 md:py-5">

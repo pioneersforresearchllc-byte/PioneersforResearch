@@ -503,6 +503,8 @@ export const translations = {
   'tab.invoices': { ar: 'الفواتير', en: 'Invoices' },
   'tab.myServices': { ar: 'خدماتي', en: 'My Services' },
   'tab.workshops': { ar: 'الورش المباشرة', en: 'Live Workshops' },
+  'nationalDay.badge': { ar: 'اليوم الوطني السعودي الـ96', en: 'Saudi National Day 96' },
+  'nationalDay.greeting': { ar: 'كل عام والوطن بخير', en: 'Happy Saudi National Day' },
 
   'myServices.subtitle': {
     ar: 'خدماتك المشترَك بها — الجدول ومواعيد الحصص وروابطها والواجبات التي يضيفها المدرّب.',
