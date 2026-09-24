@@ -502,6 +502,7 @@ export const translations = {
   'tab.broadcast': { ar: 'إرسال جماعي', en: 'Broadcast' },
   'tab.invoices': { ar: 'الفواتير', en: 'Invoices' },
   'tab.myServices': { ar: 'خدماتي', en: 'My Services' },
+  'tab.workshops': { ar: 'الورش المباشرة', en: 'Live Workshops' },
 
   'myServices.subtitle': {
     ar: 'خدماتك المشترَك بها — الجدول ومواعيد الحصص وروابطها والواجبات التي يضيفها المدرّب.',
@@ -565,6 +566,54 @@ export const translations = {
   'call.notConfigured': { ar: 'الحصص المباشرة غير مُفعّلة بعد. يرجى من الإدارة إضافة مفتاح الفيديو.', en: 'Live video is not enabled yet. The admin needs to add the video key.' },
   'call.notAllowed': { ar: 'غير مصرّح لك بدخول هذه الحصة.', en: 'You are not allowed in this session.' },
   'call.failed': { ar: 'تعذّر الاتصال بالحصة. حاول مرة أخرى.', en: 'Could not connect to the session. Please try again.' },
+  'call.workshop': { ar: 'ورشة مباشرة', en: 'Live workshop' },
+  'call.lobbyNote': {
+    ar: 'أنت على وشك الدخول إلى ورشة مباشرة. بعد الدخول ستنتظر لحظات حتى يقبلك المضيف في الغرفة.',
+    en: 'You are about to enter a live workshop. After joining, you will wait briefly until the host admits you.',
+  },
+  'call.enterWorkshop': { ar: 'دخول الورشة', en: 'Enter workshop' },
+  'call.identityNote': { ar: 'يُعرض اسمك وبريدك داخل الغرفة لأغراض التوثيق.', en: 'Your name and email are shown in the room for verification.' },
+
+  // Live workshops (attendee view)
+  'workshops.title': { ar: 'الورش المباشرة', en: 'Live Workshops' },
+  'workshops.subtitle': {
+    ar: 'احجز مقعدك في ورشة مباشرة بالصوت والصورة داخل المنصة — بلا برامج خارجية.',
+    en: 'Reserve a seat in a live audio/video workshop inside the platform — no external apps.',
+  },
+  'workshops.empty': { ar: 'لا توجد ورش قادمة حاليًا. تابعنا قريبًا.', en: 'No upcoming workshops right now. Check back soon.' },
+  'workshops.live': { ar: 'مباشر الآن', en: 'Live now' },
+  'workshops.scheduled': { ar: 'قادمة', en: 'Upcoming' },
+  'workshops.minutes': { ar: '{n} دقيقة', en: '{n} min' },
+  'workshops.seatsLeft': { ar: 'متبقٍ {n} من {cap} مقعد', en: '{n} of {cap} seats left' },
+  'workshops.reserve': { ar: 'احجز مقعدي', en: 'Reserve my seat' },
+  'workshops.cancelSeat': { ar: 'إلغاء الحجز', en: 'Cancel reservation' },
+  'workshops.join': { ar: 'دخول الورشة', en: 'Enter workshop' },
+  'workshops.opensBefore': { ar: 'يفتح الدخول قبل الموعد بـ{n} دقيقة', en: 'Opens {n} min before start' },
+  'workshops.full': { ar: 'اكتملت المقاعد', en: 'Fully booked' },
+
+  // Live workshops (owner admin)
+  'ownerWorkshops.title': { ar: 'إدارة الورش المباشرة', en: 'Manage Live Workshops' },
+  'ownerWorkshops.subtitle': {
+    ar: 'أنشئ ورشًا مباشرة، حدّد المضيف والسعة، وتابع الحضور — بديل داخلي عن زوم.',
+    en: 'Create live workshops, set host and capacity, and track attendance — an in-house Zoom alternative.',
+  },
+  'ownerWorkshops.create': { ar: 'إنشاء ورشة جديدة', en: 'Create a workshop' },
+  'ownerWorkshops.titlePh': { ar: 'عنوان الورشة', en: 'Workshop title' },
+  'ownerWorkshops.descPh': { ar: 'وصف مختصر (اختياري)', en: 'Short description (optional)' },
+  'ownerWorkshops.when': { ar: 'الموعد (بتوقيت السعودية)', en: 'When (Saudi time)' },
+  'ownerWorkshops.host': { ar: 'المضيف', en: 'Host' },
+  'ownerWorkshops.hostOwner': { ar: 'الإدارة (أنا)', en: 'Admin (me)' },
+  'ownerWorkshops.duration': { ar: 'المدة (دقائق)', en: 'Duration (min)' },
+  'ownerWorkshops.capacity': { ar: 'السعة', en: 'Capacity' },
+  'ownerWorkshops.createBtn': { ar: 'إنشاء', en: 'Create' },
+  'ownerWorkshops.none': { ar: 'لا توجد ورش بعد.', en: 'No workshops yet.' },
+  'ownerWorkshops.goLive': { ar: 'بدء مباشر', en: 'Go live' },
+  'ownerWorkshops.end': { ar: 'إنهاء', en: 'End' },
+  'ownerWorkshops.roster': { ar: 'الحضور', en: 'Roster' },
+  'ownerWorkshops.joinHost': { ar: 'دخول كمضيف', en: 'Join as host' },
+  'ownerWorkshops.confirmDelete': { ar: 'حذف هذه الورشة نهائيًا؟', en: 'Delete this workshop permanently?' },
+  'ownerWorkshops.rosterCount': { ar: 'محجوز: {reserved} · دخل: {joined}', en: 'Reserved: {reserved} · Joined: {joined}' },
+  'ownerWorkshops.noSignups': { ar: 'لا حجوزات بعد.', en: 'No reservations yet.' },
 
   // Task submission + grading
   'task.state.open': { ar: 'بانتظار التسليم', en: 'To submit' },

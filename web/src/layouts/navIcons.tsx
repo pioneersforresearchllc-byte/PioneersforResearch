@@ -29,6 +29,7 @@ const building = S(<><rect x="4" y="3" width="16" height="18" rx="1.5" /><path d
 const shield = S(<><path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z" /></>)
 const mail = S(<><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></>)
 const layout = S(<><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" /></>)
+const video = S(<><rect x="3" y="6" width="13" height="12" rx="2" /><path d="m16 10 5-3v10l-5-3z" /></>)
 const dot = S(<circle cx="12" cy="12" r="3" />)
 
 const MAP: Record<string, ReactNode> = {
@@ -42,6 +43,7 @@ const MAP: Record<string, ReactNode> = {
   articles: fileText,
   requests: inbox,
   'service-requests': inbox,
+  workshops: video,
   chat: message,
   messages: message,
   account: user,

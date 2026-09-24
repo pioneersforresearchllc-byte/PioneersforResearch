@@ -74,6 +74,8 @@ import { StudentOverviewPage } from '@/pages/dashboard/student/OverviewPage'
 import { TeacherOverviewPage } from '@/pages/dashboard/teacher/OverviewPage'
 import { TeacherStudentsPage } from '@/pages/dashboard/teacher/StudentsPage'
 import { TeacherAssignedRequestsPage } from '@/pages/dashboard/teacher/AssignedRequestsPage'
+import { WorkshopsPage } from '@/pages/dashboard/shared/WorkshopsPage'
+import { OwnerWorkshopsPage } from '@/pages/dashboard/owner/WorkshopsPage'
 
 const studentTabs: DashboardTab[] = [
   { key: 'overview', labelKey: 'tab.overview', to: '/student' },
@@ -84,6 +86,7 @@ const studentTabs: DashboardTab[] = [
   { key: 'feedback', labelKey: 'tab.feedback', to: '/student/feedback' },
   { key: 'articles', labelKey: 'tab.articles', to: '/student/articles' },
   { key: 'my-services', labelKey: 'tab.myServices', to: '/student/services' },
+  { key: 'workshops', labelKey: 'tab.workshops', to: '/student/workshops' },
   { key: 'requests', labelKey: 'tab.myRequests', to: '/student/requests' },
   { key: 'invoices', labelKey: 'tab.invoices', to: '/student/invoices' },
   { key: 'chat', labelKey: 'tab.messages', to: '/student/chat' },
@@ -96,6 +99,7 @@ const teacherTabs: DashboardTab[] = [
   { key: 'courses', labelKey: 'tab.coursesPrograms', to: '/teacher/courses' },
   { key: 'review', labelKey: 'tab.reviewAssignments', to: '/teacher/review' },
   { key: 'articles', labelKey: 'tab.myArticles', to: '/teacher/articles' },
+  { key: 'workshops', labelKey: 'tab.workshops', to: '/teacher/workshops' },
   { key: 'assigned', labelKey: 'tab.assignedRequests', to: '/teacher/assigned' },
   { key: 'requests', labelKey: 'tab.myRequests', to: '/teacher/requests' },
   { key: 'chat', labelKey: 'tab.messages', to: '/teacher/chat' },
@@ -109,6 +113,7 @@ const ownerTabs: DashboardTab[] = [
   { key: 'courses', labelKey: 'tab.coursesPrograms', to: '/owner/courses' },
   { key: 'services', labelKey: 'tab.services', to: '/owner/services' },
   { key: 'service-requests', labelKey: 'tab.serviceRequests', to: '/owner/service-requests' },
+  { key: 'workshops', labelKey: 'tab.workshops', to: '/owner/workshops' },
   { key: 'invoices', labelKey: 'tab.finance', to: '/owner/invoices' },
   { key: 'discounts', labelKey: 'tab.discounts', to: '/owner/discounts' },
   { key: 'institutions', labelKey: 'tab.institutions', to: '/owner/institutions' },
@@ -224,6 +229,7 @@ export default function App() {
         <Route path="/owner-login" element={<OwnerLoginPage />} />
         <Route path="/owner-otp" element={<OwnerOtpPage />} />
         <Route path="/call/:sessionId" element={<Suspense fallback={null}><CallPage /></Suspense>} />
+        <Route path="/group-call/:sessionId" element={<Suspense fallback={null}><CallPage kind="group" /></Suspense>} />
 
         <Route element={<RequireRole role="student" />}>
           <Route element={<StudentDashboard />}>
@@ -234,6 +240,7 @@ export default function App() {
             <Route path="/student/grades" element={<StudentGradesPage />} />
             <Route path="/student/invoices" element={<StudentInvoicesPage />} />
             <Route path="/student/services" element={<StudentServicesPage />} />
+            <Route path="/student/workshops" element={<WorkshopsPage />} />
             <Route path="/student/certificates" element={<StudentCertificatesPage />} />
             <Route path="/student/feedback" element={<StudentFeedbackPage />} />
             <Route path="/student/articles" element={<StudentArticlesPage />} />
@@ -253,6 +260,7 @@ export default function App() {
             <Route path="/teacher/review" element={<TeacherReviewPage />} />
             <Route path="/teacher/articles" element={<TeacherArticlesPage />} />
             <Route path="/teacher/assigned" element={<TeacherAssignedRequestsPage />} />
+            <Route path="/teacher/workshops" element={<WorkshopsPage />} />
             <Route path="/teacher/requests" element={<MyRequestsPage />} />
             <Route path="/teacher/chat" element={<ChatPage />} />
             <Route path="/teacher/account" element={<AccountPage />} />
@@ -267,6 +275,7 @@ export default function App() {
             <Route path="/owner/courses" element={<OwnerCoursesPage />} />
             <Route path="/owner/services" element={<OwnerServicesPage />} />
             <Route path="/owner/service-requests" element={<OwnerServiceRequestsPage />} />
+            <Route path="/owner/workshops" element={<OwnerWorkshopsPage />} />
             <Route path="/owner/invoices" element={<OwnerInvoicesPage />} />
             <Route path="/owner/certificates" element={<OwnerCertificatesPage />} />
             <Route path="/owner/admins" element={<OwnerAdminsPage />} />
