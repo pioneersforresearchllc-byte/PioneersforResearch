@@ -33,6 +33,31 @@ export async function listAllInvoices(): Promise<StudentInvoice[]> {
   return (data ?? []) as StudentInvoice[]
 }
 
+export interface StudentOption {
+  id: string
+  name: string
+  username: string
+}
+
+/** Active student accounts, for the invoice recipient picker. */
+export async function listStudents(): Promise<StudentOption[]> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, name, username')
+    .eq('role', 'student')
+    .eq('status', 'active')
+    .order('name')
+  if (error) throw error
+  return (data ?? []) as StudentOption[]
+}
+
+/** Emails the invoice (as a formatted invoice) to the student from the company
+ * address. Best-effort: the invoice already exists whether or not this sends. */
+export async function sendInvoiceEmail(invoiceId: string): Promise<void> {
+  const { error } = await supabase.functions.invoke('send-invoice-email', { body: { invoiceId } })
+  if (error) throw error
+}
+
 /** Owner issues an invoice to a student (found by email or username). */
 export async function createInvoice(identifier: string, title: string, description: string, amountCents: number): Promise<string> {
   const { data, error } = await supabase.rpc('admin_create_invoice', {

@@ -542,6 +542,18 @@ export const translations = {
   'ownerBilling.confirmPaid': { ar: 'تأكيد الدفع', en: 'Confirm paid' },
   'ownerBilling.cancel': { ar: 'إلغاء', en: 'Cancel' },
   'ownerBilling.confirmCancel': { ar: 'إلغاء هذه الفاتورة؟', en: 'Cancel this invoice?' },
+  'ownerBilling.pickStudent': { ar: '— اختر طالبًا —', en: '— Choose a student —' },
+  'ownerBilling.issuedEmailed': { ar: '✓ تم إصدار الفاتورة وإرسالها إلى بريد الطالب.', en: '✓ Invoice issued and emailed to the student.' },
+  'ownerBilling.issuedNoEmail': { ar: '✓ تم إصدار الفاتورة (لكن تعذّر إرسال البريد — تحقق من إعداد البريد).', en: '✓ Invoice issued (email could not be sent — check the mail setup).' },
+
+  // Official invoice document
+  'invoice.doc.taxInvoice': { ar: 'فاتورة ضريبية مبسّطة', en: 'Simplified Tax Invoice' },
+  'invoice.doc.billedTo': { ar: 'فاتورة إلى', en: 'Billed to' },
+  'invoice.doc.item': { ar: 'البند', en: 'Item' },
+  'invoice.doc.amount': { ar: 'المبلغ', en: 'Amount' },
+  'invoice.doc.subtotal': { ar: 'المبلغ قبل الضريبة', en: 'Subtotal (excl. VAT)' },
+  'invoice.doc.vat': { ar: 'ضريبة القيمة المضافة (15%)', en: 'VAT (15%)' },
+  'invoice.doc.total': { ar: 'الإجمالي المستحق', en: 'Total due' },
 
   'myServices.subtitle': {
     ar: 'خدماتك المشترَك بها — الجدول ومواعيد الحصص وروابطها والواجبات التي يضيفها المدرّب.',

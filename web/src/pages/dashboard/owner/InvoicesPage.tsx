@@ -17,17 +17,7 @@ import { LoadingState } from '@/components/LoadingState'
 import { formatAmount } from '@/components/invoiceBits'
 import { Button } from '@/components/ui/Button'
 import { RiyalIcon } from '@/components/Riyal'
-
-// The establishment's official identity — printed on the statement header so
-// the document is ready to hand to the commercial registrar / ZATCA.
-const IDENTITY = {
-  nameAr: 'شركة بايونيرز هيلث ريسيرتش كونسالتينج (ذ.م.م)',
-  nameEn: 'Pioneers Health Research Consulting LLC',
-  unified: '7055175363',
-  tax: '3150160068',
-  misa: '24926274626',
-  address: 'JHJA8230',
-}
+import { IDENTITY } from '@/lib/identity'
 
 const inputCls = 'w-full box-border rounded-lg border border-border px-3 py-2 text-[13.5px]'
 type Period = 'all' | 'month' | 'range'

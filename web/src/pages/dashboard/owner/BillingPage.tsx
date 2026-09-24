@@ -1,7 +1,16 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
-import { cancelInvoice, createInvoice, listAllInvoices, markInvoicePaid, receiptUrl, type StudentInvoice } from '@/lib/billing'
+import {
+  cancelInvoice,
+  createInvoice,
+  listAllInvoices,
+  listStudents,
+  markInvoicePaid,
+  receiptUrl,
+  sendInvoiceEmail,
+  type StudentInvoice,
+} from '@/lib/billing'
 import { Price } from '@/components/Riyal'
 import { LoadingState } from '@/components/LoadingState'
 
@@ -16,15 +25,27 @@ const STATUS_KEY = {
 
 function CreateForm({ onCreated }: { onCreated: () => void }) {
   const { t } = useLanguage()
-  const [identifier, setIdentifier] = useState('')
+  const { data: students } = useQuery({ queryKey: ['students-list'], queryFn: listStudents })
+  const [username, setUsername] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
+  const [emailed, setEmailed] = useState<null | boolean>(null)
 
   const create = useMutation({
-    mutationFn: () => createInvoice(identifier, title, description, Math.round((Number(amount) || 0) * 100)),
-    onSuccess: () => {
-      setIdentifier('')
+    mutationFn: async () => {
+      const id = await createInvoice(username, title, description, Math.round((Number(amount) || 0) * 100))
+      // Best-effort email; the invoice is created regardless of delivery.
+      try {
+        await sendInvoiceEmail(id)
+        return true
+      } catch {
+        return false
+      }
+    },
+    onSuccess: (sent) => {
+      setEmailed(sent)
+      setUsername('')
       setTitle('')
       setDescription('')
       setAmount('')
@@ -32,7 +53,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
     },
   })
 
-  const valid = identifier.trim() && title.trim() && Number(amount) > 0
+  const valid = username.trim() && title.trim() && Number(amount) > 0
 
   return (
     <div className="rounded-xl border border-border-2 bg-bg-soft p-4">
@@ -40,7 +61,14 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         <label className="text-[12px] text-muted sm:col-span-2">
           {t('ownerBilling.student')}
-          <input value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder={t('ownerBilling.studentPh')} className={`${field} mt-1`} dir="ltr" />
+          <select value={username} onChange={(e) => setUsername(e.target.value)} className={`${field} mt-1`}>
+            <option value="">{t('ownerBilling.pickStudent')}</option>
+            {(students ?? []).map((s) => (
+              <option key={s.id} value={s.username}>
+                {s.name} (@{s.username})
+              </option>
+            ))}
+          </select>
         </label>
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('ownerBilling.titlePh')} className={`${field} sm:col-span-2`} />
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder={t('ownerBilling.descPh')} className={`${field} resize-y sm:col-span-2`} />
@@ -50,6 +78,8 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
         </label>
       </div>
       {create.isError && <div className="mt-2 text-[12px] text-error">{t('ownerBilling.createError')}</div>}
+      {emailed === true && <div className="mt-2 text-[12px] text-success">{t('ownerBilling.issuedEmailed')}</div>}
+      {emailed === false && <div className="mt-2 text-[12px] text-[#92600a]">{t('ownerBilling.issuedNoEmail')}</div>}
       <div className="mt-3 flex justify-end">
         <button
           disabled={!valid || create.isPending}
