@@ -35,7 +35,6 @@ const IDENTITY = {
   address: 'JHJA8230',
 }
 const LOGO_URL = 'https://pioneersresearch.com/logo.png'
-const VAT_RATE = 0.15
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -66,8 +65,6 @@ function invoiceHtml(inv: {
   const date = new Intl.DateTimeFormat('ar-u-ca-gregory', { dateStyle: 'long', timeZone: 'Asia/Riyadh' }).format(
     new Date(inv.created_at),
   )
-  const base = Math.round(inv.amount_cents / (1 + VAT_RATE))
-  const vat = inv.amount_cents - base
   const bankBlock = inv.bank
     ? `<div style="margin-top:16px;padding:12px 14px;background:#f6f8fb;border:1px solid #e6ebf2;border-radius:10px;font-size:13px;color:#0b1f3a;white-space:pre-wrap">${esc(inv.bank)}</div>`
     : ''
@@ -83,7 +80,7 @@ function invoiceHtml(inv: {
         </div>
       </div>
       <div style="text-align:left">
-        <div style="font-weight:bold;font-size:13px">فاتورة ضريبية مبسطة</div>
+        <div style="font-weight:bold;font-size:13px">فاتورة</div>
         <div style="font-size:11px;color:#c9d6ea;margin-top:4px" dir="ltr">${num}</div>
         <div style="font-size:11px;color:#c9d6ea">${date}</div>
       </div>
@@ -102,13 +99,11 @@ function invoiceHtml(inv: {
             <td style="padding:10px;border:1px solid #e6ebf2">
               <b>${esc(inv.title)}</b>${inv.description ? `<div style="color:#6b7787;font-size:12px;margin-top:3px">${esc(inv.description)}</div>` : ''}
             </td>
-            <td style="padding:10px;border:1px solid #e6ebf2;text-align:left;white-space:nowrap">${sar(base)}</td>
+            <td style="padding:10px;border:1px solid #e6ebf2;text-align:left;white-space:nowrap">${sar(inv.amount_cents)}</td>
           </tr>
         </tbody>
       </table>
       <div style="margin-top:12px;margin-inline-start:auto;max-width:280px;font-size:13px">
-        <div style="display:flex;justify-content:space-between;padding:4px 0;color:#6b7787"><span>المبلغ قبل الضريبة</span><span>${sar(base)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0;color:#6b7787"><span>ضريبة القيمة المضافة (15%)</span><span>${sar(vat)}</span></div>
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid #e6ebf2;font-weight:bold;font-size:15px"><span>الإجمالي المستحق</span><span>${sar(inv.amount_cents)}</span></div>
       </div>
       <div style="margin-top:14px;font-size:13px;font-weight:bold">طريقة الدفع — تحويل بنكي</div>

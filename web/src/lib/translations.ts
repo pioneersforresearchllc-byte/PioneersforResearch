@@ -547,6 +547,7 @@ export const translations = {
   'ownerBilling.issuedNoEmail': { ar: '✓ تم إصدار الفاتورة (لكن تعذّر إرسال البريد — تحقق من إعداد البريد).', en: '✓ Invoice issued (email could not be sent — check the mail setup).' },
 
   // Official invoice document
+  'invoice.doc.invoice': { ar: 'فاتورة', en: 'Invoice' },
   'invoice.doc.taxInvoice': { ar: 'فاتورة ضريبية مبسّطة', en: 'Simplified Tax Invoice' },
   'invoice.doc.billedTo': { ar: 'فاتورة إلى', en: 'Billed to' },
   'invoice.doc.item': { ar: 'البند', en: 'Item' },

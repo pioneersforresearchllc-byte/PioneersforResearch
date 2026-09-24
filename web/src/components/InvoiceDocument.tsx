@@ -1,5 +1,5 @@
 import { useLanguage } from '@/lib/i18n'
-import { IDENTITY, invoiceNumber, vatBreakdown } from '@/lib/identity'
+import { IDENTITY, invoiceNumber } from '@/lib/identity'
 import { Price } from '@/components/Riyal'
 
 /**
@@ -25,7 +25,6 @@ export function InvoiceDocument({
   const { t, lang } = useLanguage()
   const locale = lang === 'ar' ? 'ar-SA' : 'en-US'
   const dateLocale = lang === 'ar' ? 'ar-u-ca-gregory' : 'en-GB'
-  const { base, vat, total } = vatBreakdown(amountCents)
   const dateText = new Intl.DateTimeFormat(dateLocale, { dateStyle: 'long', timeZone: 'Asia/Riyadh' }).format(new Date(createdAt))
 
   return (
@@ -45,7 +44,7 @@ export function InvoiceDocument({
           </div>
         </div>
         <div className="text-end">
-          <div className="text-[13px] font-bold tracking-wide">{t('invoice.doc.taxInvoice')}</div>
+          <div className="text-[13px] font-bold tracking-wide">{t('invoice.doc.invoice')}</div>
           <div className="mt-1 text-[11px] text-white/75" dir="ltr">
             {invoiceNumber(id)}
           </div>
@@ -72,26 +71,18 @@ export function InvoiceDocument({
               {description && <div className="mt-0.5 text-[12px] text-muted">{description}</div>}
             </div>
             <div className="shrink-0 text-[13.5px] font-semibold text-navy">
-              <Price cents={base} locale={locale} />
+              <Price cents={amountCents} locale={locale} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Totals */}
+      {/* Total */}
       <div className="px-5 pb-4">
         <div className="ms-auto w-full max-w-[260px] text-[12.5px]">
-          <div className="flex items-center justify-between py-1 text-muted">
-            <span>{t('invoice.doc.subtotal')}</span>
-            <Price cents={base} locale={locale} />
-          </div>
-          <div className="flex items-center justify-between py-1 text-muted">
-            <span>{t('invoice.doc.vat')}</span>
-            <Price cents={vat} locale={locale} />
-          </div>
-          <div className="mt-1 flex items-center justify-between border-t border-border-2 pt-2 text-[14px] font-bold text-navy">
+          <div className="flex items-center justify-between border-t border-border-2 pt-2 text-[14px] font-bold text-navy">
             <span>{t('invoice.doc.total')}</span>
-            <Price cents={total} locale={locale} />
+            <Price cents={amountCents} locale={locale} />
           </div>
         </div>
       </div>
