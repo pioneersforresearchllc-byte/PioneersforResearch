@@ -106,6 +106,16 @@ export function resolveWhatsapp(content: ContentMap | undefined): string {
   return normalizeWhatsapp(content?.[WHATSAPP_KEY]?.en ?? '')
 }
 
+// ── Pricing gate ───────────────────────────────────────────────────────────
+// When on, prices are hidden from logged-out visitors (they see a "sign in to
+// view the price" prompt instead), nudging them to register. Owner-toggled,
+// stored in site_content so it needs no migration.
+export const PRICING_GATE_KEY = 'pricing.gate'
+
+export function pricingGateOn(content: ContentMap | undefined): boolean {
+  return (content?.[PRICING_GATE_KEY]?.en ?? '') === '1'
+}
+
 /**
  * Returns a resolver that prefers the owner's edited copy for a key and
  * falls back to the built-in translation. Use it exactly like `t()` for the

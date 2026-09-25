@@ -1472,6 +1472,13 @@ export const translations = {
     en: 'WhatsApp number with country code, no + or spaces (e.g. 9665XXXXXXXX). Leave empty to hide the button.',
   },
   'cms.whatsapp.ph': { ar: 'رقم واتساب (فارغ = إخفاء)', en: 'WhatsApp number (empty = hidden)' },
+  'cms.pricing.title': { ar: 'إخفاء الأسعار للزوار', en: 'Hide prices from visitors' },
+  'cms.pricing.hint': {
+    ar: 'عند التفعيل، لا تظهر أسعار الدورات والخدمات للزائر إلا بعد تسجيل الدخول — لتشجيع التسجيل.',
+    en: 'When on, course/service prices are shown only after the visitor signs in — to encourage registration.',
+  },
+  'cms.pricing.toggle': { ar: 'إخفاء السعر حتى يسجّل الزائر الدخول', en: 'Hide price until the visitor signs in' },
+  'pricing.loginToView': { ar: '🔒 سجّل لعرض السعر', en: '🔒 Sign in to view price' },
   'whatsapp.label': { ar: 'تواصل معنا', en: 'Chat with us' },
   'whatsapp.aria': { ar: 'تواصل معنا عبر واتساب', en: 'Chat with us on WhatsApp' },
   'whatsapp.prefill': {

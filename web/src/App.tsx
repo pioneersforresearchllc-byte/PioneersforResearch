@@ -5,6 +5,7 @@ import { MarketingLayout } from '@/layouts/MarketingLayout'
 import { DashboardShell, type DashboardTab } from '@/layouts/DashboardShell'
 import { countMyUnseenRequests } from '@/lib/services'
 import { countMyStudentUnseen, countMyTeacherUnseen } from '@/lib/assignments'
+import { countMyDueInvoices } from '@/lib/billing'
 import { VerifyCertificatePage } from '@/pages/marketing/VerifyCertificatePage'
 import { RequireRole } from '@/routes/RequireRole'
 import { Placeholder } from '@/components/Placeholder'
@@ -154,12 +155,18 @@ function StudentDashboard() {
     queryFn: countMyStudentUnseen,
     refetchInterval: 60_000,
   })
+  const { data: dueInvoices } = useQuery({
+    queryKey: ['student-due-invoices', profile?.id],
+    enabled: !!profile,
+    queryFn: countMyDueInvoices,
+    refetchInterval: 60_000,
+  })
   return (
     <DashboardShell
       subtitleKey="shell.studentSubtitle"
       userName={profile?.name ?? ''}
       tabs={studentTabs}
-      badges={{ ...badges, assignments: unseenSubs ?? 0 }}
+      badges={{ ...badges, assignments: unseenSubs ?? 0, billing: dueInvoices ?? 0 }}
     />
   )
 }

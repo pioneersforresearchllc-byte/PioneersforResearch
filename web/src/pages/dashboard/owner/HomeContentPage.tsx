@@ -6,6 +6,8 @@ import {
   EDITABLE_CONTENT,
   fetchSiteContent,
   normalizeWhatsapp,
+  pricingGateOn,
+  PRICING_GATE_KEY,
   resolveSocialLink,
   resolveWhatsapp,
   saveSiteContent,
@@ -315,6 +317,40 @@ function WhatsAppEditor({ content, onSaved }: { content: ContentMap | undefined;
   )
 }
 
+function PricingGateEditor({ content, onSaved }: { content: ContentMap | undefined; onSaved: () => void }) {
+  const { t } = useLanguage()
+  const [on, setOn] = useState(pricingGateOn(content))
+  const [busy, setBusy] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const save = async (next: boolean) => {
+    setOn(next)
+    setBusy(true)
+    setSaved(false)
+    try {
+      await saveSiteContent(PRICING_GATE_KEY, next ? '1' : '', next ? '1' : '')
+      setSaved(true)
+      onSaved()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div>
+      <div className="mb-1 text-[14px] font-bold text-navy">{t('cms.pricing.title')}</div>
+      <div className="mb-2.5 text-[12.5px] text-muted">{t('cms.pricing.hint')}</div>
+      <div className="flex items-center justify-between rounded-lg border border-border-2 bg-bg-soft p-3.5">
+        <label className="flex items-center gap-2 text-[13px] font-semibold text-navy">
+          <input type="checkbox" checked={on} disabled={busy} onChange={(e) => void save(e.target.checked)} />
+          {t('cms.pricing.toggle')}
+        </label>
+        {saved && <span className="text-[12px] text-success">{t('homeContent.saved')}</span>}
+      </div>
+    </div>
+  )
+}
+
 function BankDetailsEditor({ content, onSaved }: { content: ContentMap | undefined; onSaved: () => void }) {
   const { t } = useLanguage()
   const [ar, setAr] = useState(content?.['bank.details']?.ar ?? '')
@@ -448,6 +484,7 @@ export function OwnerHomeContentPage() {
 
         <SocialLinksEditor content={content} onSaved={refresh} />
         <WhatsAppEditor key={content ? 'wa-loaded' : 'wa-loading'} content={content} onSaved={refresh} />
+        <PricingGateEditor key={content ? 'pg-loaded' : 'pg-loading'} content={content} onSaved={refresh} />
         <AnnouncementEditor key={content ? 'loaded' : 'loading'} content={content} onSaved={refresh} />
         <BankDetailsEditor key={content ? 'bank-loaded' : 'bank-loading'} content={content} onSaved={refresh} />
         <TeamEditor />

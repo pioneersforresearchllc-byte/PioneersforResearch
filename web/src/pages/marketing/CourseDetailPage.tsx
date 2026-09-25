@@ -6,11 +6,12 @@ import { useAuth } from '@/context/AuthContext'
 import { enrollFree, redeemCourseCode } from '@/lib/courses'
 import { validateDiscount, type DiscountPreview } from '@/lib/discounts'
 import { useLanguage } from '@/lib/i18n'
-import { Price, money } from '@/components/Riyal'
+import { money } from '@/components/Riyal'
+import { GatedPrice } from '@/components/GatedPrice'
 
 function formatSar(cents: number, t: ReturnType<typeof useLanguage>['t']) {
   if (cents === 0) return t('course.free')
-  return <Price cents={cents} locale="ar-SA" />
+  return <GatedPrice cents={cents} />
 }
 
 interface CourseDetail {

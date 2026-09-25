@@ -11,12 +11,12 @@ import {
   type ServicePackage,
   type ServiceQuestion,
 } from '@/lib/services'
-import { Price } from '@/components/Riyal'
+import { GatedPrice } from '@/components/GatedPrice'
 
 const MAX_FILE_BYTES = 20 * 1024 * 1024
 
 function formatSar(cents: number, _currency?: string) {
-  return <Price cents={cents} locale="ar-SA" />
+  return <GatedPrice cents={cents} />
 }
 
 /**

@@ -26,6 +26,17 @@ export async function listMyInvoices(): Promise<StudentInvoice[]> {
   return (data ?? []) as StudentInvoice[]
 }
 
+/** Count of the current student's invoices still needing action (for a tab
+ * badge). RLS scopes it to their own rows. */
+export async function countMyDueInvoices(): Promise<number> {
+  const { count, error } = await supabase
+    .from('student_invoices')
+    .select('id', { count: 'exact', head: true })
+    .in('status', ['unpaid', 'submitted'])
+  if (error) return 0
+  return count ?? 0
+}
+
 /** All invoices (owner view). */
 export async function listAllInvoices(): Promise<StudentInvoice[]> {
   const { data, error } = await supabase.from('student_invoices').select(COLS).order('created_at', { ascending: false })
