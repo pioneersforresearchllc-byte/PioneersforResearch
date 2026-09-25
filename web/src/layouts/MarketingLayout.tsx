@@ -120,7 +120,7 @@ export function MarketingLayout() {
             <img src="/logo.png" alt="" className="h-10 w-10 md:h-11 md:w-11" />
             <span className="flex flex-col leading-tight">
               <span className="font-heading text-[15px] font-bold text-navy md:text-[20px]">Pioneers Health Research</span>
-              <span className="text-[10.5px] text-muted md:text-[12px]">بايونيرز للأبحاث الصحية</span>
+              <span className="text-[10.5px] text-muted md:text-[12px]">الرواد الاستشارية للبحوث الصحية</span>
             </span>
           </Link>
           <div className="hidden items-center gap-6 text-[14.5px] xl:flex">{navLinks}</div>

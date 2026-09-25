@@ -177,11 +177,22 @@ Deno.serve(async (req) => {
     .insert({ user_id: user.id, code_hash: codeHash, expires_at: expiresAt })
   if (insertErr) return json({ error: insertErr.message }, 500)
 
-  const { ok: emailed, reason } = await sendOtpEmail(user.email, code)
+  // Sandbox (no SMTP configured): hand the code back directly so the flow is
+  // testable, and the client isn't left waiting on a send that won't happen.
+  if (!SMTP_USER || !SMTP_PASS) {
+    return json({ sent: true, emailed: false, devCode: code })
+  }
 
-  return json({
-    sent: true,
-    emailed,
-    ...(emailed ? {} : { devCode: code, smtpError: reason }),
-  })
+  // Real delivery: send the email in the BACKGROUND so the login response
+  // returns immediately (SMTP to Zoho can take several seconds, which made
+  // the login button appear to hang). EdgeRuntime.waitUntil keeps the function
+  // alive until the send finishes after we've already responded.
+  const sendPromise = sendOtpEmail(user.email, code)
+  try {
+    ;(globalThis as { EdgeRuntime?: { waitUntil(p: Promise<unknown>): void } }).EdgeRuntime?.waitUntil(sendPromise)
+  } catch {
+    // No waitUntil in this runtime — let it run fire-and-forget.
+    void sendPromise
+  }
+  return json({ sent: true, emailed: true })
 })

@@ -500,7 +500,7 @@ export const translations = {
   'tab.accounts': { ar: 'الحسابات', en: 'Accounts' },
   'tab.contactMessages': { ar: 'رسائل التواصل', en: 'Contact Messages' },
   'tab.broadcast': { ar: 'إرسال جماعي', en: 'Broadcast' },
-  'tab.invoices': { ar: 'الفواتير', en: 'Invoices' },
+  'tab.invoices': { ar: 'سجل المدفوعات', en: 'Payment History' },
   'tab.myServices': { ar: 'خدماتي', en: 'My Services' },
   'tab.workshops': { ar: 'الورش المباشرة', en: 'Live Workshops' },
   'tab.billing': { ar: 'الفواتير المستحقة', en: 'Payments Due' },
@@ -763,7 +763,7 @@ export const translations = {
     en: 'Note: amounts exclude VAT — the establishment is not VAT-registered (sales below the 375,000 SAR mandatory threshold). This statement is generated electronically by the platform.',
   },
 
-  'invoices.studentTitle': { ar: 'فواتيري', en: 'My Invoices' },
+  'invoices.studentTitle': { ar: 'سجل المدفوعات', en: 'Payment History' },
   'invoices.studentSubtitle': {
     ar: 'سجلّ مدفوعاتك السابقة على المنصة.',
     en: 'A history of your past payments on the platform.',
