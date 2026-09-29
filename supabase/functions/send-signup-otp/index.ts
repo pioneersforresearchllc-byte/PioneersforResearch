@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
     if (waitMs > 0) return json({ error: 'rate_limited', retryAfterSeconds: Math.ceil(waitMs / 1000) }, 429)
   }
 
-  const code = String(Math.floor(100000 + Math.random() * 900000))
+  const code = String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000))
   const codeHash = await sha256Hex(code)
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
 

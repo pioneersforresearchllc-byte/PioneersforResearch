@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import type { Profile } from '@/types/profile'
+import { resolveLoginEmail } from '@/lib/authHelpers'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { GoogleButton } from '@/components/GoogleButton'
 import { Button } from '@/components/ui/Button'
@@ -30,16 +31,14 @@ export function LoginPage() {
     }
     setBusy(true)
     try {
-      const { data: email, error: resolveErr } = await supabase.rpc('resolve_login_identifier', {
-        identifier: identifier.trim(),
-      })
-      if (resolveErr || !email) {
-        setError(t('login.noAccount'))
+      const lookup = await resolveLoginEmail(identifier.trim(), password)
+      if ('error' in lookup) {
+        setError(t(lookup.error === 'rate_limited' ? 'login.rateLimited' : 'login.wrongCreds'))
         return
       }
 
       const { data, error: signInErr } = await supabase.auth.signInWithPassword({
-        email,
+        email: lookup.email,
         password,
       })
       if (signInErr || !data.user) {

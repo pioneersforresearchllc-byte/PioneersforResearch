@@ -22,6 +22,8 @@ function firstFromJsonDict(raw: string | undefined): string {
 }
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
+const ANON_KEY =
+  firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) || Deno.env.get('SUPABASE_ANON_KEY') || ''
 const SERVICE_ROLE_KEY =
   firstFromJsonDict(Deno.env.get('SUPABASE_SECRET_KEYS')) || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
@@ -47,11 +49,16 @@ async function findUserByEmail(admin: ReturnType<typeof createClient>, email: st
   }
 }
 
+// An unverified signup younger than this is treated as possibly in progress:
+// without the matching password it is left alone, so a stranger can't wipe
+// someone's half-finished registration by submitting their email.
+const IN_PROGRESS_MS = 15 * 60 * 1000
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS })
   if (req.method !== 'POST') return json({ error: 'method not allowed' }, 405)
 
-  let body: { email?: string }
+  let body: { email?: string; password?: string }
   try {
     body = await req.json()
   } catch {
@@ -69,6 +76,33 @@ Deno.serve(async (req) => {
 
   const { data: profile } = await admin.from('profiles').select('id').eq('id', user.id).maybeSingle()
   if (profile) return json({ cleared: false, hasProfile: true })
+
+  // A Google (OAuth) user without a profile finishes via /complete-profile,
+  // never by deleting the account; report it as in use.
+  const isOAuthUser = (user.identities ?? []).some((i) => i.provider && i.provider !== 'email')
+  if (isOAuthUser) return json({ cleared: false, hasProfile: true })
+
+  // Same password as the abandoned attempt proves it's the same person.
+  let ownsIt = false
+  if (body.password && ANON_KEY) {
+    const anon = createClient(SUPABASE_URL, ANON_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
+    const { data: signIn } = await anon.auth.signInWithPassword({ email, password: body.password })
+    ownsIt = signIn?.user?.id === user.id
+  }
+
+  if (!ownsIt) {
+    const createdAt = new Date(user.created_at).getTime()
+    const { data: recentOtp } = await admin
+      .from('signup_otps')
+      .select('id')
+      .eq('user_id', user.id)
+      .gt('created_at', new Date(Date.now() - IN_PROGRESS_MS).toISOString())
+      .limit(1)
+      .maybeSingle()
+    if (Date.now() - createdAt < IN_PROGRESS_MS || recentOtp) {
+      return json({ cleared: false, hasProfile: false, pending: true })
+    }
+  }
 
   const { error: delErr } = await admin.auth.admin.deleteUser(user.id)
   if (delErr) return json({ error: delErr.message }, 500)

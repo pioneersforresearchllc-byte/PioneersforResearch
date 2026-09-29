@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { fetchProfile } from '@/lib/profile'
 import { getOwnerDeviceId } from '@/lib/device'
+import { resolveLoginEmail } from '@/lib/authHelpers'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 
@@ -24,15 +25,13 @@ export function OwnerLoginPage() {
 
     setBusy(true)
     try {
-      const { data: email, error: resolveErr } = await supabase.rpc('resolve_login_identifier', {
-        identifier: identifier.trim(),
-      })
-      if (resolveErr || !email) {
-        setError(t('ownerLogin.invalidCreds'))
+      const lookup = await resolveLoginEmail(identifier.trim(), password)
+      if ('error' in lookup) {
+        setError(t(lookup.error === 'rate_limited' ? 'login.rateLimited' : 'ownerLogin.invalidCreds'))
         return
       }
 
-      const { data, error: signInErr } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error: signInErr } = await supabase.auth.signInWithPassword({ email: lookup.email, password })
       if (signInErr || !data.user) {
         setError(t('ownerLogin.invalidCreds'))
         return

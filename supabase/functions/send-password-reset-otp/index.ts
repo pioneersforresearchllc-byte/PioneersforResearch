@@ -47,12 +47,15 @@ async function sha256Hex(input: string) {
 }
 
 async function findUserIdByEmail(admin: ReturnType<typeof createClient>, email: string): Promise<string | null> {
-  const { data, error } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 })
-  if (error || !data) return null
-  const match = data.users.find((u) => u.email?.toLowerCase() === email.toLowerCase())
-  return match?.id ?? null
+  // listUsers is paged; keep going past the first 1000 accounts.
+  for (let page = 1; ; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 })
+    if (error || !data) return null
+    const match = data.users.find((u) => u.email?.toLowerCase() === email.toLowerCase())
+    if (match) return match.id
+    if (data.users.length < 1000) return null
+  }
 }
-
 async function sendResetEmail(to: string, code: string) {
   if (!SMTP_USER || !SMTP_PASS) return false
   const client = new SMTPClient({
@@ -116,7 +119,7 @@ Deno.serve(async (req) => {
     if (waitMs > 0) return json({ error: 'rate_limited', retryAfterSeconds: Math.ceil(waitMs / 1000) }, 429)
   }
 
-  const code = String(Math.floor(100000 + Math.random() * 900000))
+  const code = String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000))
   const codeHash = await sha256Hex(code)
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
 

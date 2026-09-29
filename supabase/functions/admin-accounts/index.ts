@@ -61,6 +61,9 @@ Deno.serve(async (req) => {
 
   const { data: me } = await admin.from('profiles').select('role, is_temp_admin').eq('id', user.id).maybeSingle()
   if (!me || me.role !== 'owner') return json({ error: 'not an owner account' }, 403)
+  // Role alone is only step 1 of owner login (password); require the OTP step too.
+  const { data: ownerVerified } = await userClient.rpc('is_verified_owner')
+  if (!ownerVerified) return json({ error: 'not a verified owner' }, 403)
 
   let body: {
     action?: string

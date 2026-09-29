@@ -92,10 +92,14 @@ async function handle(req: Request): Promise<Response> {
 
   const { data: course } = await admin
     .from('courses')
-    .select('id, title, price_cents, capacity')
+    .select('*')
     .eq('id', courseId)
     .maybeSingle()
   if (!course) return json({ error: 'course not found' }, 404)
+  // Code-only courses are joined with an access code, never bought directly
+  // (otherwise calling this function would bypass the code requirement).
+  if (course.code_only) return json({ error: 'this course requires an access code' }, 403)
+  if (course.completed) return json({ error: 'this course has ended' }, 409)
   if (course.price_cents <= 0) return json({ error: 'this course is free — use free enrollment instead' }, 400)
 
   const { data: existing } = await admin

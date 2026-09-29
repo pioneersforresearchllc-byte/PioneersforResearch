@@ -49,6 +49,12 @@ Deno.serve(async (req) => {
   } = await userClient.auth.getUser()
   if (userErr || !user) return json({ error: 'unauthorized' }, 401)
 
+  // Gemini calls cost money: only staff who author translated content (owners,
+  // active teachers writing articles) may use this, not every signed-in student.
+  const { data: me } = await userClient.from('profiles').select('role, status').eq('id', user.id).maybeSingle()
+  const isStaff = me?.role === 'owner' || (me?.role === 'teacher' && me?.status === 'active')
+  if (!isStaff) return json({ error: 'forbidden' }, 403)
+
   let body: { texts?: string[] }
   try {
     body = await req.json()

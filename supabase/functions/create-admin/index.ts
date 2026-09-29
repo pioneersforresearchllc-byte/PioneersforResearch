@@ -48,6 +48,11 @@ Deno.serve(async (req) => {
   const { data: isOwner } = await userClient.rpc('is_verified_owner')
   if (!isOwner) return json({ error: 'not a verified owner' }, 403)
 
+  // A temporary admin must not mint admins: it could create a permanent one
+  // and outlive its own removal (privilege escalation).
+  const { data: me } = await admin.from('profiles').select('is_temp_admin').eq('id', user.id).maybeSingle()
+  if (me?.is_temp_admin) return json({ error: 'temp admins cannot create admins' }, 403)
+
   let body: { name?: string; username?: string; email?: string; password?: string; isTemp?: boolean }
   try {
     body = await req.json()

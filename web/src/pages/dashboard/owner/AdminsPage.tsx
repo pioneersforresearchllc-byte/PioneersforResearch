@@ -108,12 +108,14 @@ export function OwnerAdminsPage() {
     <div>
       <div className="mb-5 flex items-center justify-between">
         <div className="font-heading text-xl font-bold text-navy">{t('oAdmins.title')}</div>
-        <button
-          onClick={() => setShowNew(true)}
-          className="rounded-md bg-navy px-4.5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-navy-hover"
-        >
-          {t('oAdmins.newBtn')}
-        </button>
+        {canRemove && (
+          <button
+            onClick={() => setShowNew(true)}
+            className="rounded-md bg-navy px-4.5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-navy-hover"
+          >
+            {t('oAdmins.newBtn')}
+          </button>
+        )}
       </div>
 
       {isLoading && <LoadingState />}

@@ -38,12 +38,15 @@ async function sha256Hex(input: string) {
 }
 
 async function findUserIdByEmail(admin: ReturnType<typeof createClient>, email: string): Promise<string | null> {
-  const { data, error } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 })
-  if (error || !data) return null
-  const match = data.users.find((u) => u.email?.toLowerCase() === email.toLowerCase())
-  return match?.id ?? null
+  // listUsers is paged; keep going past the first 1000 accounts.
+  for (let page = 1; ; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 })
+    if (error || !data) return null
+    const match = data.users.find((u) => u.email?.toLowerCase() === email.toLowerCase())
+    if (match) return match.id
+    if (data.users.length < 1000) return null
+  }
 }
-
 const INVALID = { error: 'رمز غير صحيح أو منتهي الصلاحية' }
 
 Deno.serve(async (req) => {

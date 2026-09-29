@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { GoogleButton } from '@/components/GoogleButton'
 import { useLanguage } from '@/lib/i18n'
 import { useAuth } from '@/context/AuthContext'
-import { fnErrorBody, isUsernameTaken, isValidUsername } from '@/lib/authHelpers'
+import { clearAbandonedSignup, fnErrorBody, isUsernameTaken, isValidUsername } from '@/lib/authHelpers'
 
 export function RegisterPage() {
   const navigate = useNavigate()
@@ -66,11 +66,12 @@ export function RegisterPage() {
         // entering the OTP (which leaves a ghost auth user). Ask the server
         // to clear the abandoned one; only a real account (with a profile)
         // blocks reuse.
-        const { data: resetData } = await supabase.functions.invoke('reset-unverified-signup', {
-          body: { email: email.trim() },
-        })
-        const reset = resetData as { cleared?: boolean; hasProfile?: boolean } | null
-        if (reset?.hasProfile) {
+        const reset = await clearAbandonedSignup(email.trim(), password)
+        if (reset === 'pending') {
+          setError(t('register.signupPending'))
+          return
+        }
+        if (reset === 'in_use') {
           setError(t('register.emailInUse'))
           setShowForgotLink(true)
           return

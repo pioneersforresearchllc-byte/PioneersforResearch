@@ -168,7 +168,18 @@ export const translations = {
     en: 'Please enter your username or email and password',
   },
   'login.noAccount': { ar: 'لا يوجد حساب بهذا الاسم أو البريد الإلكتروني', en: 'No account found with this username or email' },
-  'login.wrongCreds': { ar: 'البريد الإلكتروني أو كلمة المرور غير صحيحة', en: 'Incorrect email or password' },
+  'login.wrongCreds': {
+    ar: 'اسم المستخدم/البريد الإلكتروني أو كلمة المرور غير صحيحة',
+    en: 'Incorrect username/email or password',
+  },
+  'login.rateLimited': {
+    ar: 'محاولات كثيرة غير صحيحة، انتظر 15 دقيقة أو سجّل الدخول بالبريد الإلكتروني',
+    en: 'Too many failed attempts. Wait 15 minutes or log in with your email',
+  },
+  'register.signupPending': {
+    ar: 'يوجد تسجيل غير مكتمل بهذا البريد. استخدم نفس كلمة المرور التي أدخلتها أول مرة، أو حاول بعد 15 دقيقة.',
+    en: 'There is an unfinished sign-up for this email. Use the same password you entered the first time, or try again in 15 minutes.',
+  },
   'login.profileLoadFail': { ar: 'تعذر تحميل بيانات الحساب', en: "Couldn't load account data" },
   'login.signupIncomplete': {
     ar: 'لم يكتمل تسجيل هذا الحساب (لم يتم تأكيد رمز البريد). أنشئ الحساب من جديد بنفس البريد لإكماله.',
@@ -219,8 +230,6 @@ export const translations = {
   'verify.date': { ar: 'تاريخ الإصدار', en: 'Issued on' },
   'verify.backHome': { ar: '→ العودة للموقع', en: '→ Back to site' },
   'login.teacherRejected': { ar: 'تم رفض طلب انضمامك كمعلم', en: 'Your teacher application was rejected' },
-  'login.demoTeacherHint': { ar: 'للتجربة: khalid / demo123', en: 'Try it: khalid / demo123' },
-  'login.demoStudentHint': { ar: 'للتجربة: noura / noura123', en: 'Try it: noura / noura123' },
   'login.noAccountYet': { ar: 'ليس لديك حساب؟', en: "Don't have an account?" },
   'login.createAccount': { ar: 'إنشاء حساب', en: 'Create Account' },
   'login.notTeacherYet': { ar: 'لست معلمًا مسجلًا؟', en: 'Not a registered teacher yet?' },
@@ -1454,7 +1463,11 @@ export const translations = {
 
   // Misc
   'placeholder.notFound': { ar: 'الصفحة غير موجودة', en: 'Page not found' },
-  'placeholder.building': { ar: 'قيد الإنشاء — سيُبنى في مرحلة لاحقة من هذا المشروع.', en: 'Under construction — this page will be built in a later phase.' },
+  'placeholder.building': {
+    ar: 'الرابط الذي فتحته غير صحيح أو أن الصفحة نُقلت.',
+    en: 'The link you opened is incorrect or the page has moved.',
+  },
+  'placeholder.home': { ar: 'العودة للرئيسية', en: 'Back to Home' },
   'service.anySoftware': { ar: 'أي برنامج', en: 'Any software' },
 
   // Homepage content editor (CMS)

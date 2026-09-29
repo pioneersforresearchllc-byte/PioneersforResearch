@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
-import { fnErrorBody, isUsernameTaken, isValidUsername } from '@/lib/authHelpers'
+import { clearAbandonedSignup, fnErrorBody, isUsernameTaken, isValidUsername } from '@/lib/authHelpers'
 
 const ORG_TYPES = ['hospital', 'clinic', 'center', 'insurer', 'gov', 'other'] as const
 
@@ -59,11 +59,12 @@ export function InstitutionApplyPage() {
       ;({ data: signUpData, error: signUpErr } = await supabase.auth.signUp({ email: email.trim(), password }))
 
       if (signUpErr?.message === 'User already registered') {
-        const { data: resetData } = await supabase.functions.invoke('reset-unverified-signup', {
-          body: { email: email.trim() },
-        })
-        const reset = resetData as { cleared?: boolean; hasProfile?: boolean } | null
-        if (reset?.hasProfile) {
+        const reset = await clearAbandonedSignup(email.trim(), password)
+        if (reset === 'pending') {
+          setError(t('register.signupPending'))
+          return
+        }
+        if (reset === 'in_use') {
           setError(t('instApply.emailInUse'))
           setShowForgotLink(true)
           return

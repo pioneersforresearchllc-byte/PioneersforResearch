@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
-import { fnErrorBody, isUsernameTaken, isValidUsername } from '@/lib/authHelpers'
+import { clearAbandonedSignup, fnErrorBody, isUsernameTaken, isValidUsername } from '@/lib/authHelpers'
 
 const MAX_CV_FILE_BYTES = 10 * 1024 * 1024
 const ALLOWED_CV_TYPES = [
@@ -90,11 +90,12 @@ export function TeacherApplyPage() {
       if (signUpErr?.message === 'User already registered') {
         // Real account, or an application abandoned before OTP (ghost auth
         // user). Clear the abandoned one; only a real profile blocks reuse.
-        const { data: resetData } = await supabase.functions.invoke('reset-unverified-signup', {
-          body: { email: email.trim() },
-        })
-        const reset = resetData as { cleared?: boolean; hasProfile?: boolean } | null
-        if (reset?.hasProfile) {
+        const reset = await clearAbandonedSignup(email.trim(), password)
+        if (reset === 'pending') {
+          setError(t('register.signupPending'))
+          return
+        }
+        if (reset === 'in_use') {
           setError(t('teacherApply.emailInUse'))
           setShowForgotLink(true)
           return
