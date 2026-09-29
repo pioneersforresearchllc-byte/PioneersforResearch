@@ -170,6 +170,14 @@ export const translations = {
   'login.noAccount': { ar: 'لا يوجد حساب بهذا الاسم أو البريد الإلكتروني', en: 'No account found with this username or email' },
   'login.wrongCreds': { ar: 'البريد الإلكتروني أو كلمة المرور غير صحيحة', en: 'Incorrect email or password' },
   'login.profileLoadFail': { ar: 'تعذر تحميل بيانات الحساب', en: "Couldn't load account data" },
+  'login.signupIncomplete': {
+    ar: 'لم يكتمل تسجيل هذا الحساب (لم يتم تأكيد رمز البريد). أنشئ الحساب من جديد بنفس البريد لإكماله.',
+    en: "This account's sign-up wasn't completed (email code not confirmed). Register again with the same email to finish.",
+  },
+  'login.wrongPortal': {
+    ar: 'هذا الحساب مسجّل كـ "{role}". اختر تبويب "{role}" ثم سجّل الدخول.',
+    en: 'This account is registered as "{role}". Choose the "{role}" tab and log in again.',
+  },
   'login.useAdminPortal': { ar: 'يرجى استخدام بوابة الإدارة لتسجيل الدخول', en: 'Please use the admin portal to log in' },
   'login.suspended': {
     ar: 'تم تعطيل حسابك مؤقتًا. يرجى التواصل مع الإدارة.',
@@ -243,6 +251,18 @@ export const translations = {
   'register.genericError': { ar: 'تعذر إنشاء الحساب، حاول مجددًا', en: "Couldn't create the account, try again" },
   'register.invalidEmail': { ar: 'هذا البريد الإلكتروني غير صالح', en: 'This email address is not valid' },
   'register.usernameTaken': { ar: 'اسم المستخدم مستخدم بالفعل', en: 'This username is already taken' },
+  'register.usernameInvalid': {
+    ar: 'اسم المستخدم يجب أن يكون من 3 إلى 30 حرفًا، بدون مسافات وبدون الرمز @',
+    en: 'Username must be 3–30 characters, with no spaces and no @',
+  },
+  'registerOtp.usernameTakenPick': {
+    ar: 'تم تأكيد بريدك، لكن اسم المستخدم أصبح محجوزًا. اختر اسمًا آخر ثم اضغط تأكيد.',
+    en: 'Your email is confirmed, but the username was taken. Pick another one and confirm.',
+  },
+  'registerOtp.sendError': {
+    ar: 'تعذر إرسال رمز التحقق حاليًا، حاول بعد قليل',
+    en: "Couldn't send the verification code right now, try again shortly",
+  },
   'register.completeError': {
     ar: 'تعذر إكمال إنشاء الحساب، حاول مجددًا',
     en: "Couldn't complete account creation, try again",

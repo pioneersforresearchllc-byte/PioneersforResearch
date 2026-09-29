@@ -5,10 +5,13 @@ import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { Button } from '@/components/ui/Button'
 import { GoogleButton } from '@/components/GoogleButton'
 import { useLanguage } from '@/lib/i18n'
+import { useAuth } from '@/context/AuthContext'
+import { fnErrorBody, isUsernameTaken, isValidUsername } from '@/lib/authHelpers'
 
 export function RegisterPage() {
   const navigate = useNavigate()
   const { t } = useLanguage()
+  const { refreshProfile } = useAuth()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
@@ -29,6 +32,10 @@ export function RegisterPage() {
       setError(t('register.fillFields'))
       return
     }
+    if (!isValidUsername(username.trim())) {
+      setError(t('register.usernameInvalid'))
+      return
+    }
     if (password.length < 6) {
       setError(t('register.passwordLength'))
       return
@@ -40,6 +47,13 @@ export function RegisterPage() {
 
     setBusy(true)
     try {
+      // Check before creating the auth user: a taken username would otherwise
+      // only surface after the email code, when the form can no longer change it.
+      if (await isUsernameTaken(username.trim())) {
+        setError(t('register.usernameTaken'))
+        return
+      }
+
       let signUpData: Awaited<ReturnType<typeof supabase.auth.signUp>>['data']
       let signUpErr: Awaited<ReturnType<typeof supabase.auth.signUp>>['error']
       ;({ data: signUpData, error: signUpErr } = await supabase.auth.signUp({
@@ -86,12 +100,9 @@ export function RegisterPage() {
 
       const { data: otpData, error: otpErr } = await supabase.functions.invoke('send-signup-otp')
       const otpResult = otpData as { error?: string; autoVerified?: boolean; devCode?: string } | null
-      if (otpErr || otpResult?.error === 'invalid_email') {
-        setError(t('register.invalidEmail'))
-        return
-      }
       if (otpErr) {
-        setError(t('register.completeError'))
+        const body = await fnErrorBody(otpErr)
+        setError(t(body?.error === 'invalid_email' ? 'register.invalidEmail' : 'registerOtp.sendError'))
         return
       }
 
@@ -106,6 +117,7 @@ export function RegisterPage() {
           setError(t('register.completeError'))
           return
         }
+        await refreshProfile()
         navigate('/student')
         return
       }

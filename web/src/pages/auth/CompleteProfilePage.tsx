@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
+import { fnErrorBody, isUsernameConflict, isValidUsername } from '@/lib/authHelpers'
 
 /**
  * One-time step for a brand-new OAuth (Google) user who has a session but no
@@ -51,14 +52,18 @@ export function CompleteProfilePage() {
       setError(t('completeProfile.fillFields'))
       return
     }
+    if (!isValidUsername(username.trim())) {
+      setError(t('register.usernameInvalid'))
+      return
+    }
     setBusy(true)
     try {
-      const { data, error: fnErr } = await supabase.functions.invoke('create-profile', {
+      const { error: fnErr } = await supabase.functions.invoke('create-profile', {
         body: { user_id: session.user.id, role: 'student', name: name.trim(), username: username.trim() },
       })
-      const result = data as { error?: string } | null
-      if (fnErr || result?.error) {
-        setError(result?.error === 'profile already exists' ? t('completeProfile.usernameTaken') : t('completeProfile.genericError'))
+      if (fnErr) {
+        // 409 + Postgres unique-violation text when the username is taken.
+        setError(isUsernameConflict(await fnErrorBody(fnErr)) ? t('completeProfile.usernameTaken') : t('completeProfile.genericError'))
         return
       }
       await refreshProfile()

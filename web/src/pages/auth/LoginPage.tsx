@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { fetchProfile } from '@/lib/profile'
+import type { Profile } from '@/types/profile'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { GoogleButton } from '@/components/GoogleButton'
 import { Button } from '@/components/ui/Button'
@@ -47,9 +47,16 @@ export function LoginPage() {
         return
       }
 
-      const profile = await fetchProfile(data.user.id)
+      const { data: profileRow, error: profileErr } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .maybeSingle()
+      const profile = profileRow as Profile | null
       if (!profile) {
-        setError(t('login.profileLoadFail'))
+        // No row (and no error) = a signup abandoned before the email code;
+        // registering again with this email clears it and starts fresh.
+        setError(t(profileErr ? 'login.profileLoadFail' : 'login.signupIncomplete'))
         await supabase.auth.signOut()
         return
       }
@@ -66,6 +73,14 @@ export function LoginPage() {
         return
       }
 
+      // Keep the chosen tab and the account type in sync, so a teacher who
+      // picked "Student" (or vice versa) isn't silently dropped into another portal.
+      if (profile.role !== role) {
+        await supabase.auth.signOut()
+        setError(t('login.wrongPortal', { role: t(`login.${profile.role}`) }))
+        return
+      }
+
       if (profile.role === 'teacher' && profile.status === 'pending') {
         navigate('/teacher-pending')
         return
@@ -76,12 +91,13 @@ export function LoginPage() {
         return
       }
 
+      void supabase.from('login_events').insert({ user_id: data.user.id })
+
       if (profile.role === 'institution') {
-        navigate(profile.status === 'active' ? '/institution' : '/institution-pending')
+        navigate(profile.status === 'active' ? (redirect ?? '/institution') : '/institution-pending')
         return
       }
 
-      void supabase.from('login_events').insert({ user_id: data.user.id })
       navigate(redirect ?? (profile.role === 'student' ? '/student' : '/teacher'))
     } finally {
       setBusy(false)

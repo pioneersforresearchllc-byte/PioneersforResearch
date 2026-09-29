@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
+import { fnErrorBody, isUsernameTaken, isValidUsername } from '@/lib/authHelpers'
 
 const MAX_CV_FILE_BYTES = 10 * 1024 * 1024
 const ALLOWED_CV_TYPES = [
@@ -67,9 +68,18 @@ export function TeacherApplyPage() {
       setError(t('teacherApply.passwordLength'))
       return
     }
+    if (!isValidUsername(username.trim())) {
+      setError(t('register.usernameInvalid'))
+      return
+    }
 
     setBusy(true)
     try {
+      if (await isUsernameTaken(username.trim())) {
+        setError(t('register.usernameTaken'))
+        return
+      }
+
       let signUpData: Awaited<ReturnType<typeof supabase.auth.signUp>>['data']
       let signUpErr: Awaited<ReturnType<typeof supabase.auth.signUp>>['error']
       ;({ data: signUpData, error: signUpErr } = await supabase.auth.signUp({
@@ -129,12 +139,9 @@ export function TeacherApplyPage() {
 
       const { data: otpData, error: otpErr } = await supabase.functions.invoke('send-signup-otp')
       const otpResult = otpData as { error?: string; autoVerified?: boolean; devCode?: string } | null
-      if (otpErr || otpResult?.error === 'invalid_email') {
-        setError(t('teacherApply.invalidEmail'))
-        return
-      }
       if (otpErr) {
-        setError(t('teacherApply.genericError'))
+        const body = await fnErrorBody(otpErr)
+        setError(t(body?.error === 'invalid_email' ? 'teacherApply.invalidEmail' : 'registerOtp.sendError'))
         return
       }
 

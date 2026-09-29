@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
+import { useAuth } from '@/context/AuthContext'
+import { fnErrorBody, isUsernameConflict, isValidUsername } from '@/lib/authHelpers'
 
 interface RegisterOtpState {
   email: string
@@ -14,13 +16,18 @@ interface RegisterOtpState {
 export function RegisterOtpPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const { refreshProfile } = useAuth()
   const state = location.state as RegisterOtpState | null
 
   const [devCode, setDevCode] = useState<string | null>(state?.devCode ?? null)
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  // Set once the email code is accepted but create-profile hit a taken username:
+  // the code is already consumed, so only the username is asked for again.
+  const [emailVerified, setEmailVerified] = useState(false)
+  const [newUsername, setNewUsername] = useState<string | null>(null)
 
   if (!state?.profilePayload) {
     return (
@@ -39,23 +46,42 @@ export function RegisterOtpPage() {
     setError('')
     setBusy(true)
     try {
-      const { data, error: fnErr } = await supabase.functions.invoke('verify-signup-otp', {
-        body: { code: code.trim() },
-      })
-      const result = data as { verified?: boolean; error?: string } | null
-      if (fnErr || !result?.verified) {
-        setError(result?.error || t('registerOtp.invalidCode'))
-        return
+      if (!emailVerified) {
+        const { data, error: fnErr } = await supabase.functions.invoke('verify-signup-otp', {
+          body: { code: code.trim() },
+        })
+        const result = data as { verified?: boolean } | null
+        if (fnErr || !result?.verified) {
+          // The function's own reasons (expired / too many attempts) are Arabic text.
+          const reason = (await fnErrorBody(fnErr))?.error
+          setError(lang === 'ar' && typeof reason === 'string' && /[\u0600-\u06FF]/.test(reason) ? reason : t('registerOtp.invalidCode'))
+          return
+        }
+        setEmailVerified(true)
       }
 
+      const payload = { ...state.profilePayload }
+      if (newUsername !== null) {
+        if (!isValidUsername(newUsername.trim())) {
+          setError(t('register.usernameInvalid'))
+          return
+        }
+        payload.username = newUsername.trim()
+      }
       const { data: profileData, error: profileErr } = await supabase.functions.invoke('create-profile', {
-        body: state.profilePayload,
+        body: payload,
       })
       if (profileErr || (profileData as { error?: string } | null)?.error) {
+        if (isUsernameConflict(await fnErrorBody(profileErr))) {
+          setNewUsername(newUsername ?? '')
+          setError(t('registerOtp.usernameTakenPick'))
+          return
+        }
         setError(t('registerOtp.completeError'))
         return
       }
 
+      await refreshProfile()
       navigate(state.successRoute)
     } finally {
       setBusy(false)
@@ -64,13 +90,19 @@ export function RegisterOtpPage() {
 
   const resend = async () => {
     setError('')
-    const { data } = await supabase.functions.invoke('send-signup-otp')
-    const result = data as { devCode?: string; error?: string; retryAfterSeconds?: number } | null
-    if (result?.error === 'rate_limited') {
-      const minutes = Math.max(1, Math.ceil((result.retryAfterSeconds ?? 300) / 60))
-      setError(t('registerOtp.rateLimited', { minutes: String(minutes) }))
+    const { data, error: fnErr } = await supabase.functions.invoke('send-signup-otp')
+    if (fnErr) {
+      // Non-2xx bodies (429 rate_limited etc.) only arrive on the error object.
+      const body = await fnErrorBody(fnErr)
+      if (body?.error === 'rate_limited') {
+        const minutes = Math.max(1, Math.ceil((Number(body.retryAfterSeconds) || 300) / 60))
+        setError(t('registerOtp.rateLimited', { minutes: String(minutes) }))
+      } else {
+        setError(t('registerOtp.resendError'))
+      }
       return
     }
+    const result = data as { devCode?: string } | null
     setDevCode(result?.devCode ?? null)
   }
 
@@ -95,8 +127,18 @@ export function RegisterOtpPage() {
           placeholder={t('registerOtp.codePh')}
           value={code}
           onChange={(e) => setCode(e.target.value)}
+          disabled={emailVerified}
           className={`${inputClass} text-center text-base tracking-[4px]`}
         />
+        {newUsername !== null && (
+          <input
+            type="text"
+            placeholder={t('register.usernamePh')}
+            value={newUsername}
+            onChange={(e) => setNewUsername(e.target.value)}
+            className={inputClass}
+          />
+        )}
         <FieldError>{error}</FieldError>
         <button
           type="submit"

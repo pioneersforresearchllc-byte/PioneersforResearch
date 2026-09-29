@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
+import { fnErrorBody, isUsernameTaken, isValidUsername } from '@/lib/authHelpers'
 
 const ORG_TYPES = ['hospital', 'clinic', 'center', 'insurer', 'gov', 'other'] as const
 
@@ -41,9 +42,18 @@ export function InstitutionApplyPage() {
       setError(t('instApply.passwordLength'))
       return
     }
+    if (!isValidUsername(username.trim())) {
+      setError(t('register.usernameInvalid'))
+      return
+    }
 
     setBusy(true)
     try {
+      if (await isUsernameTaken(username.trim())) {
+        setError(t('register.usernameTaken'))
+        return
+      }
+
       let signUpData: Awaited<ReturnType<typeof supabase.auth.signUp>>['data']
       let signUpErr: Awaited<ReturnType<typeof supabase.auth.signUp>>['error']
       ;({ data: signUpData, error: signUpErr } = await supabase.auth.signUp({ email: email.trim(), password }))
@@ -88,12 +98,9 @@ export function InstitutionApplyPage() {
 
       const { data: otpData, error: otpErr } = await supabase.functions.invoke('send-signup-otp')
       const otpResult = otpData as { error?: string; autoVerified?: boolean; devCode?: string } | null
-      if (otpErr || otpResult?.error === 'invalid_email') {
-        setError(t('instApply.invalidEmail'))
-        return
-      }
       if (otpErr) {
-        setError(t('instApply.genericError'))
+        const body = await fnErrorBody(otpErr)
+        setError(t(body?.error === 'invalid_email' ? 'instApply.invalidEmail' : 'registerOtp.sendError'))
         return
       }
 
