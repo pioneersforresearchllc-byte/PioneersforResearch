@@ -504,5 +504,19 @@ export async function listAllServicesForOwner(): Promise<Service[]> {
       services.map((s) => s.id),
     )
     .order('sort_order')
-  return services.map((s) => ({ ...s, packages: (packages ?? []).filter((p) => p.service_id === s.id) }))
+  // Hidden-price services keep their real prices in owner-only tables (0066);
+  // the public rows hold null. Before 0066 these tables don't exist -> no overlay.
+  const [{ data: svcPriv }, { data: pkgPriv }] = await Promise.all([
+    supabase.from('service_private_prices').select('*'),
+    supabase.from('package_private_prices').select('*'),
+  ])
+  type Priv = { price_cents: number | null; original_price_cents: number | null }
+  const svcMap = new Map((svcPriv ?? []).map((r) => [r.service_id as string, r as Priv]))
+  const pkgMap = new Map((pkgPriv ?? []).map((r) => [r.package_id as string, r as Priv]))
+  const withPriv = <T extends { price_cents: number | null; original_price_cents: number | null }>(row: T, priv?: Priv): T =>
+    priv ? { ...row, price_cents: priv.price_cents, original_price_cents: priv.original_price_cents } : row
+  return services.map((s) => ({
+    ...withPriv(s, svcMap.get(s.id)),
+    packages: (packages ?? []).filter((p) => p.service_id === s.id).map((p) => withPriv(p, pkgMap.get(p.id))),
+  }))
 }
