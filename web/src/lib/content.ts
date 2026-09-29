@@ -96,9 +96,12 @@ export function resolveSocialLink(content: ContentMap | undefined, key: SocialKe
 // until the owner sets a number from the admin panel.
 export const WHATSAPP_KEY = 'contact.whatsapp'
 
-/** Strips everything but digits (wa.me wants e.g. 9665XXXXXXXX, no '+'). */
+/** Bare international digits for wa.me (e.g. 9665XXXXXXXX): wa.me rejects the
+ * '00' prefix, and a local Saudi 05XXXXXXXX needs the 966 country code. */
 export function normalizeWhatsapp(raw: string): string {
-  return (raw || '').replace(/\D/g, '')
+  let digits = (raw || '').replace(/\D/g, '').replace(/^00/, '')
+  if (/^05\d{8}$/.test(digits)) digits = '966' + digits.slice(1)
+  return digits
 }
 
 /** The saved WhatsApp number as bare digits, or '' when unset/blank. */
