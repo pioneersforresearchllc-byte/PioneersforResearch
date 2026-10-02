@@ -14,6 +14,9 @@ export interface StudentInvoice {
   paid_at: string | null
   note: string | null
   created_at: string
+  /** Payment-reminder tracking (0069); absent before that migration. */
+  reminder_count?: number
+  last_reminded_at?: string | null
 }
 
 const COLS =
@@ -37,9 +40,9 @@ export async function countMyDueInvoices(): Promise<number> {
   return count ?? 0
 }
 
-/** All invoices (owner view). */
+/** All invoices (owner view). select('*') so reminder columns (0069) come through when present. */
 export async function listAllInvoices(): Promise<StudentInvoice[]> {
-  const { data, error } = await supabase.from('student_invoices').select(COLS).order('created_at', { ascending: false })
+  const { data, error } = await supabase.from('student_invoices').select('*').order('created_at', { ascending: false })
   if (error) throw error
   return (data ?? []) as StudentInvoice[]
 }
@@ -119,4 +122,14 @@ export async function receiptUrl(path: string): Promise<string | null> {
   const { data, error } = await supabase.storage.from('payment-receipts').createSignedUrl(path, 60 * 10)
   if (error) return null
   return data.signedUrl
+}
+
+/** Owner: send a payment reminder now (email + push + in-app). */
+export async function sendInvoiceReminder(invoiceId: string): Promise<'sent' | 'recent' | 'error'> {
+  const { data, error } = await supabase.functions.invoke('invoice-reminders', { body: { invoiceId } })
+  if (error) {
+    const status = (error as { context?: Response }).context?.status
+    return status === 429 ? 'recent' : 'error'
+  }
+  return (data as { reminded?: number } | null)?.reminded ? 'sent' : 'error'
 }

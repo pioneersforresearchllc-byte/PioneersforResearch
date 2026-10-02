@@ -10,6 +10,7 @@ import {
   markInvoicePaid,
   receiptUrl,
   sendInvoiceEmail,
+  sendInvoiceReminder,
   type StudentInvoice,
 } from '@/lib/billing'
 import { Price } from '@/components/Riyal'
@@ -116,6 +117,17 @@ function InvoiceRow({ inv, onChanged }: { inv: StudentInvoice; onChanged: () => 
   const locale = lang === 'ar' ? 'ar-SA' : 'en-US'
   const pay = useMutation({ mutationFn: () => markInvoicePaid(inv.id), onSuccess: onChanged })
   const cancel = useMutation({ mutationFn: () => cancelInvoice(inv.id), onSuccess: onChanged })
+  const [remindMsg, setRemindMsg] = useState('')
+  const remind = useMutation({
+    mutationFn: () => sendInvoiceReminder(inv.id),
+    onSuccess: (r) => {
+      const ar = lang === 'ar'
+      setRemindMsg(
+        r === 'sent' ? (ar ? '✓ تم الإرسال' : '✓ Sent') : r === 'recent' ? (ar ? 'أُرسل تذكير قبل أقل من ساعة' : 'Reminded less than an hour ago') : ar ? 'تعذر الإرسال' : 'Could not send',
+      )
+      if (r === 'sent') onChanged()
+    },
+  })
 
   const viewReceipt = async () => {
     if (!inv.receipt_path) return
@@ -132,11 +144,32 @@ function InvoiceRow({ inv, onChanged }: { inv: StudentInvoice; onChanged: () => 
             {t(STATUS_KEY[inv.status])} · <Price cents={inv.amount_cents} locale={locale} />
           </div>
           {inv.description && <div className="mt-0.5 text-[12px] text-muted">{inv.description}</div>}
+          {inv.status === 'unpaid' && (
+            <div className="mt-1 text-[11.5px] text-muted">
+              {lang === 'ar' ? 'تذكيرات الدفع المرسلة' : 'Payment reminders sent'}: {inv.reminder_count ?? 0}
+              {inv.last_reminded_at && (
+                <>
+                  {' · '}
+                  {lang === 'ar' ? 'آخر تذكير' : 'Last'}: {new Date(inv.last_reminded_at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
+                </>
+              )}
+              {remindMsg && <span className="ms-2 font-semibold text-accent">{remindMsg}</span>}
+            </div>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           {inv.receipt_path && (
             <button onClick={() => void viewReceipt()} className="rounded-md border border-border px-2.5 py-1 text-[11.5px] text-navy hover:bg-bg-soft">
               {t('ownerBilling.viewReceipt')}
+            </button>
+          )}
+          {inv.status === 'unpaid' && (
+            <button
+              onClick={() => remind.mutate()}
+              disabled={remind.isPending}
+              className="rounded-md border border-gold bg-gold/10 px-2.5 py-1 text-[11.5px] font-semibold text-navy hover:bg-gold/20 disabled:opacity-50"
+            >
+              🔔 {remind.isPending ? '...' : lang === 'ar' ? 'تذكير الآن' : 'Remind now'}
             </button>
           )}
           {inv.status !== 'paid' && inv.status !== 'cancelled' && (
