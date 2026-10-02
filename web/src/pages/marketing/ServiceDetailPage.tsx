@@ -241,8 +241,41 @@ export function ServiceDetailPage() {
       </Link>
 
       <div className="mx-auto max-w-160">
-        <h1 className="font-heading mb-3 text-[26px] font-bold text-navy">{title}</h1>
-        <p className="mb-8 text-[15.5px] leading-[2] text-muted-2">{description}</p>
+        {/* HEADER — image, title, description, credentials */}
+        <div className="mb-8 overflow-hidden rounded-3xl border border-border bg-white shadow-[0_20px_50px_-30px_rgba(11,31,58,0.45)]">
+          {service.image_url && <img src={service.image_url} alt="" className="aspect-[2.4] w-full object-cover" />}
+          <div className="p-6 md:p-8">
+            <h1 className="font-heading mb-3 text-[24px] font-bold leading-[1.5] text-navy md:text-[30px]">{title}</h1>
+            <p className="mb-5 whitespace-pre-line text-[15.5px] leading-[2] text-muted-2">{description}</p>
+            <div className="flex flex-wrap gap-2">
+              {(lang === 'ar'
+                ? ['مختص في البحث الصحي', 'خطة زمنية متفق عليها', 'تعديلات ضمن النطاق', 'سرية تامة']
+                : ['Health-research specialist', 'Agreed timeline', 'In-scope revisions', 'Fully confidential']
+              ).map((b) => (
+                <span key={b} className="flex items-center gap-1.5 rounded-full bg-bg-soft px-3 py-1.5 text-[12.5px] font-semibold text-navy">
+                  <span className="text-gold">✓</span>
+                  {b}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* HOW IT WORKS — compact */}
+        <div className="mb-8 rounded-2xl border border-border bg-bg-soft/50 p-5">
+          <div className="mb-4 text-[15px] font-bold text-navy">{lang === 'ar' ? 'كيف تسير الخدمة' : 'How it works'}</div>
+          <ol className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+            {(lang === 'ar'
+              ? ['ترسل طلبك وتفاصيله', 'نرسل لك عرض السعر والخطة', 'نبدأ ويتابعك مختص', 'تستلم العمل وتراجعه']
+              : ['Send your request', 'Get quote & plan', 'We start with a specialist', 'Receive & review']
+            ).map((s, i) => (
+              <li key={s} className="flex items-center gap-2.5 sm:flex-col sm:text-center">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy text-[13px] font-bold text-gold">{i + 1}</span>
+                <span className="text-[13px] font-semibold leading-6 text-navy">{s}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
 
         {/* DIRECT PRICE — for a service sold without packages */}
         {service.packages.length === 0 && service.hide_price && (
@@ -320,6 +353,12 @@ export function ServiceDetailPage() {
                 className="rounded-md border border-navy px-6 py-2.75 text-[14px] font-semibold text-navy no-underline hover:bg-bg-soft"
               >
                 {t('nav.register')}
+              </Link>
+            </div>
+            <div className="mt-5 border-t border-border pt-5 text-[13.5px] text-muted">
+              {lang === 'ar' ? 'تفضّل البدء بدون حساب؟' : 'Prefer to start without an account?'}{' '}
+              <Link to="/quote" className="font-bold text-accent no-underline">
+                {lang === 'ar' ? 'اطلب عرض سعر سريع ←' : 'Get a quick quote →'}
               </Link>
             </div>
           </div>

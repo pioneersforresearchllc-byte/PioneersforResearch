@@ -1,41 +1,105 @@
+import { Link } from 'react-router-dom'
 import { useLanguage } from '@/lib/i18n'
 import { useContentText } from '@/lib/content'
 import { useDocumentMeta } from '@/lib/useDocumentMeta'
 import { PageHero } from '@/components/PageHero'
-import { useTeam } from '@/pages/marketing/MarketingHome'
+import { Reveal } from '@/components/Reveal'
+import { ExpertTeam, HowItWorks, TrustBadges } from '@/components/home/HomeExtras'
 
 export function AboutPage() {
-  const { t, lang } = useLanguage()
+  const { lang } = useLanguage()
+  const ar = lang === 'ar'
   const ct = useContentText()
-  const team = useTeam(lang, t)
   useDocumentMeta(
     'نبذة عنا | Pioneers Health Research',
     'تعرّف على منصة بيونيرز للأبحاث الصحية: رؤيتنا في تدريب وإشراف الباحثين، وفريقنا المتخصص.',
   )
 
+  const pillars = ar
+    ? [
+        { icon: '🎯', h: 'رسالتنا', p: 'تمكين الطلاب والباحثين في المجال الصحي من إنجاز أبحاث رصينة، بالتدريب والإشراف العملي خطوة بخطوة.' },
+        { icon: '🔭', h: 'رؤيتنا', p: 'أن نكون المرجع العربي الأول في التدريب والإشراف على البحث العلمي الصحي.' },
+        { icon: '🤝', h: 'قيمنا', p: 'النزاهة العلمية، والسرية، والالتزام بالمواعيد، والشفافية مع كل عميل.' },
+      ]
+    : [
+        { icon: '🎯', h: 'Our mission', p: 'Empower health students and researchers to produce rigorous research through hands-on, step-by-step training and mentoring.' },
+        { icon: '🔭', h: 'Our vision', p: 'To be the leading Arabic reference for health-research training and mentoring.' },
+        { icon: '🤝', h: 'Our values', p: 'Scientific integrity, confidentiality, punctuality, and transparency with every client.' },
+      ]
+
+  const credentials = ar
+    ? [
+        ['الكيان القانوني', 'شركة بايونيرز هيلث ريسيرتش كونسالتينج (ذات مسؤولية محدودة)'],
+        ['ترخيص وزارة الاستثمار', '24926274626'],
+        ['الرقم الموحّد للمنشأة', '7055175363'],
+        ['المقر', 'جدة، المملكة العربية السعودية'],
+      ]
+    : [
+        ['Legal entity', 'Pioneers Health Research Consulting (LLC)'],
+        ['Ministry of Investment license', '24926274626'],
+        ['Unified establishment no.', '7055175363'],
+        ['Headquarters', 'Jeddah, Saudi Arabia'],
+      ]
+
   return (
     <div>
       <PageHero eyebrow={ct('home.about.eyebrow')} title={ct('home.about.title')} />
 
-      <div className="mx-auto max-w-4xl px-4 py-12 md:px-8 md:py-16">
-        <p className="mb-12 text-[16.5px] leading-[2.1] text-muted-2">{ct('home.about.body')}</p>
+      <div className="mx-auto max-w-5xl px-4 py-12 md:px-8 md:py-16">
+        <Reveal>
+          <p className="mx-auto mb-12 max-w-3xl text-center text-[16.5px] leading-[2.1] text-muted-2">{ct('home.about.body')}</p>
+        </Reveal>
 
-        {team.length > 0 && (
-        <div className="rounded-2xl border border-border bg-bg-soft p-6 md:p-9">
-          <div className="font-heading mb-5 text-xl font-bold text-navy">{ct('home.about.teamTitle')}</div>
-          <div className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
-            {team.map((member, i) => (
-              <div key={`${member.name}-${i}`} className="border-b border-border py-4 last:border-b-0 sm:[&:nth-last-child(2)]:border-b-0">
-                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-                  <span className="break-words text-[15.5px] font-semibold text-navy">{member.name}</span>
-                  <span className="break-words text-[13.5px] text-muted">{member.role}</span>
-                </div>
-                {member.bio && <p className="mt-1 break-words text-[13px] leading-6 text-muted">{member.bio}</p>}
+        <div className="mb-14 grid grid-cols-1 gap-5 md:grid-cols-3">
+          {pillars.map((p) => (
+            <Reveal key={p.h} className="rounded-2xl border border-border bg-white p-6 text-center shadow-[0_10px_30px_-20px_rgba(11,31,58,0.35)]">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-[26px]">{p.icon}</div>
+              <h3 className="mb-2 text-[17px] font-bold text-navy">{p.h}</h3>
+              <p className="text-[14px] leading-7 text-muted">{p.p}</p>
+            </Reveal>
+          ))}
+        </div>
+
+        {/* Official credentials */}
+        <Reveal className="mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-navy to-[#14335c] p-7 text-white md:p-9">
+          <div className="mb-5 flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gold/20">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9a24b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z" />
+                <path d="M9 12l2 2 4-4" />
+              </svg>
+            </span>
+            <div>
+              <div className="font-heading text-[20px] font-bold">{ar ? 'جهة رسمية مرخّصة' : 'An officially licensed company'}</div>
+              <div className="text-[13px] text-white/65">{ar ? 'تعمل وفق أنظمة المملكة العربية السعودية' : 'Operating under the laws of Saudi Arabia'}</div>
+            </div>
+          </div>
+          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {credentials.map(([k, v]) => (
+              <div key={k} className="rounded-xl bg-white/[0.06] px-4 py-3">
+                <dt className="text-[12px] text-white/55">{k}</dt>
+                <dd className="mt-0.5 text-[14.5px] font-semibold">{v}</dd>
               </div>
             ))}
-          </div>
+          </dl>
+        </Reveal>
+      </div>
+
+      <TrustBadges />
+      <ExpertTeam />
+      <HowItWorks />
+
+      <div className="px-4 py-14 text-center md:px-16">
+        <h2 className="font-heading mb-3 text-[24px] font-bold text-navy md:text-[28px]">{ar ? 'جاهز تبدأ بحثك معنا؟' : 'Ready to start your research with us?'}</h2>
+        <p className="mb-6 text-[15px] text-muted">{ar ? 'أرسل تفاصيل طلبك ونرسل لك عرضًا وخطة تناسبك.' : 'Send your request details and we’ll send a tailored quote and plan.'}</p>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link to="/quote" className="rounded-full bg-gold px-7 py-3 text-[15px] font-bold text-navy no-underline">
+            {ar ? 'اطلب عرض سعر' : 'Get a quote'}
+          </Link>
+          <Link to="/services" className="rounded-full border border-navy px-7 py-3 text-[15px] font-bold text-navy no-underline">
+            {ar ? 'تصفّح الخدمات' : 'Browse services'}
+          </Link>
         </div>
-        )}
       </div>
     </div>
   )
