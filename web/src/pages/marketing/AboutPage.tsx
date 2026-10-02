@@ -20,6 +20,7 @@ export function AboutPage() {
       <div className="mx-auto max-w-4xl px-4 py-12 md:px-8 md:py-16">
         <p className="mb-12 text-[16.5px] leading-[2.1] text-muted-2">{ct('home.about.body')}</p>
 
+        {team.length > 0 && (
         <div className="rounded-2xl border border-border bg-bg-soft p-6 md:p-9">
           <div className="font-heading mb-5 text-xl font-bold text-navy">{ct('home.about.teamTitle')}</div>
           <div className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
@@ -34,6 +35,7 @@ export function AboutPage() {
             ))}
           </div>
         </div>
+        )}
       </div>
     </div>
   )

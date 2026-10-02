@@ -5,6 +5,7 @@ import { useLanguage } from '@/lib/i18n'
 import { listMyEnrolledCourses } from '@/lib/courses'
 import { listMyAssignments } from '@/lib/assignments'
 import { LoadingState } from '@/components/LoadingState'
+import { ReferralCard } from '@/components/ReferralCard'
 
 const PHASE_KEYS = [
   'sOverview.phase.foundations',
@@ -78,6 +79,8 @@ export function StudentOverviewPage() {
         {t('sOverview.hello', { name: profile?.name ?? '' })}
       </div>
       <div className="mb-6 text-[13.5px] text-muted">{t('sOverview.subtitle')}</div>
+
+      <ReferralCard />
 
       {loading ? (
         <LoadingState />

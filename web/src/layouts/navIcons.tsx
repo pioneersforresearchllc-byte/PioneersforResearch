@@ -64,6 +64,7 @@ const MAP: Record<string, ReactNode> = {
   accounts: users,
   contact: mail,
   'home-content': layout,
+  reviews: award,
 }
 
 export function navIcon(key: string): ReactNode {

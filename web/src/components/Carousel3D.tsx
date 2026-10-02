@@ -72,7 +72,8 @@ export function Carousel3D<T>({
 
   return (
     <div
-      className="relative"
+      // clip (not hidden) so side cards can't widen the page, without creating a scroll box
+      className="relative overflow-x-clip py-2"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onKeyDown={(e) => {

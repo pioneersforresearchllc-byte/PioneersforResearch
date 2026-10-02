@@ -88,8 +88,8 @@ export function MarketingLayout() {
         {t('lang.toggle')}
       </button>
       {!isTeacherSession && (
-        <Link to="/courses" onClick={() => setMenuOpen(false)} className={buttonClasses('outline', 'sm')}>
-          {t('nav.browseCourses')}
+        <Link to="/quote" onClick={() => setMenuOpen(false)} className={buttonClasses('gold', 'sm')}>
+          {t('quote.cta')}
         </Link>
       )}
       {session && profile ? (
@@ -210,7 +210,14 @@ export function MarketingLayout() {
           <Link to="/privacy" className="text-muted no-underline hover:text-navy">
             {t('footer.privacy')}
           </Link>
+          <Link to="/refund" className="text-muted no-underline hover:text-navy">
+            {t('footer.refund')}
+          </Link>
         </span>
+      </div>
+      {/* Legal identity — payment gateways (e.g. Moyasar) require it on the site. */}
+      <div className="border-t border-border px-4 py-4 text-center text-[11.5px] leading-6 text-faint md:px-16">
+        {t('footer.legal')}
       </div>
     </div>
   )

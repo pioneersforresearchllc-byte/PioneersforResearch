@@ -7,6 +7,8 @@ export interface TeamMember {
   title_en: string | null
   bio_ar: string | null
   bio_en: string | null
+  /** Profile photo for the homepage expert cards (0067). */
+  photo_url?: string | null
   sort_order: number
   active: boolean
 }

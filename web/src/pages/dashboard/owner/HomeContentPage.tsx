@@ -25,6 +25,7 @@ import {
   type TeamMember,
 } from '@/lib/team'
 import { LoadingState } from '@/components/LoadingState'
+import { uploadServiceImage } from '@/lib/services'
 
 const SOCIAL_LABELS: Record<SocialKey, string> = {
   'social.instagram': 'Instagram',
@@ -167,6 +168,8 @@ function TeamMemberRow({ member, onChanged }: { member: TeamMember; onChanged: (
   const [bioAr, setBioAr] = useState(member.bio_ar ?? '')
   const [bioEn, setBioEn] = useState(member.bio_en ?? '')
   const [active, setActive] = useState(member.active)
+  const [photo, setPhoto] = useState(member.photo_url ?? '')
+  const [uploading, setUploading] = useState(false)
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -181,6 +184,8 @@ function TeamMemberRow({ member, onChanged }: { member: TeamMember; onChanged: (
         bio_ar: bioAr.trim() || null,
         bio_en: bioEn.trim() || null,
         active,
+        // Only send photo_url when it changed, so saving works before migration 0067.
+        ...(photo !== (member.photo_url ?? '') ? { photo_url: photo || null } : {}),
       })
       setSaved(true)
       onChanged()
@@ -198,6 +203,36 @@ function TeamMemberRow({ member, onChanged }: { member: TeamMember; onChanged: (
   const field = 'w-full rounded-md border border-border px-3 py-2 text-[13.5px]'
   return (
     <div className="rounded-lg border border-border-2 bg-bg-soft p-3.5">
+      <div className="mb-2 flex items-center gap-3">
+        {photo ? (
+          <img src={photo} alt="" className="h-14 w-14 shrink-0 rounded-full object-cover ring-2 ring-gold/60" />
+        ) : (
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-navy text-[20px] font-bold text-gold">{(name || '?').charAt(0)}</span>
+        )}
+        <label className="cursor-pointer rounded-md border border-border bg-white px-3 py-1.5 text-[12px] text-navy hover:border-navy">
+          {uploading ? '...' : t('cms.team.photo')}
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={async (e) => {
+              const f = e.target.files?.[0]
+              if (!f) return
+              setUploading(true)
+              try {
+                setPhoto(await uploadServiceImage(f))
+              } finally {
+                setUploading(false)
+              }
+            }}
+          />
+        </label>
+        {photo && (
+          <button type="button" onClick={() => setPhoto('')} className="text-[12px] text-error">
+            {t('dash.delete')}
+          </button>
+        )}
+      </div>
       <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('cms.team.namePh')} className={`${field} mb-2 font-semibold`} />
       <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
         <input value={titleAr} onChange={(e) => setTitleAr(e.target.value)} placeholder={t('cms.team.titleArPh')} className={field} />

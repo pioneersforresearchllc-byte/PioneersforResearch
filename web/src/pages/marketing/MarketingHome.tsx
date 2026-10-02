@@ -9,6 +9,15 @@ import { listServices, type Service } from '@/lib/services'
 import { listTeamMembers } from '@/lib/team'
 import { Reveal } from '@/components/Reveal'
 import { Carousel3D } from '@/components/Carousel3D'
+import {
+  ConsultCta,
+  ExpertTeam,
+  FaqSection,
+  HowItWorks,
+  ProofNumbers,
+  TestimonialsSection,
+  TrustBadges,
+} from '@/components/home/HomeExtras'
 import { SiteComments } from '@/components/SiteComments'
 import { AudienceSection } from '@/components/AudienceSection'
 import { buttonClasses } from '@/components/ui/Button'
@@ -17,8 +26,8 @@ import { GatedPrice } from '@/components/GatedPrice'
 
 type TeamEntry = { name: string; role: string; bio: string }
 
-// Team comes from the admin-managed table; until the owner adds members, we
-// fall back to the original four so the section is never empty.
+// Team comes from the admin-managed table; empty until the owner adds members
+// (callers hide the team block then).
 export function useTeam(lang: 'ar' | 'en', t: (key: 'team.sara.role' | 'team.khalid.role' | 'team.mona.role' | 'team.faisal.role') => string): TeamEntry[] {
   const { data } = useQuery({ queryKey: ['team-members'], queryFn: listTeamMembers })
   if (data && data.length > 0) {
@@ -28,12 +37,9 @@ export function useTeam(lang: 'ar' | 'en', t: (key: 'team.sara.role' | 'team.kha
       bio: (lang === 'ar' ? m.bio_ar : m.bio_en) ?? '',
     }))
   }
-  return [
-    { name: 'د. سارة العتيبي', role: t('team.sara.role'), bio: '' },
-    { name: 'أ. خالد الحربي', role: t('team.khalid.role'), bio: '' },
-    { name: 'د. منى القحطاني', role: t('team.mona.role'), bio: '' },
-    { name: 'أ. فيصل الزهراني', role: t('team.faisal.role'), bio: '' },
-  ]
+  // No placeholder people: showing invented names would mislead visitors.
+  void t
+  return []
 }
 
 export function formatSar(cents: number, t: ReturnType<typeof useLanguage>['t']) {
@@ -317,7 +323,6 @@ export function MarketingHome() {
   const { profile, session } = useAuth()
   const { t, lang } = useLanguage()
   const ct = useContentText()
-  const TEAM = useTeam(lang, t)
   const { data: courses } = useCourses()
   const { data: articles } = useArticlePreviews()
   const isTeacherSession = profile?.role === 'teacher'
@@ -404,6 +409,11 @@ export function MarketingHome() {
                 <span aria-hidden>←</span>
               </a>
             </Magnetic>
+            <Magnetic>
+              <Link to="/quote" className={buttonClasses('gold', 'lg')}>
+                {t('quote.cta')}
+              </Link>
+            </Magnetic>
           </div>
         </Reveal>
       </div>
@@ -426,32 +436,36 @@ export function MarketingHome() {
         ))}
       </div>
 
+      {/* TRUST BADGES */}
+      <TrustBadges />
+
       {/* ABOUT */}
-      <div id="about" className="grid grid-cols-1 items-center gap-8 px-4 py-12 md:grid-cols-2 md:gap-15 md:px-16 md:py-20">
-        <div>
+      <div id="about" className="px-4 py-12 md:px-16 md:py-20">
+        <Reveal className="mx-auto max-w-3xl text-center">
           <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-accent">{ct('home.about.eyebrow')}</div>
           <h2 className="font-heading mb-5 text-2xl font-bold md:text-[30px]">{ct('home.about.title')}</h2>
           <p className="text-[16.5px] leading-[2] text-muted">{ct('home.about.body')}</p>
-        </div>
-        <div className="rounded-[10px] border border-border bg-bg-soft p-6 md:p-9">
-          <div className="font-heading mb-4.5 text-lg font-semibold">{ct('home.about.teamTitle')}</div>
-          {TEAM.map((member, i) => (
-            <div key={`${member.name}-${i}`} className="border-b border-border py-3 last:border-b-0">
-              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-                <span className="break-words text-[15px] font-medium">{member.name}</span>
-                <span className="break-words text-[13.5px] text-muted">{member.role}</span>
-              </div>
-              {member.bio && <p className="mt-1 break-words text-[12.5px] leading-6 text-muted">{member.bio}</p>}
-            </div>
-          ))}
-        </div>
+        </Reveal>
       </div>
+
+      {/* EXPERT TEAM — real members only */}
+      <ExpertTeam />
 
       {/* WHO WE SERVE — individuals & institutions */}
       {!isTeacherSession && <AudienceSection />}
 
       {/* SERVICES — shown first (before courses) */}
       {!isTeacherSession && <ServicesSection />}
+
+      {/* HOW IT WORKS */}
+      {!isTeacherSession && <HowItWorks />}
+
+      {/* ACHIEVEMENT NUMBERS (owner-entered) + TESTIMONIALS */}
+      <ProofNumbers />
+      <TestimonialsSection />
+
+      {/* FREE CONSULTATION */}
+      {!isTeacherSession && <ConsultCta />}
 
       {/* COURSES */}
       {!isTeacherSession && (
@@ -511,6 +525,9 @@ export function MarketingHome() {
           <div className="text-center text-[14.5px] text-faint">{t('home.resources.empty')}</div>
         )}
       </div>
+
+      {/* FAQ */}
+      <FaqSection />
 
       {/* COMMUNITY / PUBLIC COMMENTS WALL */}
       <SiteComments />

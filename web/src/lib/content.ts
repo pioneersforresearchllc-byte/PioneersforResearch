@@ -29,6 +29,16 @@ export const EDITABLE_CONTENT: { groupKey: ContentKey; keys: { key: ContentKey; 
     ],
   },
   {
+    groupKey: 'cms.group.proof',
+    keys: [
+      { key: 'home.proof.students', labelKey: 'cms.lbl.proofStudents' },
+      { key: 'home.proof.projects', labelKey: 'cms.lbl.proofProjects' },
+      { key: 'home.proof.specialties', labelKey: 'cms.lbl.proofSpecialties' },
+      { key: 'home.proof.satisfaction', labelKey: 'cms.lbl.proofSatisfaction' },
+      { key: 'home.consult.bookingUrl', labelKey: 'cms.lbl.bookingUrl' },
+    ],
+  },
+  {
     groupKey: 'cms.group.about',
     keys: [
       { key: 'home.about.eyebrow', labelKey: 'cms.lbl.aboutEyebrow' },

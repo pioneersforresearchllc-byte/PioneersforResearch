@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState, type FormEvent } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { captureReferralFromUrl } from '@/lib/referral'
 import { supabase } from '@/lib/supabase'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { Button } from '@/components/ui/Button'
@@ -12,6 +13,8 @@ export function RegisterPage() {
   const navigate = useNavigate()
   const { t } = useLanguage()
   const { refreshProfile } = useAuth()
+  const location = useLocation()
+  useEffect(() => captureReferralFromUrl(location.search), [location.search])
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')

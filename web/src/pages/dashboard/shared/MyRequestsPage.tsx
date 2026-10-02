@@ -9,6 +9,8 @@ import { PAYMENTS_ENABLED } from '@/lib/config'
 import { validateDiscount, type DiscountPreview } from '@/lib/discounts'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
+import { RequestStepper } from '@/components/RequestStepper'
+import { ReviewPrompt } from '@/components/ReviewPrompt'
 
 /**
  * Stripe redirects back to a fixed /my-requests URL, but the page itself
@@ -132,6 +134,9 @@ export function MyRequestsPage() {
       )}
       {error && <div className="mb-3 text-[13.5px] text-error">{error}</div>}
 
+      {/* A delivered request is the moment to ask for a review. */}
+      {profile?.role === 'student' && (requests ?? []).some((r) => r.status === 'done') && <ReviewPrompt />}
+
       <div className="flex flex-col gap-4">
         {(requests ?? []).map((r) => (
           <div
@@ -160,6 +165,8 @@ export function MyRequestsPage() {
                 {statusLabel(r.status)}
               </span>
             </div>
+
+            <RequestStepper status={r.status} />
 
             <div className="mb-3 text-[12.5px] text-muted">
               {t('adminRequests.deliveryBy')}: {r.delivery_date}

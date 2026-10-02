@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { fetchProfile } from '@/lib/profile'
+import { applyStoredReferral } from '@/lib/referral'
 import type { Profile } from '@/types/profile'
 
 interface AuthContextValue {
@@ -63,6 +64,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sub.subscription.unsubscribe()
     }
   }, [])
+
+  // A new student who arrived via a referral link: credit the referrer once
+  // their profile exists (no-op when no referral was captured).
+  useEffect(() => {
+    if (profile?.role === 'student') void applyStoredReferral()
+  }, [profile?.id, profile?.role])
 
   // Reads the live session rather than this render's `session`, so callers that
   // just signed up (and captured refreshProfile before the session existed) still work.

@@ -31,7 +31,9 @@ import { OwnerOtpPage } from '@/pages/auth/OwnerOtpPage'
 // Lazy — pulls in the (large) Daily video SDK only when a call is opened.
 const CallPage = lazy(() => import('@/pages/call/CallPage').then((m) => ({ default: m.CallPage })))
 import { MarketingHome } from '@/pages/marketing/MarketingHome'
-import { TermsPage, PrivacyPage } from '@/pages/marketing/LegalPages'
+import { TermsPage, PrivacyPage, RefundPage } from '@/pages/marketing/LegalPages'
+import { QuotePage } from '@/pages/marketing/QuotePage'
+import { OwnerReviewsPage } from '@/pages/dashboard/owner/ReviewsPage'
 import { CookieConsent } from '@/components/CookieConsent'
 import { AboutPage } from '@/pages/marketing/AboutPage'
 import { MarketingCoursesPage } from '@/pages/marketing/CoursesPage'
@@ -130,6 +132,7 @@ const ownerTabs: DashboardTab[] = [
   { key: 'messages', labelKey: 'tab.messages', to: '/owner/messages' },
   { key: 'contact', labelKey: 'tab.contactMessages', to: '/owner/contact' },
   { key: 'home-content', labelKey: 'tab.homeContent', to: '/owner/home-content' },
+  { key: 'reviews', labelKey: 'tab.reviews', to: '/owner/reviews' },
   { key: 'articles', labelKey: 'tab.manageArticles', to: '/owner/articles' },
   { key: 'account', labelKey: 'tab.myAccount', to: '/owner/account' },
 ]
@@ -222,6 +225,8 @@ export default function App() {
           <Route path="/article/:id" element={<ArticleDetailPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/refund" element={<RefundPage />} />
+        <Route path="/quote" element={<QuotePage />} />
         </Route>
 
         <Route path="/verify/:id" element={<VerifyCertificatePage />} />
@@ -297,6 +302,7 @@ export default function App() {
             <Route path="/owner/messages" element={<ChatPage />} />
             <Route path="/owner/contact" element={<OwnerContactPage />} />
             <Route path="/owner/home-content" element={<OwnerHomeContentPage />} />
+        <Route path="/owner/reviews" element={<OwnerReviewsPage />} />
             <Route path="/owner/articles" element={<OwnerArticlesPage />} />
             <Route path="/owner/discounts" element={<OwnerDiscountsPage />} />
             <Route path="/owner/institutions" element={<OwnerInstitutionsPage />} />
