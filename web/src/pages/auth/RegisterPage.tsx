@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { captureReferralFromUrl } from '@/lib/referral'
 import { supabase } from '@/lib/supabase'
-import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
+import { AuthCard, FieldError, PasswordInput, inputClass } from '@/components/AuthCard'
 import { Button } from '@/components/ui/Button'
 import { GoogleButton } from '@/components/GoogleButton'
 import { useLanguage } from '@/lib/i18n'
@@ -197,12 +197,11 @@ export function RegisterPage() {
           onChange={(e) => setUsername(e.target.value)}
           className={inputClass}
         />
-        <input
-          type="password"
+        <PasswordInput
+          autoComplete="new-password"
           placeholder={t('register.passwordPh')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className={inputClass}
         />
         <input
           type="text"

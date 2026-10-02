@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { fetchProfile } from '@/lib/profile'
 import { getOwnerDeviceId } from '@/lib/device'
 import { resolveLoginEmail } from '@/lib/authHelpers'
-import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
+import { AuthCard, FieldError, PasswordInput, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 
 export function OwnerLoginPage() {
@@ -88,12 +88,11 @@ export function OwnerLoginPage() {
           onChange={(e) => setIdentifier(e.target.value)}
           className={inputClass}
         />
-        <input
-          type="password"
+        <PasswordInput
+          autoComplete="current-password"
           placeholder={t('ownerLogin.passwordPh')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className={inputClass}
         />
         <FieldError>{error}</FieldError>
         <button

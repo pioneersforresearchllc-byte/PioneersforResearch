@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import type { Profile } from '@/types/profile'
 import { resolveLoginEmail } from '@/lib/authHelpers'
-import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
+import { AuthCard, FieldError, PasswordInput, inputClass } from '@/components/AuthCard'
 import { GoogleButton } from '@/components/GoogleButton'
 import { Button } from '@/components/ui/Button'
 import { useLanguage } from '@/lib/i18n'
@@ -164,12 +164,11 @@ export function LoginPage() {
           onChange={(e) => setIdentifier(e.target.value)}
           className={inputClass}
         />
-        <input
-          type="password"
+        <PasswordInput
+          autoComplete="current-password"
           placeholder={t('login.passwordPh')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className={inputClass}
         />
         <div className="-mt-1.5 text-left rtl:text-right">
           <Link to="/forgot-password" className="text-[13px] text-muted no-underline hover:text-navy">

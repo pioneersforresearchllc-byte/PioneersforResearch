@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
+import { AuthCard, FieldError, PasswordInput, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 import { clearAbandonedSignup, fnErrorBody, isUsernameTaken, isValidUsername } from '@/lib/authHelpers'
 
@@ -200,12 +200,11 @@ export function TeacherApplyPage() {
           onChange={(e) => setUsername(e.target.value)}
           className={inputClass}
         />
-        <input
-          type="password"
+        <PasswordInput
+          autoComplete="new-password"
           placeholder={t('teacherApply.passwordPh')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className={inputClass}
         />
         <input
           type="text"

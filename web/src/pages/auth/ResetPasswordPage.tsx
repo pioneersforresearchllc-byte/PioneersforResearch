@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
+import { AuthCard, FieldError, PasswordInput, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 
 export function ResetPasswordPage() {
@@ -82,19 +82,17 @@ export function ResetPasswordPage() {
           onChange={(e) => setCode(e.target.value)}
           className={`${inputClass} text-center text-base tracking-[4px]`}
         />
-        <input
-          type="password"
+        <PasswordInput
+          autoComplete="new-password"
           placeholder={t('resetPassword.newPasswordPh')}
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          className={inputClass}
         />
-        <input
-          type="password"
+        <PasswordInput
+          autoComplete="new-password"
           placeholder={t('resetPassword.confirmPasswordPh')}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className={inputClass}
         />
         <FieldError>{error}</FieldError>
         <button
