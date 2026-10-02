@@ -8,6 +8,7 @@ import { useContentText } from '@/lib/content'
 import { listServices, type Service } from '@/lib/services'
 import { listTeamMembers } from '@/lib/team'
 import { Reveal } from '@/components/Reveal'
+import { Carousel3D } from '@/components/Carousel3D'
 import { SiteComments } from '@/components/SiteComments'
 import { AudienceSection } from '@/components/AudienceSection'
 import { buttonClasses } from '@/components/ui/Button'
@@ -250,15 +251,20 @@ export function ServicesSection() {
         <h2 className="font-heading text-2xl font-bold md:text-[30px]">{ct('home.services.title')}</h2>
       </div>
       {services && services.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6.5 sm:grid-cols-2 lg:grid-cols-3">
-          {services.map((s) => {
+        <Carousel3D
+          items={services}
+          getKey={(s) => s.id}
+          renderItem={(s, active) => {
             const info = s.hide_price ? null : priceInfo(s)
             const discounted = info && info.original != null && info.original > info.price
             const pct = discounted ? Math.round((1 - info!.price / info!.original!) * 100) : 0
             return (
-              <Reveal
-                key={s.id}
-                className="group flex flex-col overflow-hidden rounded-[14px] border border-border bg-white transition-all duration-300 hover:-translate-y-1.5 hover:border-navy hover:shadow-[0_18px_40px_rgba(11,31,58,0.14)]"
+              <div
+                className={`group flex h-[500px] flex-col overflow-hidden rounded-[18px] border bg-white transition-shadow duration-500 md:h-[520px] ${
+                  active
+                    ? 'border-navy/20 shadow-[0_30px_60px_-20px_rgba(11,31,58,0.45)]'
+                    : 'border-border shadow-[0_12px_30px_-16px_rgba(11,31,58,0.3)]'
+                }`}
               >
                 <div className="relative">
                   {s.image_url ? (
@@ -276,7 +282,7 @@ export function ServicesSection() {
                 </div>
                 <div className="flex flex-1 flex-col p-7">
                   <h3 className="mb-3 text-lg font-semibold text-navy">{lang === 'en' ? s.title_en || s.title : s.title}</h3>
-                  <p className="mb-4 flex-1 text-[14.5px] leading-[1.9] text-muted">
+                  <p className="mb-4 line-clamp-5 flex-1 text-[14.5px] leading-[1.9] text-muted">
                     {lang === 'en' ? s.description_en || s.description : s.description}
                   </p>
                   {s.hide_price ? (
@@ -296,10 +302,10 @@ export function ServicesSection() {
                     <span className="transition-transform duration-200 group-hover:translate-x-1 rtl:group-hover:-translate-x-1">←</span>
                   </Link>
                 </div>
-              </Reveal>
+              </div>
             )
-          })}
-        </div>
+          }}
+        />
       ) : (
         <div className="text-center text-[14.5px] text-faint">{t('home.services.empty')}</div>
       )}

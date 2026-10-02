@@ -20,6 +20,13 @@ interface DashboardShellProps {
   badges?: Record<string, number>
 }
 
+const globeIcon = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z" />
+  </svg>
+)
+
 function Badge({ count }: { count: number }) {
   if (count <= 0) return null
   return (
@@ -36,10 +43,14 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
   return (
     <div dir={dir} lang={lang} className="flex min-h-screen flex-col">
       <div className="glass elev-1 sticky top-0 z-30 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border/70 px-4 py-3.5 md:px-8 md:py-4">
-        <div className="font-heading text-base font-bold text-navy md:text-lg">
-          Pioneers Health Research{' '}
-          <span className="block text-[12.5px] font-normal text-muted md:inline md:text-[13px]">— {t(subtitleKey)}</span>
-        </div>
+        {/* Logo + name go back to the public site, like on any web app. */}
+        <Link to="/" className="flex items-center gap-2.5 no-underline" title={t('shell.visitSite')}>
+          <img src="/logo.png" alt="" className="h-9 w-9 md:h-10 md:w-10" />
+          <span className="font-heading text-base font-bold text-navy md:text-lg">
+            Pioneers Health Research{' '}
+            <span className="block text-[12.5px] font-normal text-muted md:inline md:text-[13px]">— {t(subtitleKey)}</span>
+          </span>
+        </Link>
         <div className="flex items-center gap-2.5 md:gap-4.5">
           <span className="hidden text-sm text-navy sm:inline">{userName}</span>
           <NotificationBell />
@@ -51,9 +62,10 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
           </button>
           <Link
             to="/"
-            className="shrink-0 whitespace-nowrap rounded-md border border-border px-3 py-1.75 text-[12.5px] text-muted no-underline hover:border-navy hover:text-navy md:px-4 md:py-2 md:text-[13.5px]"
+            className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border border-gold/60 bg-gold/10 px-3 py-1.75 text-[12.5px] font-semibold text-navy no-underline hover:border-gold hover:bg-gold/20 md:px-4 md:py-2 md:text-[13.5px]"
           >
-            {t('shell.home')}
+            {globeIcon}
+            {t('shell.visitSite')}
           </Link>
           <button
             onClick={() => void signOut()}
@@ -89,6 +101,17 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
               )}
             </NavLink>
           ))}
+          {/* Way back to the public site, at the bottom of the sidebar. */}
+          <Link
+            to="/"
+            className="mt-3 flex items-center gap-3 rounded-xl border border-dashed border-gold/60 bg-gold/[0.07] px-3.5 py-3 text-[13.5px] text-navy no-underline transition-colors hover:bg-gold/15"
+          >
+            <span className="text-gold">{globeIcon}</span>
+            <span className="flex flex-col leading-tight">
+              <span className="font-semibold">{t('shell.visitSite')}</span>
+              <span className="text-[11.5px] text-muted">{t('shell.visitSiteHint')}</span>
+            </span>
+          </Link>
         </div>
         <div className="flex gap-1.5 overflow-x-auto border-b border-border bg-white px-3 py-2 md:hidden">
           {tabs.map((tab) => (

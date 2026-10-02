@@ -93,8 +93,28 @@ export function MarketingLayout() {
         </Link>
       )}
       {session && profile ? (
-        <Link to={dashboardPathFor(profile.role)} className={buttonClasses('gold', 'sm')} onClick={() => setMenuOpen(false)}>
-          {t('nav.backToDashboard')}
+        // Signed in: one unmistakable way back into the dashboard, with who you are.
+        <Link
+          to={dashboardPathFor(profile.role)}
+          onClick={() => setMenuOpen(false)}
+          className="group flex items-center gap-2.5 rounded-full border border-navy/15 bg-navy py-1 pe-4 ps-1 text-[13.5px] font-semibold text-white no-underline shadow-[0_8px_20px_-10px_rgba(11,31,58,0.7)] transition-all hover:-translate-y-0.5 hover:bg-navy-hover"
+        >
+          {profile.avatar_url ? (
+            <img src={profile.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover ring-2 ring-gold/70" />
+          ) : (
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gold text-[14px] font-bold text-navy">
+              {(profile.name || '?').trim().charAt(0)}
+            </span>
+          )}
+          <span className="flex items-center gap-1.5">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1.5" />
+              <rect x="14" y="3" width="7" height="7" rx="1.5" />
+              <rect x="3" y="14" width="7" height="7" rx="1.5" />
+              <rect x="14" y="14" width="7" height="7" rx="1.5" />
+            </svg>
+            {t('nav.myDashboard')}
+          </span>
         </Link>
       ) : (
         <>
