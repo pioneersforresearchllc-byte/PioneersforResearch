@@ -28,9 +28,10 @@ const globeIcon = (
   </svg>
 )
 
-// Long menus (the owner's) are split into labelled sections; any tab not
-// listed here lands in the first section.
-const GROUPS: { ar: string; en: string; keys: string[] }[] = [
+// Long menus are split into labelled sections. Each role has its own set; the
+// set whose keys cover a menu's tabs is used, otherwise the menu stays flat.
+type Group = { ar: string; en: string; keys: string[] }
+const OWNER_GROUPS: Group[] = [
   { ar: 'عام', en: 'General', keys: ['overview'] },
   { ar: 'التعليم', en: 'Education', keys: ['applications', 'teachers', 'courses', 'workshops', 'certificates'] },
   { ar: 'الخدمات والعملاء', en: 'Services & clients', keys: ['services', 'service-requests', 'institutions', 'inst-consultations'] },
@@ -38,6 +39,14 @@ const GROUPS: { ar: string; en: string; keys: string[] }[] = [
   { ar: 'التواصل', en: 'Communication', keys: ['messages', 'contact', 'broadcast', 'reviews'] },
   { ar: 'الموقع والإعدادات', en: 'Website & settings', keys: ['home-content', 'articles', 'admins', 'accounts', 'account'] },
 ]
+const STUDENT_GROUPS: Group[] = [
+  { ar: 'عام', en: 'General', keys: ['overview'] },
+  { ar: 'التعلّم', en: 'Learning', keys: ['courses', 'assignments', 'grades', 'certificates', 'feedback', 'articles', 'workshops'] },
+  { ar: 'الخدمات', en: 'Services', keys: ['my-services', 'requests'] },
+  { ar: 'المالية', en: 'Payments', keys: ['billing', 'invoices'] },
+  { ar: 'الحساب', en: 'Account', keys: ['chat', 'account'] },
+]
+const GROUP_SETS = [OWNER_GROUPS, STUDENT_GROUPS]
 
 function Badge({ count }: { count: number }) {
   if (count <= 0) return null
@@ -50,12 +59,11 @@ function Badge({ count }: { count: number }) {
 
 function NavList({ tabs, badges, onNavigate }: { tabs: DashboardTab[]; badges?: Record<string, number>; onNavigate?: () => void }) {
   const { t, lang } = useLanguage()
-  const grouped = tabs.length > 10
-  const sections = grouped
-    ? GROUPS.map((g, gi) => ({
-        title: lang === 'ar' ? g.ar : g.en,
-        items: tabs.filter((tab) => (gi === 0 ? g.keys.includes(tab.key) || !GROUPS.some((x) => x.keys.includes(tab.key)) : g.keys.includes(tab.key))),
-      })).filter((s) => s.items.length > 0)
+  const set = tabs.length > 10 ? GROUP_SETS.find((gs) => tabs.every((tab) => gs.some((g) => g.keys.includes(tab.key)))) : undefined
+  const sections = set
+    ? set
+        .map((g) => ({ title: lang === 'ar' ? g.ar : g.en, items: tabs.filter((tab) => g.keys.includes(tab.key)) }))
+        .filter((s) => s.items.length > 0)
     : [{ title: '', items: tabs }]
 
   return (

@@ -6,6 +6,8 @@ import { listMyEnrolledCourses } from '@/lib/courses'
 import { listMyAssignments } from '@/lib/assignments'
 import { LoadingState } from '@/components/LoadingState'
 import { ReferralCard } from '@/components/ReferralCard'
+import { listMyServiceRequests } from '@/lib/services'
+import { listMyInvoices } from '@/lib/billing'
 
 const PHASE_KEYS = [
   'sOverview.phase.foundations',
@@ -29,9 +31,21 @@ export function StudentOverviewPage() {
     queryFn: () => listMyAssignments(profile!.id),
   })
 
+  const requestsQuery = useQuery({
+    queryKey: ['my-service-requests', profile?.id],
+    enabled: !!profile,
+    queryFn: () => listMyServiceRequests(profile!.id),
+  })
+  const invoicesQuery = useQuery({ queryKey: ['my-invoices', profile?.id], enabled: !!profile, queryFn: listMyInvoices })
+
+  const ar = lang === 'ar'
+  const requests = requestsQuery.data ?? []
+  const activeRequests = requests.filter((r) => r.status !== 'done' && r.status !== 'cancelled')
+  const quoteReady = requests.find((r) => r.status === 'awaiting_payment')
+  const unpaidInvoice = (invoicesQuery.data ?? []).find((i) => i.status === 'unpaid')
   const courses = coursesQuery.data ?? []
   const assignments = assignmentsQuery.data ?? []
-  const loading = coursesQuery.isLoading || assignmentsQuery.isLoading
+  const loading = coursesQuery.isLoading || assignmentsQuery.isLoading || requestsQuery.isLoading
 
   // Earliest-due unsubmitted assignment drives the primary nudge.
   const pending = assignments
@@ -51,8 +65,22 @@ export function StudentOverviewPage() {
   const fmtDate = (d: string) => new Date(d).toLocaleDateString(lang === 'ar' ? 'ar' : 'en-US')
 
   // Resolve the single most useful next action from real data.
+  // Money and quotes come first: they block work from starting.
   let step: { text: string; sub?: string; to: string; cta: string }
-  if (nextAssignment) {
+  if (unpaidInvoice) {
+    step = {
+      text: ar ? `لديك فاتورة بانتظار الدفع: ${unpaidInvoice.title}` : `You have an invoice to pay: ${unpaidInvoice.title}`,
+      sub: ar ? 'ادفع وارفع الإيصال لنبدأ العمل فورًا.' : 'Pay and upload the receipt so we can start right away.',
+      to: '/student/invoices',
+      cta: ar ? 'عرض الفاتورة' : 'View invoice',
+    }
+  } else if (quoteReady) {
+    step = {
+      text: ar ? `عرض سعر طلبك جاهز: ${quoteReady.subject}` : `Your quote is ready: ${quoteReady.subject}`,
+      to: '/student/requests',
+      cta: ar ? 'عرض الطلب' : 'View request',
+    }
+  } else if (nextAssignment) {
     step = {
       text: t('sOverview.nextSubmit', { title: nextAssignment.title }),
       sub: t('sOverview.dueOn', { date: fmtDate(nextAssignment.due_date) }),
@@ -65,8 +93,15 @@ export function StudentOverviewPage() {
       to: `/student/courses/${incompleteCourse.id}`,
       cta: t('sOverview.goNow'),
     }
+  } else if (activeRequests.length > 0) {
+    step = {
+      text: ar ? `طلبك قيد التنفيذ: ${activeRequests[0].subject}` : `Your request is in progress: ${activeRequests[0].subject}`,
+      sub: ar ? 'تابع المراحل والرسائل من صفحة طلباتي.' : 'Follow its stages and messages under My requests.',
+      to: '/student/requests',
+      cta: ar ? 'متابعة الطلب' : 'Track request',
+    }
   } else if (courses.length === 0) {
-    step = { text: t('sOverview.nextBrowse'), to: '/#courses', cta: t('sOverview.browseNow') }
+    step = { text: ar ? 'ابدأ رحلتك: اطلب عرض سعر لبحثك أو تصفّح الدورات.' : 'Get started: request a quote for your research or browse courses.', to: '/quote', cta: ar ? 'اطلب عرض سعر' : 'Get a quote' }
   } else {
     step = { text: t('sOverview.nextDone'), to: '/student/certificates', cta: t('sOverview.goNow') }
   }
@@ -79,8 +114,6 @@ export function StudentOverviewPage() {
         {t('sOverview.hello', { name: profile?.name ?? '' })}
       </div>
       <div className="mb-6 text-[13.5px] text-muted">{t('sOverview.subtitle')}</div>
-
-      <ReferralCard />
 
       {loading ? (
         <LoadingState />
@@ -154,12 +187,16 @@ export function StudentOverviewPage() {
               <div className="mt-1.5 text-[12.5px] text-muted">{t('sOverview.pendingAssignments')}</div>
             </Link>
             <Link
-              to="/student/assignments"
+              to="/student/requests"
               className="rounded-xl border border-border bg-white p-5 text-center no-underline transition-colors hover:border-navy"
             >
-              <div className="font-heading text-[26px] font-bold text-navy">{assignments.length}</div>
-              <div className="mt-1.5 text-[12.5px] text-muted">{t('sOverview.totalAssignments')}</div>
+              <div className="font-heading text-[26px] font-bold text-navy">{activeRequests.length}</div>
+              <div className="mt-1.5 text-[12.5px] text-muted">{ar ? 'طلبات خدمات نشطة' : 'Active service requests'}</div>
             </Link>
+          </div>
+
+          <div className="mt-6">
+            <ReferralCard />
           </div>
         </>
       )}
