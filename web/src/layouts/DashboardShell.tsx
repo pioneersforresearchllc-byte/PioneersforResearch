@@ -6,6 +6,7 @@ import type { translations } from '@/lib/translations'
 import { navIcon } from './navIcons'
 import { NotificationBell } from '@/components/NotificationBell'
 import { PageTransition } from '@/components/ui/motion'
+import { PushPrompt } from '@/components/PushPrompt'
 
 export interface DashboardTab {
   key: string
@@ -245,6 +246,7 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
                 <span className="font-semibold text-navy">{t(current.labelKey)}</span>
               </div>
             )}
+            <PushPrompt />
             <PageTransition>
               <Outlet />
             </PageTransition>

@@ -9,6 +9,7 @@ import { listServices, type Service } from '@/lib/services'
 import { listTeamMembers } from '@/lib/team'
 import { Reveal } from '@/components/Reveal'
 import { Carousel3D } from '@/components/Carousel3D'
+import { leadSourceLine } from '@/lib/attribution'
 import {
   ConsultCta,
   ExpertTeam,
@@ -359,7 +360,7 @@ export function MarketingHome() {
     const { error } = await supabase.from('contact_messages').insert({
       name: contactName.trim(),
       email: contactEmail.trim(),
-      message: contactMessage.trim(),
+      message: `${contactMessage.trim()}\n\n${leadSourceLine(lang)}`,
     })
     if (error) {
       setContactError(t('home.contact.errorSubmit'))

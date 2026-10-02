@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { listServices } from '@/lib/services'
 import { fetchSiteContent, resolveWhatsapp } from '@/lib/content'
+import { getLeadSource, leadSourceLine } from '@/lib/attribution'
 
 /**
  * "Get a quote" wizard. Prices are quoted per request, so instead of a price
@@ -35,6 +36,13 @@ export function QuotePage() {
   const [name, setName] = useState(profile?.name ?? '')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState(session?.user.email ?? '')
+  const HEARD = ar
+    ? ['إنستقرام', 'تيك توك', 'سناب شات', 'قوقل', 'واتساب', 'صديق أو زميل', 'أخرى']
+    : ['Instagram', 'TikTok', 'Snapchat', 'Google', 'WhatsApp', 'Friend or colleague', 'Other']
+  // Pre-select from the tracked source when it's obvious (e.g. arrived from an Instagram ad).
+  const tracked = getLeadSource()?.source.toLowerCase() ?? ''
+  const guess = /insta|facebook|fb/.test(tracked) ? HEARD[0] : /tiktok/.test(tracked) ? HEARD[1] : /snap/.test(tracked) ? HEARD[2] : /google/.test(tracked) ? HEARD[3] : /whatsapp/.test(tracked) ? HEARD[4] : ''
+  const [heard, setHeard] = useState(guess)
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -60,6 +68,8 @@ export function QuotePage() {
       `${tx('الاسم', 'Name')}: ${name.trim()}`,
       phone.trim() ? `${tx('الجوال', 'Phone')}: ${phone.trim()}` : '',
       email.trim() ? `${tx('البريد', 'Email')}: ${email.trim()}` : '',
+      heard ? `${tx('عرفنا عن طريق', 'Heard via')}: ${heard}` : '',
+      leadSourceLine(lang),
     ]
       .filter(Boolean)
       .join('\n')
@@ -175,6 +185,21 @@ export function QuotePage() {
                 <input value={name} onChange={(e) => setName(e.target.value)} placeholder={tx('الاسم', 'Name')} className={input} />
                 <input dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={tx('رقم الجوال / واتساب', 'Mobile / WhatsApp')} className={`${input} text-start`} />
                 <input dir="ltr" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={tx('البريد الإلكتروني', 'Email')} className={`${input} text-start`} />
+              </div>
+              <div className="mt-4">
+                <div className="mb-2 text-[14px] font-semibold text-navy">{tx('كيف عرفت عنّا؟', 'How did you hear about us?')}</div>
+                <div className="flex flex-wrap gap-2">
+                  {HEARD.map((h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      onClick={() => setHeard(h)}
+                      className={`rounded-full border px-3.5 py-1.5 text-[13px] ${heard === h ? 'border-navy bg-navy text-white' : 'border-border bg-white text-navy'}`}
+                    >
+                      {h}
+                    </button>
+                  ))}
+                </div>
               </div>
               <p className="mt-3 text-[12.5px] leading-6 text-muted">
                 {tx('بإرسالك الطلب توافق على ', 'By sending you agree to our ')}
