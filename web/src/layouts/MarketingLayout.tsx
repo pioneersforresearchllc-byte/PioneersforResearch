@@ -165,60 +165,98 @@ export function MarketingLayout() {
         <Outlet />
       </PageTransition>
 
-      <div className="flex flex-col gap-4 px-4 py-6.5 text-[13px] text-muted md:flex-row md:items-center md:justify-between md:px-16">
-        <span>{t('footer.copyright')}</span>
-        <div className="flex items-center gap-4">
-          {social.instagram && (
-            <a
-              href={social.instagram}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Instagram"
-              className="text-muted transition-colors hover:text-navy"
-            >
-              {InstagramIcon}
-            </a>
-          )}
-          {social.discord && (
-            <a
-              href={social.discord}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Discord"
-              className="text-muted transition-colors hover:text-navy"
-            >
-              {DiscordIcon}
-            </a>
-          )}
-          {social.x && (
-            <a
-              href={social.x}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="X"
-              className="text-muted transition-colors hover:text-navy"
-            >
-              {XIcon}
-            </a>
-          )}
+      <footer className="relative overflow-hidden bg-[#0a1c34] text-white">
+        <div className="pointer-events-none absolute -top-24 h-72 w-72 rounded-full bg-gold/10 blur-[100px] ltr:right-0 rtl:left-0" />
+        <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 py-14 sm:grid-cols-2 md:px-16 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
+          {/* Brand */}
+          <div>
+            <Link to="/" className="mb-4 flex items-center gap-3 no-underline">
+              <img src="/logo.png" alt="" className="h-12 w-12" />
+              <span className="flex flex-col leading-tight">
+                <span className="font-heading text-[18px] font-bold text-white">Pioneers Health Research</span>
+                <span className="text-[12px] text-white/60">الرواد الاستشارية للبحوث الصحية</span>
+              </span>
+            </Link>
+            <p className="mb-5 max-w-xs text-[13.5px] leading-7 text-white/65">{t('footer.about')}</p>
+            <div className="flex items-center gap-2.5">
+              {[
+                { href: social.instagram, label: 'Instagram', icon: InstagramIcon },
+                { href: social.x, label: 'X', icon: XIcon },
+                { href: social.discord, label: 'Discord', icon: DiscordIcon },
+              ]
+                .filter((s) => s.href)
+                .map((s) => (
+                  <a
+                    key={s.label}
+                    href={s.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={s.label}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white/80 transition-colors hover:border-gold hover:text-gold"
+                  >
+                    {s.icon}
+                  </a>
+                ))}
+            </div>
+          </div>
+          {/* Explore */}
+          <div>
+            <div className="mb-4 text-[14px] font-bold text-gold">{t('footer.explore')}</div>
+            <ul className="flex flex-col gap-2.5 text-[13.5px]">
+              <li><Link to="/services" className="text-white/70 no-underline hover:text-white">{t('nav.services')}</Link></li>
+              <li><Link to="/courses" className="text-white/70 no-underline hover:text-white">{t('nav.courses')}</Link></li>
+              <li><Link to="/quote" className="text-white/70 no-underline hover:text-white">{t('quote.cta')}</Link></li>
+              <li><Link to="/about" className="text-white/70 no-underline hover:text-white">{t('nav.about')}</Link></li>
+              <li><a href="/#resources" className="text-white/70 no-underline hover:text-white">{t('nav.resources')}</a></li>
+            </ul>
+          </div>
+          {/* Legal & trust */}
+          <div>
+            <div className="mb-4 text-[14px] font-bold text-gold">{t('footer.legalTitle')}</div>
+            <ul className="flex flex-col gap-2.5 text-[13.5px]">
+              <li><Link to="/terms" className="text-white/70 no-underline hover:text-white">{t('footer.terms')}</Link></li>
+              <li><Link to="/privacy" className="text-white/70 no-underline hover:text-white">{t('footer.privacy')}</Link></li>
+              <li><Link to="/refund" className="text-white/70 no-underline hover:text-white">{t('footer.refund')}</Link></li>
+              <li><Link to="/verify" className="text-white/70 no-underline hover:text-white">{t('footer.verifyCert')}</Link></li>
+            </ul>
+          </div>
+          {/* Contact */}
+          <div>
+            <div className="mb-4 text-[14px] font-bold text-gold">{t('nav.contact')}</div>
+            <ul className="flex flex-col gap-3 text-[13.5px]">
+              <li>
+                <a href="mailto:pioneersforresearchllc@gmail.com" className="flex items-center gap-2 text-white/75 no-underline hover:text-white">
+                  <span aria-hidden>✉️</span> pioneersforresearchllc@gmail.com
+                </a>
+              </li>
+              {whatsapp && (
+                <li>
+                  <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" dir="ltr" className="flex items-center gap-2 text-white/75 no-underline hover:text-white">
+                    <span aria-hidden>💬</span> +{whatsapp}
+                  </a>
+                </li>
+              )}
+              <li className="flex items-center gap-2 text-white/75">
+                <span aria-hidden>📍</span> {t('footer.city')}
+              </li>
+            </ul>
+            <div className="mt-5 inline-flex items-center gap-2 rounded-xl border border-gold/40 bg-gold/10 px-3.5 py-2.5 text-[12.5px] text-white/90">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c9a24b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z" />
+                <path d="M9 12l2 2 4-4" />
+              </svg>
+              {t('footer.licensed')}
+            </div>
+          </div>
         </div>
-        <span className="flex flex-wrap gap-4.5">
-          <span>{t('footer.tagline')}</span>
-          <Link to="/terms" className="text-muted no-underline hover:text-navy">
-            {t('footer.terms')}
-          </Link>
-          <Link to="/privacy" className="text-muted no-underline hover:text-navy">
-            {t('footer.privacy')}
-          </Link>
-          <Link to="/refund" className="text-muted no-underline hover:text-navy">
-            {t('footer.refund')}
-          </Link>
-        </span>
-      </div>
-      {/* Legal identity — payment gateways (e.g. Moyasar) require it on the site. */}
-      <div className="border-t border-border px-4 py-4 text-center text-[11.5px] leading-6 text-faint md:px-16">
-        {t('footer.legal')}
-      </div>
+        {/* Legal identity — payment gateways (e.g. Moyasar) require it on the site. */}
+        <div className="relative border-t border-white/10">
+          <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-[11.5px] leading-6 text-white/45 md:flex-row md:items-center md:justify-between md:px-16">
+            <span>{t('footer.legal')}</span>
+            <span className="shrink-0">{t('footer.copyright')}</span>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

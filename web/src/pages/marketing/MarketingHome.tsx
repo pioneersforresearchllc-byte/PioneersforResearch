@@ -18,11 +18,13 @@ import {
   ProofNumbers,
   TestimonialsSection,
   TrustBadges,
+  HeroTrustLine,
+  HeroVisual,
 } from '@/components/home/HomeExtras'
 import { SiteComments } from '@/components/SiteComments'
 import { AudienceSection } from '@/components/AudienceSection'
 import { buttonClasses } from '@/components/ui/Button'
-import { CountUp, Magnetic } from '@/components/ui/motion'
+import { Magnetic } from '@/components/ui/motion'
 import { GatedPrice } from '@/components/GatedPrice'
 
 type TeamEntry = { name: string; role: string; bio: string }
@@ -388,6 +390,7 @@ export function MarketingHome() {
         </div>
         <div className="absolute -left-10 top-10 hidden h-0.5 w-85 rotate-[-18deg] bg-navy opacity-15 md:block" />
         <div className="animate-float absolute left-67.5 top-3.5 hidden h-2.5 w-2.5 rounded-full bg-gold md:block" />
+        <div className="relative mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[1.15fr_1fr]">
         <Reveal className="relative max-w-165">
           <div className="mb-4 text-[13px] font-semibold tracking-[2px] text-accent">
             TRAIN · RESEARCH · PUBLISH
@@ -416,25 +419,10 @@ export function MarketingHome() {
               </Link>
             </Magnetic>
           </div>
+          <HeroTrustLine />
         </Reveal>
-      </div>
-
-      {/* STATS */}
-      <div className="grid grid-cols-2 gap-px border-y border-border bg-border md:grid-cols-4">
-        {[
-          { icon: '📚', value: String(courses?.length ?? 0), label: ct('home.stats.programs'), gold: false },
-          { icon: '🧭', value: '4', label: ct('home.stats.stages'), gold: false },
-          { icon: '🧑‍🏫', value: '1:1', label: ct('home.stats.oneToOne'), gold: false },
-          { icon: '🏅', value: '✓', label: ct('home.stats.certificate'), gold: true },
-        ].map((s, i) => (
-          <div key={i} className="bg-white px-4 py-6 text-center transition-colors hover:bg-bg-soft md:px-7 md:py-8.5">
-            <div className="mb-1.5 text-[20px] md:text-[24px]">{s.icon}</div>
-            <div className={`font-heading text-[26px] font-bold md:text-[34px] ${s.gold ? 'text-gold' : 'text-navy'}`}>
-              {/^\d+$/.test(s.value) ? <CountUp to={Number(s.value)} /> : s.value}
-            </div>
-            <div className="mt-1.5 text-[13.5px] text-muted">{s.label}</div>
-          </div>
-        ))}
+        <HeroVisual />
+        </div>
       </div>
 
       {/* TRUST BADGES */}

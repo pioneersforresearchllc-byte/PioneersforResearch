@@ -28,6 +28,83 @@ const Icon = ({ d, size = 26 }: { d: ReactNode; size?: number }) => (
   </svg>
 )
 
+// ── 0. Hero visual + trust line ──────────────────────────────────────────
+/** Compact credentials under the hero buttons. */
+export function HeroTrustLine() {
+  const { lang } = useLanguage()
+  const items = lang === 'ar'
+    ? ['شركة سعودية مرخّصة', 'سرية تامة لبياناتك', 'شهادات قابلة للتحقق']
+    : ['Licensed Saudi company', 'Fully confidential', 'Verifiable certificates']
+  return (
+    <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2">
+      {items.map((t) => (
+        <span key={t} className="flex items-center gap-1.5 text-[13.5px] font-semibold text-navy/75">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c9a24b" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z" />
+            <path d="M9 12l2 2 4-4" />
+          </svg>
+          {t}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * Decorative composition beside the hero copy (desktop): a research-progress
+ * card, a verified-certificate card and a rating chip — shows what the student
+ * gets instead of leaving half the hero empty. Purely illustrative, no data.
+ */
+export function HeroVisual() {
+  const { lang } = useLanguage()
+  const ar = lang === 'ar'
+  const steps = ar
+    ? [['الفكرة والمقترح', true], ['المنهجية وجمع البيانات', true], ['التحليل الإحصائي', true], ['الكتابة والنشر', false]]
+    : [['Idea & proposal', true], ['Methodology & data', true], ['Statistical analysis', true], ['Writing & publishing', false]]
+  return (
+    <div className="relative mx-auto hidden h-[440px] w-full max-w-[460px] lg:block" aria-hidden="true">
+      {/* main card */}
+      <div className="absolute inset-x-6 top-6 rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_30px_70px_-30px_rgba(11,31,58,0.55)] backdrop-blur">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-navy text-[18px]">🔬</span>
+            <span className="flex flex-col leading-tight">
+              <span className="text-[14px] font-bold text-navy">{ar ? 'رحلة بحثك' : 'Your research journey'}</span>
+              <span className="text-[12px] text-muted">{ar ? 'بإشراف مختص' : 'With a specialist mentor'}</span>
+            </span>
+          </div>
+          <span className="rounded-full bg-success/10 px-2.5 py-1 text-[11.5px] font-bold text-success">75%</span>
+        </div>
+        <div className="mb-5 h-2 overflow-hidden rounded-full bg-navy/10">
+          <div className="h-full w-3/4 rounded-full bg-gradient-to-l from-gold to-gold-light" />
+        </div>
+        <ul className="flex flex-col gap-3">
+          {steps.map(([label, done]) => (
+            <li key={String(label)} className="flex items-center gap-3 text-[13.5px]">
+              <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-bold ${done ? 'bg-gold text-navy' : 'border-2 border-navy/20 text-transparent'}`}>✓</span>
+              <span className={done ? 'font-semibold text-navy' : 'text-muted'}>{label}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      {/* certificate card */}
+      <div className="animate-float absolute bottom-6 rounded-2xl bg-gradient-to-br from-navy to-[#14335c] p-4 text-white shadow-[0_24px_50px_-20px_rgba(11,31,58,0.8)] ltr:left-0 rtl:right-0">
+        <div className="mb-1 flex items-center gap-2 text-[12px] text-gold">
+          <span>🏅</span>
+          {ar ? 'شهادة موثّقة' : 'Verified certificate'}
+        </div>
+        <div className="text-[14px] font-bold">{ar ? 'منهجية البحث العلمي' : 'Research Methodology'}</div>
+        <div className="mt-1 text-[11px] text-white/60">{ar ? 'قابلة للتحقق برمز QR' : 'Verifiable via QR code'}</div>
+      </div>
+      {/* rating chip */}
+      <div className="absolute bottom-24 flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2.5 shadow-[0_14px_30px_-14px_rgba(11,31,58,0.45)] ltr:right-0 rtl:left-0">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gold/15 text-[14px]">👤</span>
+        <span className="text-[12.5px] font-semibold text-navy">{ar ? 'إشراف فردي 1:1' : '1:1 mentoring'}</span>
+      </div>
+    </div>
+  )
+}
+
 // ── 1. Trust badges ──────────────────────────────────────────────────────
 export function TrustBadges() {
   const { lang } = useLanguage()

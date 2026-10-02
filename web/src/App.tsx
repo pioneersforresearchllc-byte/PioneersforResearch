@@ -33,6 +33,7 @@ const CallPage = lazy(() => import('@/pages/call/CallPage').then((m) => ({ defau
 import { MarketingHome } from '@/pages/marketing/MarketingHome'
 import { TermsPage, PrivacyPage, RefundPage } from '@/pages/marketing/LegalPages'
 import { QuotePage } from '@/pages/marketing/QuotePage'
+import { VerifyLookupPage } from '@/pages/marketing/VerifyLookupPage'
 import { OwnerReviewsPage } from '@/pages/dashboard/owner/ReviewsPage'
 import { CookieConsent } from '@/components/CookieConsent'
 import { AboutPage } from '@/pages/marketing/AboutPage'
@@ -227,6 +228,7 @@ export default function App() {
           <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/refund" element={<RefundPage />} />
         <Route path="/quote" element={<QuotePage />} />
+        <Route path="/verify" element={<VerifyLookupPage />} />
         </Route>
 
         <Route path="/verify/:id" element={<VerifyCertificatePage />} />

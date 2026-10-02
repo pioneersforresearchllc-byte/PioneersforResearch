@@ -1475,6 +1475,15 @@ export const translations = {
   },
   'placeholder.home': { ar: 'العودة للرئيسية', en: 'Back to Home' },
   'quote.cta': { ar: 'اطلب عرض سعر', en: 'Get a quote' },
+  'footer.about': {
+    ar: 'منصة سعودية للتدريب والإشراف على البحث العلمي الصحي — نرافق الطلاب والباحثين والمؤسسات من الفكرة حتى النشر.',
+    en: 'A Saudi platform for health-research training and mentoring — guiding students, researchers and institutions from idea to publication.',
+  },
+  'footer.explore': { ar: 'استكشف', en: 'Explore' },
+  'footer.legalTitle': { ar: 'السياسات والثقة', en: 'Policies & trust' },
+  'footer.verifyCert': { ar: 'التحقق من شهادة', en: 'Verify a certificate' },
+  'footer.city': { ar: 'جدة، المملكة العربية السعودية', en: 'Jeddah, Saudi Arabia' },
+  'footer.licensed': { ar: 'شركة مرخّصة من وزارة الاستثمار', en: 'Licensed by the Ministry of Investment' },
   'footer.refund': { ar: 'سياسة الاسترجاع', en: 'Refund Policy' },
   'footer.legal': {
     ar: 'شركة بايونيرز هيلث ريسيرتش كونسالتينج (ذات مسؤولية محدودة) — الرقم الموحّد 7055175363 — ترخيص وزارة الاستثمار 24926274626 — الرقم الضريبي 3150160068 — جدة، المملكة العربية السعودية (العنوان الوطني JHJA8230) — pioneersforresearchllc@gmail.com',
