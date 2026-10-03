@@ -122,10 +122,16 @@ function InvoiceRow({ inv, onChanged }: { inv: StudentInvoice; onChanged: () => 
     mutationFn: () => sendInvoiceReminder(inv.id),
     onSuccess: (r) => {
       const ar = lang === 'ar'
-      setRemindMsg(
-        r === 'sent' ? (ar ? '✓ تم الإرسال' : '✓ Sent') : r === 'recent' ? (ar ? 'أُرسل تذكير قبل أقل من ساعة' : 'Reminded less than an hour ago') : ar ? 'تعذر الإرسال' : 'Could not send',
-      )
-      if (r === 'sent') onChanged()
+      const base =
+        r.status === 'sent'
+          ? ar ? '✓ تم الإرسال' : '✓ Sent'
+          : r.status === 'partial'
+            ? ar ? '✓ أُرسل جزئيًا' : '✓ Partly sent'
+            : r.status === 'recent'
+              ? ar ? 'أُرسل تذكير قبل أقل من ساعة' : 'Reminded less than an hour ago'
+              : ar ? 'تعذر الإرسال' : 'Could not send'
+      setRemindMsg(r.detail ? `${base} — ${r.detail}` : base)
+      if (r.status === 'sent' || r.status === 'partial') onChanged()
     },
   })
 
@@ -140,6 +146,13 @@ function InvoiceRow({ inv, onChanged }: { inv: StudentInvoice; onChanged: () => 
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="text-[14px] font-bold text-navy">{inv.title}</div>
+          {inv.studentName && (
+            <div className="mt-0.5 flex items-center gap-1.5 text-[12.5px] font-semibold text-accent">
+              <span aria-hidden>👤</span>
+              {inv.studentName}
+              {inv.studentUsername && <span className="font-normal text-faint">@{inv.studentUsername}</span>}
+            </div>
+          )}
           <div className="text-[12px] text-muted">
             {t(STATUS_KEY[inv.status])} · <Price cents={inv.amount_cents} locale={locale} />
           </div>

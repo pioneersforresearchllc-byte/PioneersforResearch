@@ -13,7 +13,6 @@
 // Each reminder: email (with amount, bank details and a link to pay/upload the
 // receipt) + Web Push + an in-app notification to the student.
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import webpush from 'npm:web-push@3.6.7'
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 
 function firstFromJsonDict(raw: string | undefined): string {
@@ -99,57 +98,98 @@ ${bankBlock}
 </td></tr></table></td></tr></table></body></html>`
 }
 
-async function remind(admin: Admin, inv: Invoice, bank: string, smtp: SMTPClient | null) {
-  const nth = (inv.reminder_count ?? 0) + 1
-  const { data: student } = await admin.from('profiles').select('name').eq('id', inv.user_id).maybeSingle()
-  const name = (student?.name as string) || ''
-  const title = 'تذكير بسداد فاتورة'
-  const body = `${inv.title} — ${sar(inv.amount_cents)}`
-  const out = { email: false, push: 0 }
-
-  await admin.from('notifications').insert({ user_id: inv.user_id, kind: 'invoice_reminder', title, body, url: '/student/invoices' })
-
-  if (VAPID_PRIVATE_KEY) {
-    const { data: subs } = await admin.from('push_subscriptions').select('id, endpoint, p256dh, auth').eq('user_id', inv.user_id)
-    const dead: string[] = []
-    for (const s of subs ?? []) {
-      try {
-        await webpush.sendNotification(
-          { endpoint: s.endpoint as string, keys: { p256dh: s.p256dh as string, auth: s.auth as string } },
-          JSON.stringify({ title, body, url: '/student/invoices', tag: `invoice:${inv.id}` }),
-        )
-        out.push += 1
-      } catch (err) {
-        const code = (err as { statusCode?: number }).statusCode
-        if (code === 404 || code === 410) dead.push(s.id as string)
-      }
-    }
-    if (dead.length) await admin.from('push_subscriptions').delete().in('id', dead)
-  }
-
-  if (smtp) {
-    const { data: au } = await admin.auth.admin.getUserById(inv.user_id)
-    const to = au?.user?.email
-    if (to && !to.endsWith('.invalid')) {
-      try {
-        await smtp.send({
-          from: SMTP_FROM,
-          to,
-          subject: `تذكير: فاتورة بانتظار السداد — Pioneers Health Research`,
-          content: `تذكير بسداد الفاتورة "${inv.title}" بمبلغ ${sar(inv.amount_cents)}. عرض الفاتورة: ${SITE_URL}/student/invoices`,
-          html: reminderHtml(inv, name, bank, nth),
-        })
-        out.email = true
-      } catch (err) {
-        console.error('reminder email failed', inv.id, err)
-      }
-    }
-  }
-
-  await admin.from('student_invoices').update({ reminder_count: nth, last_reminded_at: new Date().toISOString() }).eq('id', inv.id)
-  return out
+interface RemindResult {
+  invoiceId: string
+  email: boolean
+  push: number
+  errors: string[]
 }
 
+// web-push is heavy to load; only import it when someone actually has a
+// subscribed device (keeps cold starts under the CPU limit).
+let webpushMod: typeof import('npm:web-push@3.6.7').default | null = null
+async function getWebpush() {
+  if (!webpushMod) {
+    webpushMod = (await import('npm:web-push@3.6.7')).default
+    webpushMod.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
+  }
+  return webpushMod
+}
+
+const errText = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 160)
+
+async function remind(admin: Admin, inv: Invoice, bank: string, smtp: SMTPClient | null): Promise<RemindResult> {
+  const nth = (inv.reminder_count ?? 0) + 1
+  const out: RemindResult = { invoiceId: inv.id, email: false, push: 0, errors: [] }
+  const title = 'تذكير بسداد فاتورة'
+  const body = `${inv.title} — ${sar(inv.amount_cents)}`
+
+  // Claim first, so a run cut short can never send the same reminder twice.
+  const { error: claimErr } = await admin
+    .from('student_invoices')
+    .update({ reminder_count: nth, last_reminded_at: new Date().toISOString() })
+    .eq('id', inv.id)
+  if (claimErr) {
+    out.errors.push(`claim: ${claimErr.message}`)
+    return out
+  }
+
+  try {
+    await admin.from('notifications').insert({ user_id: inv.user_id, kind: 'invoice_reminder', title, body, url: '/student/invoices' })
+  } catch (e) {
+    out.errors.push(`notification: ${errText(e)}`)
+  }
+
+  if (VAPID_PRIVATE_KEY) {
+    try {
+      const { data: subs } = await admin.from('push_subscriptions').select('id, endpoint, p256dh, auth').eq('user_id', inv.user_id)
+      if (subs && subs.length) {
+        const wp = await getWebpush()
+        const dead: string[] = []
+        for (const s of subs) {
+          try {
+            await wp.sendNotification(
+              { endpoint: s.endpoint as string, keys: { p256dh: s.p256dh as string, auth: s.auth as string } },
+              JSON.stringify({ title, body, url: '/student/invoices', tag: `invoice:${inv.id}` }),
+            )
+            out.push += 1
+          } catch (err) {
+            const code = (err as { statusCode?: number }).statusCode
+            if (code === 404 || code === 410) dead.push(s.id as string)
+          }
+        }
+        if (dead.length) await admin.from('push_subscriptions').delete().in('id', dead)
+      }
+    } catch (e) {
+      out.errors.push(`push: ${errText(e)}`)
+    }
+  }
+
+  if (!smtp) {
+    out.errors.push('email: SMTP not configured')
+    return out
+  }
+  try {
+    const { data: au } = await admin.auth.admin.getUserById(inv.user_id)
+    const to = au?.user?.email
+    if (!to || to.endsWith('.invalid')) {
+      out.errors.push('email: student has no email')
+      return out
+    }
+    const { data: student } = await admin.from('profiles').select('name').eq('id', inv.user_id).maybeSingle()
+    await smtp.send({
+      from: SMTP_FROM,
+      to,
+      subject: `تذكير: فاتورة بانتظار السداد — Pioneers Health Research`,
+      content: `تذكير بسداد الفاتورة "${inv.title}" بمبلغ ${sar(inv.amount_cents)}. عرض الفاتورة: ${SITE_URL}/student/invoices`,
+      html: reminderHtml(inv, (student?.name as string) || '', bank, nth),
+    })
+    out.email = true
+  } catch (e) {
+    out.errors.push(`email: ${errText(e)}`)
+  }
+  return out
+}
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS })
   if (req.method !== 'POST') return json({ error: 'method not allowed' }, 405)
@@ -189,7 +229,8 @@ Deno.serve(async (req) => {
       .lt('created_at', cutoff)
       .lt('reminder_count', MAX_AUTO)
       .or(`last_reminded_at.is.null,last_reminded_at.lt.${cutoff}`)
-      .limit(200)
+      .order('last_reminded_at', { ascending: true, nullsFirst: true })
+      .limit(10)
     targets = (data ?? []) as unknown as Invoice[]
   }
   if (targets.length === 0) return json({ reminded: 0 })
@@ -198,12 +239,9 @@ Deno.serve(async (req) => {
     SMTP_USER && SMTP_PASS
       ? new SMTPClient({ connection: { hostname: SMTP_HOST, port: SMTP_PORT, tls: SMTP_PORT === 465, auth: { username: SMTP_USER, password: SMTP_PASS } } })
       : null
-  let emails = 0
+  const results: RemindResult[] = []
   try {
-    for (const inv of targets) {
-      const r = await remind(admin, inv, bank, smtp)
-      if (r.email) emails += 1
-    }
+    for (const inv of targets) results.push(await remind(admin, inv, bank, smtp))
   } finally {
     if (smtp) {
       try {
@@ -213,5 +251,5 @@ Deno.serve(async (req) => {
       }
     }
   }
-  return json({ reminded: targets.length, emails })
+  return json({ reminded: results.length, results })
 })

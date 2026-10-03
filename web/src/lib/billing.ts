@@ -17,6 +17,9 @@ export interface StudentInvoice {
   /** Payment-reminder tracking (0069); absent before that migration. */
   reminder_count?: number
   last_reminded_at?: string | null
+  /** Owner list only: who the invoice is for. */
+  studentName?: string
+  studentUsername?: string
 }
 
 const COLS =
@@ -44,7 +47,12 @@ export async function countMyDueInvoices(): Promise<number> {
 export async function listAllInvoices(): Promise<StudentInvoice[]> {
   const { data, error } = await supabase.from('student_invoices').select('*').order('created_at', { ascending: false })
   if (error) throw error
-  return (data ?? []) as StudentInvoice[]
+  const rows = (data ?? []) as StudentInvoice[]
+  const ids = [...new Set(rows.map((r) => r.user_id))]
+  if (ids.length === 0) return rows
+  const { data: people } = await supabase.from('profiles').select('id, name, username').in('id', ids)
+  const byId = new Map((people ?? []).map((p) => [p.id as string, p as { name: string; username: string }]))
+  return rows.map((r) => ({ ...r, studentName: byId.get(r.user_id)?.name, studentUsername: byId.get(r.user_id)?.username }))
 }
 
 export interface StudentOption {
@@ -125,11 +133,22 @@ export async function receiptUrl(path: string): Promise<string | null> {
 }
 
 /** Owner: send a payment reminder now (email + push + in-app). */
-export async function sendInvoiceReminder(invoiceId: string): Promise<'sent' | 'recent' | 'error'> {
+export async function sendInvoiceReminder(invoiceId: string): Promise<{ status: 'sent' | 'partial' | 'recent' | 'error'; detail?: string }> {
   const { data, error } = await supabase.functions.invoke('invoice-reminders', { body: { invoiceId } })
   if (error) {
-    const status = (error as { context?: Response }).context?.status
-    return status === 429 ? 'recent' : 'error'
+    const ctx = (error as { context?: Response }).context
+    if (ctx?.status === 429) return { status: 'recent' }
+    let detail = ctx?.status ? `HTTP ${ctx.status}` : error.message
+    try {
+      const b = (await ctx?.json()) as { error?: string } | undefined
+      if (b?.error) detail = b.error
+    } catch {
+      // body wasn't JSON
+    }
+    return { status: 'error', detail }
   }
-  return (data as { reminded?: number } | null)?.reminded ? 'sent' : 'error'
+  const r = (data as { results?: { email: boolean; push: number; errors: string[] }[] } | null)?.results?.[0]
+  if (!r) return { status: 'error', detail: 'no result' }
+  if (r.email) return { status: r.errors.length ? 'partial' : 'sent', detail: r.errors.join(' · ') || undefined }
+  return { status: r.push > 0 ? 'partial' : 'error', detail: r.errors.join(' · ') }
 }
