@@ -44,6 +44,15 @@ const SMTP_FROM = Deno.env.get('SMTP_FROM') || SMTP_USER || ''
 
 const FRESH_MS = 15 * 60 * 1000
 
+const SUBJECTS: Record<string, string> = {
+  service_request: 'New service request',
+  contact: 'New message / quote request',
+  consultation: 'New institution consultation',
+  application: 'New application',
+  receipt: 'Payment receipt to confirm',
+  review: 'New review to approve',
+}
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
 }
@@ -181,7 +190,9 @@ Deno.serve(async (req) => {
           await client.send({
             from: SMTP_FROM,
             to,
-            subject: `${alert.title} — Pioneers Health Research`,
+            // ASCII-only subject: denomailer mis-folds UTF-8 subjects, dropping the From
+            // header so Gmail rejects the mail. The Arabic title is in the body.
+            subject: `Pioneers Health Research - ${SUBJECTS[body.source || ''] || 'New activity'}`,
             content: `${alert.title}\n\n${alert.body}\n\nافتح لوحة الإدارة: ${SITE_URL}${alert.path}`,
           })
           result.email += 1

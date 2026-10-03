@@ -163,8 +163,10 @@ async function handle(req: Request): Promise<Response> {
         from: SMTP_FROM,
         to: SMTP_FROM,
         bcc: batch,
-        subject,
-        content: message,
+        // denomailer mis-folds UTF-8 subjects (the From header slips into the body and
+        // Gmail rejects the mail), so a non-ASCII subject moves into the body's first line.
+        subject: /^[\x20-\x7E]*$/.test(subject) ? subject : 'Pioneers Health Research - New announcement',
+        content: /^[\x20-\x7E]*$/.test(subject) ? message : `${subject}\n\n${message}`,
       })
     }
   } finally {

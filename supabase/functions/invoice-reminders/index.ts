@@ -189,7 +189,9 @@ async function remind(admin: Admin, inv: Invoice, bank: string, smtp: SMTPClient
     await withTimeout(smtp.send({
       from: SMTP_FROM,
       to,
-      subject: `تذكير: فاتورة بانتظار السداد — Pioneers Health Research`,
+      // ASCII-only subject: denomailer mis-folds long UTF-8 subjects, which pushes the
+      // From header into the body and Gmail rejects the mail (550 5.7.1, RFC 5322).
+      subject: `Payment reminder - Invoice INV-${inv.id.slice(0, 8).toUpperCase()} - Pioneers Health Research`,
       content: `تذكير بسداد الفاتورة "${inv.title}" بمبلغ ${sar(inv.amount_cents)}. عرض الفاتورة: ${SITE_URL}/student/invoices`,
       html: reminderHtml(inv, (student?.name as string) || '', bank, nth),
     }), 15000, 'email (SMTP ' + SMTP_HOST + ':' + SMTP_PORT + ')')
