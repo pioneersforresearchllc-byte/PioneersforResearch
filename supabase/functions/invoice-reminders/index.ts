@@ -118,6 +118,11 @@ async function getWebpush() {
 
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 160)
 
+/** Fail a step after ms instead of hanging the whole function into the 546 worker limit. */
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error(`${label} timed out after ${ms / 1000}s`)), ms))])
+}
+
 async function remind(admin: Admin, inv: Invoice, bank: string, smtp: SMTPClient | null): Promise<RemindResult> {
   const nth = (inv.reminder_count ?? 0) + 1
   const out: RemindResult = { invoiceId: inv.id, email: false, push: 0, errors: [] }
@@ -144,13 +149,17 @@ async function remind(admin: Admin, inv: Invoice, bank: string, smtp: SMTPClient
     try {
       const { data: subs } = await admin.from('push_subscriptions').select('id, endpoint, p256dh, auth').eq('user_id', inv.user_id)
       if (subs && subs.length) {
-        const wp = await getWebpush()
+        const wp = await withTimeout(getWebpush(), 15000, 'loading push library')
         const dead: string[] = []
         for (const s of subs) {
           try {
-            await wp.sendNotification(
-              { endpoint: s.endpoint as string, keys: { p256dh: s.p256dh as string, auth: s.auth as string } },
-              JSON.stringify({ title, body, url: '/student/invoices', tag: `invoice:${inv.id}` }),
+            await withTimeout(
+              wp.sendNotification(
+                { endpoint: s.endpoint as string, keys: { p256dh: s.p256dh as string, auth: s.auth as string } },
+                JSON.stringify({ title, body, url: '/student/invoices', tag: `invoice:${inv.id}` }),
+              ),
+              10000,
+              'push send',
             )
             out.push += 1
           } catch (err) {
@@ -177,13 +186,13 @@ async function remind(admin: Admin, inv: Invoice, bank: string, smtp: SMTPClient
       return out
     }
     const { data: student } = await admin.from('profiles').select('name').eq('id', inv.user_id).maybeSingle()
-    await smtp.send({
+    await withTimeout(smtp.send({
       from: SMTP_FROM,
       to,
       subject: `تذكير: فاتورة بانتظار السداد — Pioneers Health Research`,
       content: `تذكير بسداد الفاتورة "${inv.title}" بمبلغ ${sar(inv.amount_cents)}. عرض الفاتورة: ${SITE_URL}/student/invoices`,
       html: reminderHtml(inv, (student?.name as string) || '', bank, nth),
-    })
+    }), 15000, 'email (SMTP ' + SMTP_HOST + ':' + SMTP_PORT + ')')
     out.email = true
   } catch (e) {
     out.errors.push(`email: ${errText(e)}`)
@@ -245,7 +254,7 @@ Deno.serve(async (req) => {
   } finally {
     if (smtp) {
       try {
-        await smtp.close()
+        await withTimeout(smtp.close(), 5000, 'smtp close')
       } catch {
         // ignore
       }
