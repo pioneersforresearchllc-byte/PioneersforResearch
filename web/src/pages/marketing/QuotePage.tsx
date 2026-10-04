@@ -1,10 +1,10 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
-import { listServices } from '@/lib/services'
+import { listServices, submitServiceRequest } from '@/lib/services'
 import { fetchSiteContent, resolveWhatsapp } from '@/lib/content'
 import { getLeadSource, leadSourceLine } from '@/lib/attribution'
 
@@ -13,6 +13,10 @@ import { getLeadSource, leadSourceLine } from '@/lib/attribution'
  * list the visitor answers four short steps; the result reaches the team
  * either as a pre-filled WhatsApp message or as a contact message on the site
  * (owner dashboard → Contact messages). No account needed.
+ *
+ * A signed-in visitor who picks a specific service gets a real service request
+ * instead (linked to that service): it shows in the owner's Service requests for
+ * pricing and in the student's My requests with its progress stages.
  */
 export function QuotePage() {
   const { lang } = useLanguage()
@@ -28,7 +32,16 @@ export function QuotePage() {
     : ['Bachelor', 'Master', 'PhD', 'Fellowship / residency', 'Independent researcher', 'Other']
 
   const [step, setStep] = useState(0)
+  // Selected service id, or 'other' for "not sure / other".
   const [service, setService] = useState('')
+  const [params] = useSearchParams()
+  // /quote?service=<slug> (from a service page) pre-selects that service.
+  useEffect(() => {
+    const slug = params.get('service')
+    if (!slug || service || !services) return
+    const match = services.find((s) => s.slug === slug)
+    if (match) setService(match.id)
+  }, [params, services, service])
   const [stage, setStage] = useState('')
   const [field, setField] = useState('')
   const [deadline, setDeadline] = useState('')
@@ -36,6 +49,11 @@ export function QuotePage() {
   const [name, setName] = useState(profile?.name ?? '')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState(session?.user.email ?? '')
+  // The account may load after first render — fill name/email then if still empty.
+  useEffect(() => {
+    if (profile?.name) setName((n) => n || profile.name)
+    if (session?.user.email) setEmail((e) => e || session.user.email || '')
+  }, [profile?.name, session?.user.email])
   const HEARD = ar
     ? ['إنستقرام', 'تيك توك', 'سناب شات', 'قوقل', 'واتساب', 'صديق أو زميل', 'أخرى']
     : ['Instagram', 'TikTok', 'Snapchat', 'Google', 'WhatsApp', 'Friend or colleague', 'Other']
@@ -44,14 +62,16 @@ export function QuotePage() {
   const guess = /insta|facebook|fb/.test(tracked) ? HEARD[0] : /tiktok/.test(tracked) ? HEARD[1] : /snap/.test(tracked) ? HEARD[2] : /google/.test(tracked) ? HEARD[3] : /whatsapp/.test(tracked) ? HEARD[4] : ''
   const [heard, setHeard] = useState(guess)
   const [error, setError] = useState('')
-  const [sent, setSent] = useState(false)
+  const [sent, setSent] = useState<false | 'message' | 'request'>(false)
   const [busy, setBusy] = useState(false)
 
-  const otherService = tx('غير متأكد / خدمة أخرى', 'Not sure / other')
   const serviceOptions = [
-    ...(services ?? []).map((s) => (ar ? s.title : s.title_en || s.title)),
-    otherService,
+    ...(services ?? []).map((s) => ({ id: s.id, label: ar ? s.title : s.title_en || s.title })),
+    { id: 'other', label: tx('غير متأكد / خدمة أخرى', 'Not sure / other') },
   ]
+  const serviceLabel = serviceOptions.find((o) => o.id === service)?.label ?? ''
+  // A real service request needs a specific service and a signed-in account (RLS).
+  const asRequest = !!session && !!service && service !== 'other'
 
   const steps = [tx('الخدمة', 'Service'), tx('عنك', 'About you'), tx('طلبك', 'Your request'), tx('التواصل', 'Contact')]
 
@@ -60,7 +80,7 @@ export function QuotePage() {
   const summary = () =>
     [
       tx('طلب عرض سعر', 'Quote request'),
-      `${tx('الخدمة', 'Service')}: ${service}`,
+      `${tx('الخدمة', 'Service')}: ${serviceLabel}`,
       `${tx('المرحلة', 'Stage')}: ${stage}`,
       `${tx('التخصص', 'Field')}: ${field.trim()}`,
       deadline ? `${tx('موعد التسليم', 'Deadline')}: ${deadline}` : '',
@@ -76,6 +96,48 @@ export function QuotePage() {
 
   const sendSite = async () => {
     setError('')
+    if (asRequest) {
+      setBusy(true)
+      try {
+        // No deadline given → a placeholder 30 days out; the real one is agreed in the quote.
+        const fallback = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10)
+        const answer = (label: string, value: string, type: 'short' | 'long' = 'short') => ({ label, type, value })
+        await submitServiceRequest({
+          service_id: service,
+          package_id: null,
+          user_id: session!.user.id,
+          full_name: name.trim(),
+          email: (email.trim() || session!.user.email) ?? '',
+          phone: phone.trim(),
+          subject: `${tx('طلب عرض سعر', 'Quote request')} — ${field.trim()}`,
+          purpose: null,
+          target_audience: null,
+          quantity: null,
+          language: null,
+          content_text: details.trim(),
+          content_file_url: null,
+          brand_colors: null,
+          reference_url: null,
+          reference_file_url: null,
+          delivery_date: deadline || fallback,
+          details: {},
+          custom_answers: [
+            answer(tx('المرحلة الدراسية', 'Academic stage'), stage),
+            answer(tx('التخصص', 'Field'), field.trim()),
+            answer(tx('موعد التسليم المطلوب', 'Requested deadline'), deadline || tx('غير محدد', 'Not specified')),
+            answer(tx('تفاصيل الطلب', 'Request details'), details.trim(), 'long'),
+            ...(heard ? [answer(tx('عرفنا عن طريق', 'Heard via'), heard)] : []),
+            answer(tx('مصدر الزيارة', 'Visit source'), leadSourceLine(lang).replace(/^[^:]+:\s*/, '')),
+          ],
+        })
+        setSent('request')
+      } catch {
+        setError(tx('تعذر إرسال الطلب، حاول مجددًا أو أرسل عبر واتساب.', 'Could not send the request. Try again or use WhatsApp.'))
+      } finally {
+        setBusy(false)
+      }
+      return
+    }
     if (!email.trim()) {
       setError(tx('أدخل بريدك الإلكتروني للإرسال عبر الموقع، أو أرسل عبر واتساب.', 'Enter your email to send via the site, or use WhatsApp.'))
       return
@@ -87,7 +149,7 @@ export function QuotePage() {
         setError(tx('تعذر الإرسال، حاول مجددًا أو أرسل عبر واتساب.', 'Could not send. Try again or use WhatsApp.'))
         return
       }
-      setSent(true)
+      setSent('message')
     } finally {
       setBusy(false)
     }
@@ -105,11 +167,19 @@ export function QuotePage() {
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/15 text-[30px] text-success">✓</div>
         <h1 className="font-heading mb-2 text-2xl font-bold text-navy">{tx('وصلنا طلبك!', 'We got your request!')}</h1>
         <p className="mb-6 text-[15px] leading-8 text-muted">
-          {tx('سنراجع التفاصيل ونرسل لك عرض السعر والخطة الزمنية في أقرب وقت.', 'We’ll review the details and send your quote and timeline shortly.')}
+          {sent === 'request'
+            ? tx('سجّلنا طلبك في حسابك. ستجد عرض السعر ومراحل التنفيذ في صفحة «طلباتي»، وسنبلغك فور تجهيزه.', 'Your request is saved to your account. You’ll find the quote and progress under “My requests”, and we’ll notify you when it’s ready.')
+            : tx('سنراجع التفاصيل ونرسل لك عرض السعر والخطة الزمنية في أقرب وقت.', 'We’ll review the details and send your quote and timeline shortly.')}
         </p>
-        <Link to="/" className="rounded-full bg-navy px-7 py-3 text-[14.5px] font-semibold text-white no-underline">
-          {tx('العودة للرئيسية', 'Back to home')}
-        </Link>
+        {sent === 'request' ? (
+          <Link to="/my-requests" className="rounded-full bg-navy px-7 py-3 text-[14.5px] font-semibold text-white no-underline">
+            {tx('تابع طلبك', 'Track your request')}
+          </Link>
+        ) : (
+          <Link to="/" className="rounded-full bg-navy px-7 py-3 text-[14.5px] font-semibold text-white no-underline">
+            {tx('العودة للرئيسية', 'Back to home')}
+          </Link>
+        )}
       </div>
     )
   }
@@ -139,8 +209,8 @@ export function QuotePage() {
               <h2 className="mb-4 text-[18px] font-bold text-navy">{tx('ما الخدمة التي تحتاجها؟', 'Which service do you need?')}</h2>
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 {serviceOptions.map((s) => (
-                  <button key={s} type="button" onClick={() => setService(s)} className={chip(service === s)}>
-                    {s}
+                  <button key={s.id} type="button" onClick={() => setService(s.id)} className={chip(service === s.id)}>
+                    {s.label}
                   </button>
                 ))}
               </div>
@@ -181,6 +251,19 @@ export function QuotePage() {
           {step === 3 && (
             <div>
               <h2 className="mb-4 text-[18px] font-bold text-navy">{tx('كيف نتواصل معك؟', 'How do we reach you?')}</h2>
+              {asRequest ? (
+                <div className="mb-4 rounded-xl bg-success/10 px-4 py-3 text-[13px] leading-6 text-success">
+                  ✓ {tx('سيُسجَّل طلبك في حسابك كطلب خدمة، وتتابع عرض السعر ومراحل التنفيذ من «طلباتي».', 'Your request will be saved to your account; follow the quote and progress under “My requests”.')}
+                </div>
+              ) : !session && service !== 'other' ? (
+                <div className="mb-4 rounded-xl bg-gold/10 px-4 py-3 text-[13px] leading-6 text-navy">
+                  💡 {tx('لديك حساب؟', 'Have an account?')}{' '}
+                  <Link to={`/login?redirect=${encodeURIComponent(`/quote${params.get('service') ? `?service=${params.get('service')}` : ''}`)}`} className="font-bold text-accent no-underline">
+                    {tx('سجّل دخولك', 'Sign in')}
+                  </Link>{' '}
+                  {tx('ليصبح طلبك طلب خدمة تتابعه من لوحتك خطوة بخطوة.', 'so your request becomes a tracked service request in your dashboard.')}
+                </div>
+              ) : null}
               <div className="flex flex-col gap-3">
                 <input value={name} onChange={(e) => setName(e.target.value)} placeholder={tx('الاسم', 'Name')} className={input} />
                 <input dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={tx('رقم الجوال / واتساب', 'Mobile / WhatsApp')} className={`${input} text-start`} />
@@ -219,7 +302,7 @@ export function QuotePage() {
                     href={`https://wa.me/${wa}?text=${encodeURIComponent(summary())}`}
                     target="_blank"
                     rel="noreferrer"
-                    onClick={() => canNext && setTimeout(() => setSent(true), 400)}
+                    onClick={() => canNext && setTimeout(() => setSent('message'), 400)}
                     className={`flex items-center justify-center gap-2 rounded-xl bg-[#1fa855] px-4 py-3.5 text-[15px] font-bold text-white no-underline ${canNext ? '' : 'pointer-events-none opacity-50'}`}
                   >
                     {tx('أرسل عبر واتساب', 'Send via WhatsApp')}
@@ -231,7 +314,7 @@ export function QuotePage() {
                   onClick={() => void sendSite()}
                   className="rounded-xl bg-navy px-4 py-3.5 text-[15px] font-bold text-white disabled:opacity-50"
                 >
-                  {busy ? '...' : tx('أرسل عبر الموقع', 'Send via the site')}
+                  {busy ? '...' : asRequest ? tx('أرسل الطلب', 'Send request') : tx('أرسل عبر الموقع', 'Send via the site')}
                 </button>
               </div>
             </div>

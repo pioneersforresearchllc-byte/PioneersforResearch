@@ -357,7 +357,7 @@ export function ServiceDetailPage() {
             </div>
             <div className="mt-5 border-t border-border pt-5 text-[13.5px] text-muted">
               {lang === 'ar' ? 'تفضّل البدء بدون حساب؟' : 'Prefer to start without an account?'}{' '}
-              <Link to="/quote" className="font-bold text-accent no-underline">
+              <Link to={`/quote?service=${encodeURIComponent(service.slug)}`} className="font-bold text-accent no-underline">
                 {lang === 'ar' ? 'اطلب عرض سعر سريع ←' : 'Get a quick quote →'}
               </Link>
             </div>
