@@ -11,7 +11,7 @@
 //      refuses if a reminder went out in the last hour (double-click guard).
 //
 // Each reminder: email (with amount, bank details and a link to pay/upload the
-// receipt) + Web Push + an in-app notification to the student.
+// receipt) + an in-app notification (dashboard bell) to the student.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 
@@ -31,12 +31,6 @@ const SERVICE_ROLE_KEY =
 const ANON_KEY = firstFromJsonDict(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')) || Deno.env.get('SUPABASE_ANON_KEY')!
 const SITE_URL = (Deno.env.get('SITE_URL') || 'https://pioneersresearch.com').trim().replace(/\/+$/, '')
 
-const VAPID_PUBLIC_KEY = (
-  Deno.env.get('VAPID_PUBLIC_KEY') ||
-  'BKmP41ReZGzp5cXehZCyVmXwoBDLhMUVOmZ-O-dx9FPRVwrT4dHt0smbSl7i5m3fDCPTJ77Lep75TiwGoKm7XtM'
-).trim()
-const VAPID_PRIVATE_KEY = (Deno.env.get('VAPID_PRIVATE_KEY') || '').trim()
-const VAPID_SUBJECT = (Deno.env.get('VAPID_SUBJECT') || 'mailto:abbasfakhraddin@gmail.com').trim()
 
 const SMTP_HOST = Deno.env.get('SMTP_HOST') || 'smtp.gmail.com'
 const SMTP_PORT = Number(Deno.env.get('SMTP_PORT') || '465')
@@ -105,17 +99,6 @@ interface RemindResult {
   errors: string[]
 }
 
-// web-push is heavy to load; only import it when someone actually has a
-// subscribed device (keeps cold starts under the CPU limit).
-let webpushMod: typeof import('npm:web-push@3.6.7').default | null = null
-async function getWebpush() {
-  if (!webpushMod) {
-    webpushMod = (await import('npm:web-push@3.6.7')).default
-    webpushMod.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
-  }
-  return webpushMod
-}
-
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 160)
 
 /** Fail a step after ms instead of hanging the whole function into the 546 worker limit. */
@@ -145,34 +128,8 @@ async function remind(admin: Admin, inv: Invoice, bank: string, smtp: SMTPClient
     out.errors.push(`notification: ${errText(e)}`)
   }
 
-  if (VAPID_PRIVATE_KEY) {
-    try {
-      const { data: subs } = await admin.from('push_subscriptions').select('id, endpoint, p256dh, auth').eq('user_id', inv.user_id)
-      if (subs && subs.length) {
-        const wp = await withTimeout(getWebpush(), 15000, 'loading push library')
-        const dead: string[] = []
-        for (const s of subs) {
-          try {
-            await withTimeout(
-              wp.sendNotification(
-                { endpoint: s.endpoint as string, keys: { p256dh: s.p256dh as string, auth: s.auth as string } },
-                JSON.stringify({ title, body, url: '/student/invoices', tag: `invoice:${inv.id}` }),
-              ),
-              10000,
-              'push send',
-            )
-            out.push += 1
-          } catch (err) {
-            const code = (err as { statusCode?: number }).statusCode
-            if (code === 404 || code === 410) dead.push(s.id as string)
-          }
-        }
-        if (dead.length) await admin.from('push_subscriptions').delete().in('id', dead)
-      }
-    } catch (e) {
-      out.errors.push(`push: ${errText(e)}`)
-    }
-  }
+  // No Web Push here: loading/encrypting with web-push exceeded the edge
+  // function CPU limit (HTTP 546). The dashboard bell above + the email cover it.
 
   if (!smtp) {
     out.errors.push('email: SMTP not configured')
