@@ -211,13 +211,10 @@ Deno.serve(async (req) => {
   try {
     for (const inv of targets) results.push(await remind(admin, inv, bank, smtp))
   } finally {
-    if (smtp) {
-      try {
-        await withTimeout(smtp.close(), 5000, 'smtp close')
-      } catch {
-        // ignore
-      }
-    }
+    // Don't await close(): denomailer's close keeps the CPU busy until the edge
+    // runtime kills the worker (HTTP 546) even though the mail already went out.
+    // Reply first; let the connection close (or the worker end) in the background.
+    if (smtp) void smtp.close().catch(() => {})
   }
   return json({ reminded: results.length, results })
 })

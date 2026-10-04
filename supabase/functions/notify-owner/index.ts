@@ -200,7 +200,8 @@ Deno.serve(async (req) => {
       } catch (err) {
         console.error('owner alert email failed', err)
       } finally {
-        await client.close()
+        // Not awaited: denomailer's close() can spin the CPU into the 546 worker limit.
+        void client.close().catch(() => {})
       }
     }
   }
