@@ -28,6 +28,8 @@ export type ServiceDetails = {
   client_commitments_en: string
   terms_ar: string
   terms_en: string
+  /** "Starting from" price in SAR shown on the card and window; null = the service's own price setting. */
+  price_from: number | null
 }
 
 export const SERVICE_DETAILS_KEY = 'services.details'
@@ -51,6 +53,7 @@ export const EMPTY_SERVICE_DETAILS: ServiceDetails = {
   client_commitments_en: '',
   terms_ar: '',
   terms_en: '',
+  price_from: null,
 }
 
 const j = (xs: string[]) => xs.join('\n')
@@ -93,8 +96,8 @@ const TERMS_EN = [
   'We cannot guarantee acceptance by your institution, supervisor or committee — those are independent decisions',
 ]
 
-/** Built-in content for the current services, keyed by slug. */
-export const DEFAULT_SERVICE_DETAILS: Record<string, ServiceDetails> = {
+/** Built-in content for the current services, keyed by slug (prices are set by the owner). */
+const DEFAULTS_TEXT: Record<string, Omit<ServiceDetails, 'price_from'>> = {
   presentation: {
     overview_ar: '',
     overview_en: '',
@@ -278,6 +281,10 @@ export const DEFAULT_SERVICE_DETAILS: Record<string, ServiceDetails> = {
     ]),
   },
 }
+
+export const DEFAULT_SERVICE_DETAILS: Record<string, ServiceDetails> = Object.fromEntries(
+  Object.entries(DEFAULTS_TEXT).map(([slug, d]) => [slug, { ...d, price_from: null }]),
+)
 
 /** Saved details by service id (empty object when none saved / unreadable). */
 export function resolveSavedServiceDetails(content: ContentMap | undefined): Record<string, ServiceDetails> {

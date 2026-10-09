@@ -259,6 +259,8 @@ export function ServicesSection() {
     return null
   }
   const priceLabel = (s: Service) => {
+    const from = detailsFor(content, s)?.price_from
+    if (from) return `${t('home.services.from')} ${formatSar(from * 100, t)}`
     const info = s.hide_price ? null : priceInfo(s)
     if (!info) return t('home.services.onRequest')
     return `${info.from ? `${t('home.services.from')} ` : ''}${formatSar(info.price, t)}`
@@ -323,7 +325,12 @@ export function ServicesSection() {
                     <p className="mb-4 line-clamp-4 flex-1 text-[14px] leading-7 text-muted">{ar ? s.description : s.description_en || s.description}</p>
                   )}
                   <div className="mb-4 rounded-xl bg-bg-soft px-4 py-3 text-center">
-                    {info ? (
+                    {d?.price_from ? (
+                      <>
+                        <div className="text-[11.5px] text-muted">{t('home.services.from')}</div>
+                        <div className="font-heading text-[18px] font-bold text-navy">{formatSar(d.price_from * 100, t)}</div>
+                      </>
+                    ) : info ? (
                       <>
                         <div className="text-[11.5px] text-muted">{info.from ? t('home.services.from') : tx('السعر', 'Price')}</div>
                         <div className="flex items-baseline justify-center gap-2">

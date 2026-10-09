@@ -10,7 +10,7 @@ import {
   type ServiceDetails,
 } from '@/lib/serviceDetails'
 
-type Field = keyof ServiceDetails
+type Field = Exclude<keyof ServiceDetails, 'price_from'>
 
 /**
  * Owner editor for one service's "Details" window (public Services section).
@@ -96,6 +96,25 @@ export function ServiceDetailsEditor({ service }: { service: { id: string; slug:
         <div className="flex flex-col gap-3.5 border-t border-gold/30 p-3.5">
           <div className="text-[12px] leading-6 text-muted">
             {tx('إذا تركت «النبذة» فارغة يُعرض وصف الخدمة أعلاه. أول 4 بنود من «ما تشمله الخدمة» تظهر في البطاقة.', 'If “Overview” is empty, the service description above is shown. The first 4 “What’s included” items show on the card.')}
+          </div>
+          <div>
+            <div className="mb-1 text-[12.5px] font-semibold text-navy">
+              {tx('السعر يبدأ من (ر.س)', 'Starting price (SAR)')}{' '}
+              <span className="font-normal text-muted">({tx('اختياري — يظهر «يبدأ من» بدل «السعر عند الطلب»', 'optional — shows “Starting from” instead of “on request”')})</span>
+            </div>
+            <input
+              type="number"
+              min={0}
+              dir="ltr"
+              value={d.price_from ?? ''}
+              onChange={(ev) => {
+                const v = ev.target.value === '' ? null : Math.max(0, Math.round(Number(ev.target.value))) || null
+                setDraft({ ...d, price_from: v })
+                setMsg('')
+              }}
+              placeholder={tx('مثال: 500', 'e.g. 500')}
+              className={`${field} w-48`}
+            />
           </div>
           {pair('overview', 'النبذة (فقرة مختصرة)', 'Overview (short paragraph)', 3)}
           {pair('audience', 'لمن هذه الخدمة (سطر واحد)', 'Who it’s for (one line)')}
