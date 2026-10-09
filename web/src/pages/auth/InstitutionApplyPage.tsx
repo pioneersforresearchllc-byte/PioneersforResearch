@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase'
 import { AuthCard, FieldError, PasswordInput, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 import { clearAbandonedSignup, fnErrorBody, isUsernameTaken, isValidUsername } from '@/lib/authHelpers'
+import { AgreeTerms } from '@/components/AgreeTerms'
+import { recordTermsAcceptance } from '@/lib/legal'
 
 const ORG_TYPES = ['hospital', 'clinic', 'center', 'insurer', 'gov', 'other'] as const
 
@@ -24,6 +26,7 @@ export function InstitutionApplyPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [honeypot, setHoneypot] = useState('')
+  const [agreed, setAgreed] = useState(false)
   const [error, setError] = useState('')
   const [showForgotLink, setShowForgotLink] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -44,6 +47,10 @@ export function InstitutionApplyPage() {
     }
     if (!isValidUsername(username.trim())) {
       setError(t('register.usernameInvalid'))
+      return
+    }
+    if (!agreed) {
+      setError(t('register.mustAgree'))
       return
     }
 
@@ -113,6 +120,7 @@ export function InstitutionApplyPage() {
           setError(t('instApply.genericError'))
           return
         }
+        await recordTermsAcceptance(profilePayload.user_id).catch(() => undefined)
         navigate('/institution-pending')
         return
       }
@@ -121,6 +129,7 @@ export function InstitutionApplyPage() {
         state: {
           email: email.trim(),
           profilePayload,
+          acceptedTerms: true,
           successRoute: '/institution-pending',
           devCode: otpResult?.devCode ?? null,
         },
@@ -178,6 +187,7 @@ export function InstitutionApplyPage() {
           onChange={(e) => setHoneypot(e.target.value)}
           className="absolute left-[-9999px] h-px w-px opacity-0"
         />
+        <AgreeTerms checked={agreed} onChange={setAgreed} />
         <FieldError>{error}</FieldError>
         {showForgotLink && (
           <div className="-mt-2 text-[13px]">

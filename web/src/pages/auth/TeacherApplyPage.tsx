@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase'
 import { AuthCard, FieldError, PasswordInput, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 import { clearAbandonedSignup, fnErrorBody, isUsernameTaken, isValidUsername } from '@/lib/authHelpers'
+import { AgreeTerms } from '@/components/AgreeTerms'
+import { recordTermsAcceptance } from '@/lib/legal'
 
 const MAX_CV_FILE_BYTES = 10 * 1024 * 1024
 const ALLOWED_CV_TYPES = [
@@ -25,6 +27,7 @@ export function TeacherApplyPage() {
   const [cv, setCv] = useState('')
   const [cvFile, setCvFile] = useState<File | null>(null)
   const [honeypot, setHoneypot] = useState('')
+  const [agreed, setAgreed] = useState(false)
   const [error, setError] = useState('')
   const [showForgotLink, setShowForgotLink] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -70,6 +73,10 @@ export function TeacherApplyPage() {
     }
     if (!isValidUsername(username.trim())) {
       setError(t('register.usernameInvalid'))
+      return
+    }
+    if (!agreed) {
+      setError(t('register.mustAgree'))
       return
     }
 
@@ -154,6 +161,7 @@ export function TeacherApplyPage() {
           setError(t('teacherApply.genericError'))
           return
         }
+        await recordTermsAcceptance(userId).catch(() => undefined)
         navigate('/teacher-pending')
         return
       }
@@ -162,6 +170,7 @@ export function TeacherApplyPage() {
         state: {
           email: email.trim(),
           profilePayload,
+          acceptedTerms: true,
           successRoute: '/teacher-pending',
           devCode: otpResult?.devCode ?? null,
         },
@@ -253,6 +262,7 @@ export function TeacherApplyPage() {
           onChange={(e) => setHoneypot(e.target.value)}
           className="absolute left-[-9999px] h-px w-px opacity-0"
         />
+        <AgreeTerms checked={agreed} onChange={setAgreed} />
         <FieldError>{error}</FieldError>
         {showForgotLink && (
           <div className="-mt-2 text-[13px]">

@@ -6,12 +6,15 @@ import { useLanguage } from '@/lib/i18n'
 import { useAuth } from '@/context/AuthContext'
 import { fnErrorBody, isUsernameConflict, isValidUsername } from '@/lib/authHelpers'
 import { savePhone } from '@/lib/phone'
+import { recordTermsAcceptance } from '@/lib/legal'
 
 interface RegisterOtpState {
   email: string
   profilePayload: Record<string, unknown>
   /** Normalized phone digits from the signup form (saved once the profile exists). */
   phone?: string | null
+  /** The signup form had an explicit "I agree" tick — record it once the profile exists. */
+  acceptedTerms?: boolean
   successRoute: string
   devCode?: string | null
 }
@@ -87,6 +90,10 @@ export function RegisterOtpPage() {
       // Best effort — the dashboard's phone prompt catches a failure here.
       if (state.phone && typeof payload.user_id === 'string') {
         await savePhone(payload.user_id, state.phone).catch(() => undefined)
+      }
+      // Best effort — TermsGate asks again if this didn't land.
+      if (state.acceptedTerms && typeof payload.user_id === 'string') {
+        await recordTermsAcceptance(payload.user_id).catch(() => undefined)
       }
       await refreshProfile()
       navigate(state.successRoute)

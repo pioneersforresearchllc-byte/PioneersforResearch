@@ -9,6 +9,8 @@ import { useLanguage } from '@/lib/i18n'
 import { useAuth } from '@/context/AuthContext'
 import { PhoneField } from '@/components/PhoneField'
 import { normalizePhone, savePhone } from '@/lib/phone'
+import { recordTermsAcceptance } from '@/lib/legal'
+import { AgreeTerms } from '@/components/AgreeTerms'
 import { clearAbandonedSignup, fnErrorBody, isUsernameTaken, isValidUsername } from '@/lib/authHelpers'
 
 export function RegisterPage() {
@@ -132,6 +134,7 @@ export function RegisterPage() {
         }
         // Best effort — the dashboard's phone prompt catches a failure here.
         await savePhone(userId, phone).catch(() => undefined)
+        await recordTermsAcceptance(userId).catch(() => undefined)
         await refreshProfile()
         navigate('/student')
         return
@@ -142,6 +145,7 @@ export function RegisterPage() {
           email: email.trim(),
           profilePayload,
           phone,
+          acceptedTerms: true,
           successRoute: '/student',
           devCode: otpResult?.devCode ?? null,
         },
@@ -228,24 +232,7 @@ export function RegisterPage() {
           onChange={(e) => setHoneypot(e.target.value)}
           className="absolute left-[-9999px] h-px w-px opacity-0"
         />
-        <label className="flex items-start gap-2.5 text-[12.5px] leading-6 text-muted">
-          <input
-            type="checkbox"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5 h-4 w-4 shrink-0"
-          />
-          <span>
-            {t('register.agreePrefix')}{' '}
-            <Link to="/terms" target="_blank" className="font-semibold text-navy underline underline-offset-2">
-              {t('footer.terms')}
-            </Link>{' '}
-            {t('register.agreeAnd')}{' '}
-            <Link to="/privacy" target="_blank" className="font-semibold text-navy underline underline-offset-2">
-              {t('footer.privacy')}
-            </Link>
-          </span>
-        </label>
+        <AgreeTerms checked={agreed} onChange={setAgreed} />
         <FieldError>{error}</FieldError>
         {showForgotLink && (
           <div className="-mt-2 text-[13px]">
