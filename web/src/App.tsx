@@ -35,6 +35,7 @@ import { TermsPage, PrivacyPage, RefundPage } from '@/pages/marketing/LegalPages
 import { QuotePage } from '@/pages/marketing/QuotePage'
 import { VerifyLookupPage } from '@/pages/marketing/VerifyLookupPage'
 import { OwnerReviewsPage } from '@/pages/dashboard/owner/ReviewsPage'
+import { OwnerProfitPage } from '@/pages/dashboard/owner/ProfitPage'
 import { CookieConsent } from '@/components/CookieConsent'
 import { AboutPage } from '@/pages/marketing/AboutPage'
 import { MarketingCoursesPage } from '@/pages/marketing/CoursesPage'
@@ -123,6 +124,7 @@ const ownerTabs: DashboardTab[] = [
   { key: 'workshops', labelKey: 'tab.workshops', to: '/owner/workshops' },
   { key: 'billing', labelKey: 'tab.billingIssue', to: '/owner/billing' },
   { key: 'invoices', labelKey: 'tab.finance', to: '/owner/invoices' },
+  { key: 'profit', labelKey: 'tab.profit', to: '/owner/profit' },
   { key: 'discounts', labelKey: 'tab.discounts', to: '/owner/discounts' },
   { key: 'institutions', labelKey: 'tab.institutions', to: '/owner/institutions' },
   { key: 'inst-consultations', labelKey: 'tab.instConsultations', to: '/owner/institution-consultations' },
@@ -305,6 +307,7 @@ export default function App() {
             <Route path="/owner/contact" element={<OwnerContactPage />} />
             <Route path="/owner/home-content" element={<OwnerHomeContentPage />} />
         <Route path="/owner/reviews" element={<OwnerReviewsPage />} />
+        <Route path="/owner/profit" element={<OwnerProfitPage />} />
             <Route path="/owner/articles" element={<OwnerArticlesPage />} />
             <Route path="/owner/discounts" element={<OwnerDiscountsPage />} />
             <Route path="/owner/institutions" element={<OwnerInstitutionsPage />} />

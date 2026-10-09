@@ -1490,6 +1490,7 @@ export const translations = {
     en: 'Pioneers Health Research Consulting (LLC) — Unified No. 7055175363 — MISA License 24926274626 — Tax No. 3150160068 — Jeddah, Saudi Arabia (National Address JHJA8230) — pioneersforresearchllc@gmail.com',
   },
   'tab.reviews': { ar: 'آراء العملاء والإحالات', en: 'Reviews & referrals' },
+  'tab.profit': { ar: 'الأرباح والمصروفات', en: 'Profit & expenses' },
   'cms.team.photo': { ar: 'رفع صورة', en: 'Upload photo' },
   'home.proof.students': { ar: '', en: '' },
   'home.proof.projects': { ar: '', en: '' },

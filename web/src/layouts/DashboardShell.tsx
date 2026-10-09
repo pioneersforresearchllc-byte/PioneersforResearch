@@ -36,7 +36,7 @@ const OWNER_GROUPS: Group[] = [
   { ar: 'عام', en: 'General', keys: ['overview'] },
   { ar: 'التعليم', en: 'Education', keys: ['applications', 'teachers', 'courses', 'workshops', 'certificates'] },
   { ar: 'الخدمات والعملاء', en: 'Services & clients', keys: ['services', 'service-requests', 'institutions', 'inst-consultations'] },
-  { ar: 'المالية', en: 'Finance', keys: ['billing', 'invoices', 'discounts'] },
+  { ar: 'المالية', en: 'Finance', keys: ['billing', 'invoices', 'profit', 'discounts'] },
   { ar: 'التواصل', en: 'Communication', keys: ['messages', 'contact', 'broadcast', 'reviews'] },
   { ar: 'الموقع والإعدادات', en: 'Website & settings', keys: ['home-content', 'articles', 'admins', 'accounts', 'account'] },
 ]
