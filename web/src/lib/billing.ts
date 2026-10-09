@@ -125,6 +125,12 @@ export async function cancelInvoice(invoiceId: string): Promise<void> {
   if (error) throw error
 }
 
+/** Owner: permanently remove an unpaid/cancelled invoice (e.g. a test one). Paid invoices are kept as records. */
+export async function deleteInvoice(invoiceId: string): Promise<void> {
+  const { error } = await supabase.from('student_invoices').delete().eq('id', invoiceId).neq('status', 'paid')
+  if (error) throw error
+}
+
 /** A short-lived signed URL to view a private receipt (owner). */
 export async function receiptUrl(path: string): Promise<string | null> {
   const { data, error } = await supabase.storage.from('payment-receipts').createSignedUrl(path, 60 * 10)

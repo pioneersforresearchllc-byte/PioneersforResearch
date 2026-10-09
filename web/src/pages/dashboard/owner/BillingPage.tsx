@@ -4,6 +4,7 @@ import { useLanguage } from '@/lib/i18n'
 import {
   cancelInvoice,
   createInvoice,
+  deleteInvoice,
   listAllInvoices,
   listServiceTitles,
   listStudents,
@@ -117,6 +118,7 @@ function InvoiceRow({ inv, onChanged }: { inv: StudentInvoice; onChanged: () => 
   const locale = lang === 'ar' ? 'ar-SA' : 'en-US'
   const pay = useMutation({ mutationFn: () => markInvoicePaid(inv.id), onSuccess: onChanged })
   const cancel = useMutation({ mutationFn: () => cancelInvoice(inv.id), onSuccess: onChanged })
+  const remove = useMutation({ mutationFn: () => deleteInvoice(inv.id), onSuccess: onChanged })
   const [remindMsg, setRemindMsg] = useState('')
   const remind = useMutation({
     mutationFn: () => sendInvoiceReminder(inv.id),
@@ -171,6 +173,19 @@ function InvoiceRow({ inv, onChanged }: { inv: StudentInvoice; onChanged: () => 
           )}
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
+          {(inv.status === 'unpaid' || inv.status === 'cancelled') && (
+            <button
+              onClick={() =>
+                confirm(lang === 'ar' ? `حذف الفاتورة «${inv.title}» نهائيًا؟ لا يمكن التراجع.` : `Permanently delete invoice "${inv.title}"? This can't be undone.`) &&
+                remove.mutate()
+              }
+              disabled={remove.isPending}
+              title={lang === 'ar' ? 'حذف نهائي' : 'Delete permanently'}
+              className="rounded-md px-2 py-1 text-[11.5px] text-faint hover:bg-error-bg hover:text-error disabled:opacity-50"
+            >
+              🗑 {lang === 'ar' ? 'حذف' : 'Delete'}
+            </button>
+          )}
           {inv.receipt_path && (
             <button onClick={() => void viewReceipt()} className="rounded-md border border-border px-2.5 py-1 text-[11.5px] text-navy hover:bg-bg-soft">
               {t('ownerBilling.viewReceipt')}
