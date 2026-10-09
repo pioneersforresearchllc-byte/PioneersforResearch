@@ -26,6 +26,33 @@ function genQid(): string {
   return `q_${Math.random().toString(36).slice(2, 8)}`
 }
 
+/** Dropdown options typed as "A - B - C". Keeps the raw text while typing so the separator isn't eaten. */
+function OptionsInput({
+  value,
+  onChange,
+  placeholder,
+  dir,
+}: {
+  value: string[]
+  onChange: (options: string[]) => void
+  placeholder: string
+  dir?: 'ltr'
+}) {
+  const [text, setText] = useState(value.join(' - '))
+  return (
+    <input
+      value={text}
+      onChange={(e) => {
+        setText(e.target.value)
+        onChange(e.target.value.split(/\s*-\s*/).map((x) => x.trim()).filter(Boolean))
+      }}
+      dir={dir}
+      placeholder={placeholder}
+      className={inputClass}
+    />
+  )
+}
+
 /** Owner tool: build the custom questions a service's request form asks. */
 function QuestionsEditor({ value, onChange }: { value: ServiceQuestion[]; onChange: (q: ServiceQuestion[]) => void }) {
   const { t } = useLanguage()
@@ -104,18 +131,16 @@ function QuestionsEditor({ value, onChange }: { value: ServiceQuestion[]; onChan
             </div>
             {q.type === 'select' && (
               <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <input
-                  value={(q.options ?? []).join('، ')}
-                  onChange={(e) => update(i, { options: e.target.value.split(/[،,]/).map((x) => x.trim()).filter(Boolean) })}
+                <OptionsInput
+                  value={q.options ?? []}
+                  onChange={(options) => update(i, { options })}
                   placeholder={t('adminServices.qOptionsPh')}
-                  className={inputClass}
                 />
-                <input
-                  value={(q.options_en ?? []).join(', ')}
-                  onChange={(e) => update(i, { options_en: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) })}
+                <OptionsInput
+                  value={q.options_en ?? []}
+                  onChange={(options_en) => update(i, { options_en })}
                   dir="ltr"
                   placeholder={t('adminServices.qOptionsEnPh')}
-                  className={inputClass}
                 />
               </div>
             )}
