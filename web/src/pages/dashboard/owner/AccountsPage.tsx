@@ -14,6 +14,7 @@ import {
 } from '@/lib/owner'
 import { listCoursesWithMeta } from '@/lib/courses'
 import { supabase } from '@/lib/supabase'
+import { formatPhone, listAllPhones } from '@/lib/phone'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
 
@@ -256,10 +257,12 @@ export function OwnerAccountsPage() {
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
   const [managing, setManaging] = useState<AccountRow | null>(null)
   const { data, isLoading, isError } = useQuery({ queryKey: ['admin-accounts'], queryFn: listAllAccounts })
+  const { data: phones } = useQuery({ queryKey: ['admin-phones'], queryFn: listAllPhones })
   const queryClient = useQueryClient()
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
+    const qDigits = q.replace(/\D/g, '').replace(/^0+/, '')
     return (data ?? []).filter((a) => {
       const matchesRole =
         roleFilter === 'all' || (roleFilter === 'admin' ? a.role === 'owner' : a.role === roleFilter)
@@ -267,10 +270,11 @@ export function OwnerAccountsPage() {
         !q ||
         a.name.toLowerCase().includes(q) ||
         a.username.toLowerCase().includes(q) ||
-        (a.email ?? '').toLowerCase().includes(q)
+        (a.email ?? '').toLowerCase().includes(q) ||
+        (qDigits.length >= 4 && (phones?.get(a.id) ?? '').includes(qDigits))
       return matchesRole && matchesSearch
     })
-  }, [data, search, roleFilter])
+  }, [data, phones, search, roleFilter])
 
   const filters: { key: RoleFilter; label: string }[] = [
     { key: 'all', label: t('adminAccounts.filterAll') },
@@ -347,7 +351,20 @@ export function OwnerAccountsPage() {
                       {roleLabel(a.role)}
                     </span>
                   </td>
-                  <td className="p-3 text-muted">{a.email ?? '—'}</td>
+                  <td className="p-3 text-muted">
+                    <div>{a.email ?? '—'}</div>
+                    {phones?.get(a.id) && (
+                      <a
+                        href={`https://wa.me/${phones.get(a.id)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        dir="ltr"
+                        className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-[#1fa855]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#168a45] no-underline hover:bg-[#1fa855]/20"
+                      >
+                        💬 {formatPhone(phones.get(a.id)!)}
+                      </a>
+                    )}
+                  </td>
                   <td className="p-3 text-muted">{formatDate(a.created_at, lang, '—')}</td>
                   <td className="p-3 text-muted">{formatDate(a.last_sign_in_at, lang, t('adminAccounts.never'))}</td>
                   <td className="p-3">

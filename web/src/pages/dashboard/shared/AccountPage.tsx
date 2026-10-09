@@ -3,6 +3,9 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { changePassword, updateAvatarUrl, updateProfileDetails, uploadAvatar } from '@/lib/account'
 import { disablePush, enablePush, getPushState, type PushState } from '@/lib/push'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { formatPhone, getMyPhone, normalizePhone, savePhone } from '@/lib/phone'
+import { PhoneField } from '@/components/PhoneField'
 
 function initials(name: string) {
   return name.trim().slice(0, 2) || '?'
@@ -80,6 +83,76 @@ function NotificationsCard({ userId }: { userId: string }) {
       )}
 
       {error && <div className="mt-2 text-[12.5px] text-red-600">{error}</div>}
+    </div>
+  )
+}
+
+/** Contact phone (WhatsApp) — private: visible to the user and the platform owner only. */
+function MyPhoneCard({ userId }: { userId: string }) {
+  const { lang, t } = useLanguage()
+  const ar = lang === 'ar'
+  const queryClient = useQueryClient()
+  const { data: phone } = useQuery({ queryKey: ['my-phone', userId], queryFn: () => getMyPhone(userId), staleTime: Infinity })
+  const [editing, setEditing] = useState(false)
+  const [country, setCountry] = useState('966')
+  const [number, setNumber] = useState('')
+  const [msg, setMsg] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  if (phone === undefined) return null // migration 0072 not applied yet
+
+  const save = async () => {
+    setMsg('')
+    const digits = normalizePhone(country, number)
+    if (!digits) {
+      setMsg(t('phone.invalid'))
+      return
+    }
+    setBusy(true)
+    try {
+      await savePhone(userId, digits)
+      queryClient.setQueryData(['my-phone', userId], digits)
+      setEditing(false)
+      setNumber('')
+      setMsg(ar ? 'تم الحفظ ✓' : 'Saved ✓')
+    } catch {
+      setMsg(ar ? 'تعذّر الحفظ' : 'Could not save')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-white p-5 md:p-6">
+      <div className="mb-1 text-[14px] font-semibold text-navy">{ar ? 'رقم الجوال (واتساب)' : 'Mobile (WhatsApp)'}</div>
+      <div className="mb-3 text-[12px] leading-6 text-muted">{t('phone.hint')}</div>
+      {!editing ? (
+        <div className="flex items-center justify-between gap-3">
+          <span dir="ltr" className="text-[15px] font-semibold text-navy">
+            {phone ? formatPhone(phone) : '—'}
+          </span>
+          <button onClick={() => setEditing(true)} className="rounded-md border border-border px-4 py-2 text-[12.5px] text-navy hover:border-navy">
+            {ar ? 'تعديل' : 'Edit'}
+          </button>
+        </div>
+      ) : (
+        <>
+          <PhoneField country={country} number={number} onCountry={setCountry} onNumber={setNumber} />
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={() => void save()}
+              disabled={busy || !number.trim()}
+              className="rounded-md bg-navy px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+            >
+              {ar ? 'حفظ' : 'Save'}
+            </button>
+            <button onClick={() => setEditing(false)} className="rounded-md border border-border px-4 py-2.5 text-[13px] text-navy">
+              {ar ? 'إلغاء' : 'Cancel'}
+            </button>
+          </div>
+        </>
+      )}
+      {msg && <div className="mt-2 text-[12.5px] text-navy">{msg}</div>}
     </div>
   )
 }
@@ -290,6 +363,8 @@ export function AccountPage() {
           {profileMessage && <span className="text-[13px] text-navy">{profileMessage}</span>}
         </div>
       </div>
+
+      {(profile.role === 'student' || profile.role === 'teacher') && <MyPhoneCard userId={profile.id} />}
 
       <div className="rounded-xl border border-border bg-white p-5 md:p-6">
         <div className="mb-4 text-[14px] font-semibold text-navy">{t('account.passwordSection')}</div>

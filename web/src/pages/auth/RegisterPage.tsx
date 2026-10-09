@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/Button'
 import { GoogleButton } from '@/components/GoogleButton'
 import { useLanguage } from '@/lib/i18n'
 import { useAuth } from '@/context/AuthContext'
+import { PhoneField } from '@/components/PhoneField'
+import { normalizePhone, savePhone } from '@/lib/phone'
 import { clearAbandonedSignup, fnErrorBody, isUsernameTaken, isValidUsername } from '@/lib/authHelpers'
 
 export function RegisterPage() {
@@ -19,6 +21,8 @@ export function RegisterPage() {
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [phoneCountry, setPhoneCountry] = useState('966')
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [honeypot, setHoneypot] = useState('')
   const [agreed, setAgreed] = useState(false)
   const [error, setError] = useState('')
@@ -31,8 +35,13 @@ export function RegisterPage() {
     setShowForgotLink(false)
 
     if (honeypot) return // silently drop — bot filled the hidden field
-    if (!name.trim() || !email.trim() || !username.trim() || !password) {
+    if (!name.trim() || !email.trim() || !username.trim() || !password || !phoneNumber.trim()) {
       setError(t('register.fillFields'))
+      return
+    }
+    const phone = normalizePhone(phoneCountry, phoneNumber)
+    if (!phone) {
+      setError(t('phone.invalid'))
       return
     }
     if (!isValidUsername(username.trim())) {
@@ -121,6 +130,8 @@ export function RegisterPage() {
           setError(t('register.completeError'))
           return
         }
+        // Best effort — the dashboard's phone prompt catches a failure here.
+        await savePhone(userId, phone).catch(() => undefined)
         await refreshProfile()
         navigate('/student')
         return
@@ -130,6 +141,7 @@ export function RegisterPage() {
         state: {
           email: email.trim(),
           profilePayload,
+          phone,
           successRoute: '/student',
           devCode: otpResult?.devCode ?? null,
         },
@@ -197,6 +209,10 @@ export function RegisterPage() {
           onChange={(e) => setUsername(e.target.value)}
           className={inputClass}
         />
+        <div>
+          <PhoneField country={phoneCountry} number={phoneNumber} onCountry={setPhoneCountry} onNumber={setPhoneNumber} />
+          <div className="mt-1.5 text-[12px] leading-5 text-muted">{t('phone.hint')}</div>
+        </div>
         <PasswordInput
           autoComplete="new-password"
           placeholder={t('register.passwordPh')}

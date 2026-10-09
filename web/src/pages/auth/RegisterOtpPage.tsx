@@ -5,10 +5,13 @@ import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 import { useAuth } from '@/context/AuthContext'
 import { fnErrorBody, isUsernameConflict, isValidUsername } from '@/lib/authHelpers'
+import { savePhone } from '@/lib/phone'
 
 interface RegisterOtpState {
   email: string
   profilePayload: Record<string, unknown>
+  /** Normalized phone digits from the signup form (saved once the profile exists). */
+  phone?: string | null
   successRoute: string
   devCode?: string | null
 }
@@ -81,6 +84,10 @@ export function RegisterOtpPage() {
         return
       }
 
+      // Best effort — the dashboard's phone prompt catches a failure here.
+      if (state.phone && typeof payload.user_id === 'string') {
+        await savePhone(payload.user_id, state.phone).catch(() => undefined)
+      }
       await refreshProfile()
       navigate(state.successRoute)
     } finally {

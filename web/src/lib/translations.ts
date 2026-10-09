@@ -413,6 +413,14 @@ export const translations = {
     ar: 'أرسلنا لك رمزًا قبل قليل — تحقّق من بريدك (وصندوق الرسائل غير المرغوبة). يمكنك طلب رمز جديد بعد {minutes} دقيقة.',
     en: 'We sent you a code a moment ago — check your inbox (and spam). You can request a new one in {minutes} minute(s).',
   },
+  'phone.invalid': {
+    ar: 'رقم الجوال غير صحيح — تأكد من رمز الدولة والرقم (مثال للسعودية: 05XXXXXXXX)',
+    en: 'Invalid mobile number — check the country code and number (Saudi example: 05XXXXXXXX)',
+  },
+  'phone.hint': {
+    ar: 'رقم واتساب للتواصل بخصوص طلباتك ودوراتك فقط — لا يظهر إلا لإدارة المنصة.',
+    en: 'WhatsApp number, used only to reach you about your requests and courses — visible to the platform admin only.',
+  },
   'forgotPassword.haveCode': { ar: 'وصلني الرمز — أدخله الآن', en: 'I have the code — enter it now' },
 
   'resetPassword.title': { ar: 'إعادة تعيين كلمة المرور', en: 'Reset Password' },

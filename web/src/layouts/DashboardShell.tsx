@@ -7,6 +7,7 @@ import { navIcon } from './navIcons'
 import { NotificationBell } from '@/components/NotificationBell'
 import { PageTransition } from '@/components/ui/motion'
 import { PushPrompt } from '@/components/PushPrompt'
+import { PhoneGate } from '@/components/PhoneGate'
 
 export interface DashboardTab {
   key: string
@@ -247,6 +248,7 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
               </div>
             )}
             <PushPrompt />
+            <PhoneGate />
             <PageTransition>
               <Outlet />
             </PageTransition>
