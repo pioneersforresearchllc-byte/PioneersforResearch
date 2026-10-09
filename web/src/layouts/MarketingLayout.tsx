@@ -54,6 +54,13 @@ export function MarketingLayout() {
 
   const navLinks = (
     <>
+      <Link
+        to="/institutions"
+        className="self-start rounded-full bg-gold px-3.5 py-1.5 font-bold text-navy no-underline transition-colors hover:bg-gold/85 xl:me-2 xl:self-auto"
+        onClick={() => setMenuOpen(false)}
+      >
+        {t('nav.institutions')}
+      </Link>
       <Link to="/" className="nav-underline text-navy no-underline" onClick={() => setMenuOpen(false)}>
         {t('nav.home')}
       </Link>
@@ -70,9 +77,6 @@ export function MarketingLayout() {
           </Link>
         </>
       )}
-      <Link to="/institutions" className="nav-underline text-navy no-underline" onClick={() => setMenuOpen(false)}>
-        {t('nav.institutions')}
-      </Link>
       <a href="/#resources" className="nav-underline text-navy no-underline" onClick={() => setMenuOpen(false)}>
         {t('nav.resources')}
       </a>
