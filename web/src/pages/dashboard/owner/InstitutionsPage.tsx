@@ -4,6 +4,7 @@ import { listInstitutions, rejectInstitution, verifyInstitution, type Institutio
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
 import { OrgPackagesEditor } from './OrgPackagesEditor'
+import { InstitutionCoursesPanel } from './InstitutionCoursesPanel'
 
 export function OwnerInstitutionsPage() {
   const { t, lang } = useLanguage()
@@ -113,6 +114,7 @@ export function OwnerInstitutionsPage() {
                 {t('oInst.reject')}
               </button>
             </div>
+            {inst.verified && <InstitutionCoursesPanel institutionId={inst.id} institutionName={inst.name} />}
           </div>
         ))}
       </div>

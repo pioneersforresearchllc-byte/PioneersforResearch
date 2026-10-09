@@ -1676,6 +1676,11 @@ export const translations = {
 
   // Institution team
   'tab.instTeam': { ar: 'الفريق', en: 'Team' },
+  'tab.instTrainees': { ar: 'المتدربون', en: 'Trainees' },
+  'inst.traineesCardDesc': {
+    ar: 'تقدّم منسوبيكم في البرامج: الواجبات والدرجات والحضور والشهادات، مع تقرير PDF وExcel.',
+    en: 'Your staff’s progress — assignments, grades, attendance, certificates — with PDF & Excel reports.',
+  },
   'instTeam.title': { ar: 'فريق المؤسسة', en: 'Institution team' },
   'instTeam.subtitle': { ar: 'أضف أعضاء بصلاحيات مختلفة للوصول لحساب المؤسسة.', en: 'Add members with different permissions to your institution account.' },
   'instTeam.addTitle': { ar: 'إضافة عضو', en: 'Add member' },

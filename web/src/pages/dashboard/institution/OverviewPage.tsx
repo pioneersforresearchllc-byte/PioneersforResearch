@@ -8,6 +8,7 @@ import type { translations } from '@/lib/translations'
 type Key = keyof typeof translations
 
 const CARDS: { to: string; titleKey: Key; descKey: Key; icon: string }[] = [
+  { to: '/institution/trainees', titleKey: 'tab.instTrainees', descKey: 'inst.traineesCardDesc', icon: '📊' },
   { to: '/institution/consultations', titleKey: 'tab.instConsult', descKey: 'inst.consultCardDesc', icon: '📋' },
   { to: '/institution/team', titleKey: 'tab.instTeam', descKey: 'inst.teamCardDesc', icon: '👥' },
   { to: '/institution/account', titleKey: 'tab.myAccount', descKey: 'inst.accountCardDesc', icon: '⚙️' },

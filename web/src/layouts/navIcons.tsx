@@ -60,6 +60,7 @@ const MAP: Record<string, ReactNode> = {
   'inst-consultations': message,
   'inst-consult': message,
   'inst-team': users,
+  'inst-trainees': chart,
   admins: shield,
   accounts: users,
   contact: mail,

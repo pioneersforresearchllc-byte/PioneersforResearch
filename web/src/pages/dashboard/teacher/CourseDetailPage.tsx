@@ -6,6 +6,7 @@ import { useLanguage } from '@/lib/i18n'
 import { getTaughtCourseDetail } from '@/lib/courses'
 import { createAssignment, listAssignmentsForCourse, uploadAssignmentFile } from '@/lib/assignments'
 import { LoadingState } from '@/components/LoadingState'
+import { AttendancePanel } from '@/components/institution/AttendancePanel'
 
 function NewAssignmentModal({
   courseId,
@@ -192,6 +193,10 @@ export function TeacherCourseDetailPage() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="mb-6">
+        <AttendancePanel courseId={id!} students={data.students} />
       </div>
 
       <div className="mb-6">
