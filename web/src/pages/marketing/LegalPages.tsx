@@ -183,6 +183,15 @@ const TERMS: Record<Lang, Doc> = {
         ],
       },
       {
+        h: 'برنامج الإحالة',
+        p: [
+          'لكل مستخدم رابط إحالة خاص. وتُحتسب الإحالة مؤهلة فقط إذا سجّل الشخص المُحال حسابًا جديدًا من الرابط، ثم سجّل في دورة ودفع الدفعة المقدمة على الأقل. ولا يكفي مجرد التسجيل في المنصة.',
+          'عند تحقق الإحالة المؤهلة: يحصل صاحب الرابط على خصم 10% عن كل إحالة مؤهلة، ويحصل الشخص المُحال على خصم 5%. ولا يتجاوز مجموع الخصومات 20% على الطلب أو الدورة الواحدة لأي من الطرفين، مهما تعددت الإحالات.',
+          'تُطبَّق خصومات صاحب الرابط على طلبه أو دورته التالية، ويُطبَّق خصم المُحال على المبلغ المتبقي من دورته أو على طلبه التالي. والخصم شخصي لا يُنقل لغيرك، ولا يُستبدل بمبلغ نقدي، ولا يُسترد، ولا يُجمع مع العروض الأخرى إلا بموافقة الشركة.',
+          'لا تُحتسب الإحالة إذا أحال المستخدم نفسه أو حسابًا آخر يملكه، أو إذا كان الشخص المُحال مسجلًا لدينا من قبل. ويحق للشركة إلغاء أي خصم ناتج عن تحايل أو حسابات وهمية، وتعديل البرنامج أو إيقافه في أي وقت دون أثر على الخصومات المستحقة قبل ذلك.',
+        ],
+      },
+      {
         h: 'الاعتراض على المدفوعات',
         p: [
           'يلتزم العميل بالتواصل معنا أولًا لحل أي خلاف قبل الاعتراض على أي عملية دفع لدى البنك أو جهة إصدار البطاقة. ويُعدّ الاعتراض دون ذلك أو بالمخالفة لهذه الشروط إخلالًا جوهريًا يخوّلنا تعليق الحساب وإيقاف الخدمات والمطالبة بالمبالغ ورسوم الاعتراض، مع تقديم ما يثبت تنفيذ الخدمة للجهات المعنية.',
@@ -270,6 +279,7 @@ const TERMS: Record<Lang, Doc> = {
       { h: 'Confidentiality', p: ['We keep your files and research data confidential and do not disclose them outside the team working on your request, except with your consent or as required by a competent authority.'] },
       { h: 'Your obligations & prohibited use', p: ['You may not use the platform unlawfully, submit forged data or documents, infringe others’ rights, attempt to hack, disrupt or scrape the platform, abuse our team, circumvent payment, or resell our services or deliverables without written permission.', 'You confirm that materials and data you provide are yours or that you may use them, and that you obtained any ethical approvals required to collect them.'] },
       { h: 'Your content & reviews', p: ['You are responsible for content you post. By submitting a review you grant us a free, non-exclusive right to publish it on the platform and our channels with your first name; we may remove violating content.'] },
+      { h: 'Referral programme', p: ['Each user has a personal referral link. A referral qualifies only if the referred person creates a new account through the link, then enrols in a course and pays at least the down payment; signing up alone does not qualify.', 'For each qualifying referral, the link owner earns a 10% discount and the referred person a 5% discount. Total discounts may not exceed 20% on any single order or course for either party, however many referrals are made.', 'The link owner’s discounts apply to their next order or course; the referred person’s discount applies to the remaining balance of their course or their next order. Discounts are personal, non-transferable, have no cash value, are non-refundable, and cannot be combined with other offers unless the Company agrees.', 'Self-referrals, referrals to another account you own, and people already registered with us do not qualify. The Company may cancel any discount obtained through abuse or fake accounts, and may change or end the programme at any time without affecting discounts already earned.'] },
       { h: 'Payment disputes', p: ['You must contact us first to resolve any disagreement before disputing a payment with your bank or card issuer. A dispute filed without doing so, or contrary to these Terms, is a material breach entitling us to suspend your account and services and claim the amounts and dispute fees, and we will provide evidence of performance to the relevant parties.'] },
       { h: 'Disclaimer of warranties', p: ['The platform and services are provided “as is” and “as available”, without express or implied warranties not stated in these Terms, to the maximum extent permitted by law.'] },
       { h: 'Limitation of liability', p: ['To the maximum extent permitted by law, the Company is not liable for indirect, consequential or special damages, or for any loss of grades, academic or career opportunities, profits, time or data.', 'The Company’s total liability shall in no case exceed the amount you actually paid for the service giving rise to the claim.', 'Nothing here limits liability that cannot be excluded by law.'] },

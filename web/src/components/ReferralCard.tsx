@@ -19,8 +19,8 @@ export function ReferralCard() {
   const link = referralLink(profile.username)
   const share = encodeURIComponent(
     tx(
-      `أنصحك بمنصة الرواد للبحوث الصحية — دورات وإشراف وخدمات بحثية. سجّل من رابطي: ${link}`,
-      `I recommend Pioneers Health Research — courses, mentoring and research services. Sign up with my link: ${link}`,
+      `أنصحك بمنصة الرواد للبحوث الصحية، فيها دورات وإشراف وخدمات بحثية. سجّل من رابطي واحصل على خصم 5% عند تسجيلك في دورة: ${link}`,
+      `I recommend Pioneers Health Research: courses, mentoring and research services. Sign up with my link and get 5% off when you enrol in a course: ${link}`,
     ),
   )
   const copy = async () => {
@@ -36,9 +36,15 @@ export function ReferralCard() {
     <div className="mb-6 rounded-2xl border border-border bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="text-[16px] font-bold text-navy">🎁 {tx('ادعُ زميلك واحصل على مكافأة', 'Invite a colleague, get a reward')}</div>
+          <div className="text-[16px] font-bold text-navy">🎁 {tx('ادعُ زميلك: خصم 10% لك و5% له', 'Invite a colleague: 10% off for you, 5% for them')}</div>
           <div className="mt-1 text-[13px] leading-6 text-muted">
-            {tx('شارك رابطك الخاص؛ عند تسجيل زميلك وطلبه خدمة، نتواصل معك بمكافأتك.', 'Share your link; when a colleague signs up and orders, we’ll contact you with your reward.')}
+            {tx(
+              'شارك رابطك. عندما يسجّل زميلك من الرابط في دورة ويدفع الدفعة المقدمة، تحصل على خصم 10% ويحصل هو على 5%. الحد الأقصى 20% لكل طرف.',
+              'Share your link. When a colleague signs up through it, enrols in a course and pays the down payment, you get 10% off and they get 5%. Up to 20% for each party.',
+            )}{' '}
+            <a href="/terms" target="_blank" rel="noreferrer" className="font-semibold text-gold">
+              {tx('الشروط', 'Terms')}
+            </a>
           </div>
         </div>
         {typeof count === 'number' && count > 0 && (
