@@ -18,6 +18,7 @@ import {
   type QuestionType,
 } from '@/lib/services'
 import { LoadingState } from '@/components/LoadingState'
+import { ServiceDetailsEditor } from './ServiceDetailsEditor'
 
 const QUESTION_TYPES: QuestionType[] = ['short', 'long', 'number', 'select', 'date', 'file']
 
@@ -583,6 +584,7 @@ export function OwnerServicesPage() {
         {(services ?? []).map((s) => (
           <div key={s.id} className="rounded-xl border border-border bg-white p-5">
             <ServiceHeader service={s} onSaved={refresh} />
+            <ServiceDetailsEditor service={s} />
             <div className="flex flex-col gap-3">
               {s.packages.length === 0 && (
                 <div className="rounded-lg border border-dashed border-border-2 bg-bg-soft/50 px-3 py-2.5 text-[12px] text-muted">

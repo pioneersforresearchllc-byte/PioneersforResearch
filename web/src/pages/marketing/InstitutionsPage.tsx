@@ -1,5 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
-import { createPortal } from 'react-dom'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
@@ -7,19 +6,9 @@ import { useDocumentMeta } from '@/lib/useDocumentMeta'
 import { fetchSiteContent, resolveWhatsapp } from '@/lib/content'
 import { Reveal } from '@/components/Reveal'
 import { featureLines, pkgText, resolveOrgPackages, type OrgPackage } from '@/lib/orgPackages'
+import { CheckItem, DetailsDialog } from '@/components/DetailsDialog'
 
 type Tx = (a: string, e: string) => string
-
-function CheckItem({ children }: { children: ReactNode }) {
-  return (
-    <li className="flex items-start gap-2 text-[13.5px] leading-6 text-muted-2">
-      <svg className="mt-1 shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c9a24b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M5 12l5 5L20 7" />
-      </svg>
-      <span>{children}</span>
-    </li>
-  )
-}
 
 function PackageHeader({ p, index, ar, tx }: { p: OrgPackage; index: number; ar: boolean; tx: Tx }) {
   return (
@@ -61,126 +50,6 @@ function PriceBox({ p, ar, tx }: { p: OrgPackage; ar: boolean; tx: Tx }) {
         </>
       )}
     </div>
-  )
-}
-
-/** One titled list block inside the details window; hidden when the owner left it empty. */
-function DetailSection({ icon, title, text, tone = 'plain' }: { icon: string; title: string; text: string; tone?: 'plain' | 'navy' | 'gold' }) {
-  const items = featureLines(text)
-  if (items.length === 0) return null
-  const box = tone === 'navy' ? 'bg-navy/[0.04] border-navy/10' : tone === 'gold' ? 'bg-gold/[0.07] border-gold/30' : 'bg-white border-border'
-  return (
-    <section className={`rounded-2xl border p-5 ${box}`}>
-      <h4 className="mb-3 flex items-center gap-2 text-[15.5px] font-bold text-navy">
-        <span aria-hidden className="text-[18px]">{icon}</span>
-        {title}
-      </h4>
-      <ul className="flex flex-col gap-2">
-        {items.map((f) => (
-          <CheckItem key={f}>{f}</CheckItem>
-        ))}
-      </ul>
-    </section>
-  )
-}
-
-function PackageDetails({ p, index, ar, tx, quoteTo, onClose }: { p: OrgPackage; index: number; ar: boolean; tx: Tx; quoteTo: string; onClose: () => void }) {
-  // Esc closes; lock page scroll behind the window.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    window.addEventListener('keydown', onKey)
-    return () => {
-      document.body.style.overflow = prev
-      window.removeEventListener('keydown', onKey)
-    }
-  }, [onClose])
-
-  const facts = [
-    { k: tx('المدة', 'Duration'), v: pkgText(p, 'duration', ar) },
-    { k: tx('طريقة التقديم', 'Delivery'), v: pkgText(p, 'format', ar) },
-    { k: tx('عدد المتدربين', 'Group size'), v: pkgText(p, 'capacity', ar) },
-    { k: tx('التسعير', 'Pricing'), v: p.price_from ? `${tx('يبدأ من', 'From')} ${p.price_from.toLocaleString(ar ? 'ar-SA' : 'en-US')} ${tx('ر.س', 'SAR')}` : tx('حسب احتياج الجهة', 'Tailored') },
-  ].filter((f) => f.v)
-
-  // Portal to <body>: the page-transition wrapper's transform would otherwise trap
-  // this fixed overlay beneath the sticky site header.
-  return createPortal(
-    <div dir={ar ? 'rtl' : 'ltr'} className="fixed inset-0 z-50 flex items-end justify-center bg-[#0a1c34]/60 p-0 backdrop-blur-[2px] sm:items-center sm:p-4" onClick={onClose}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={pkgText(p, 'name', ar)}
-        onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
-      >
-        {/* Header */}
-        <div className="relative shrink-0 bg-gradient-to-br from-navy to-[#14335c] px-6 pb-6 pt-6 text-white md:px-8">
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={tx('إغلاق', 'Close')}
-            className="absolute top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-[16px] text-white hover:bg-white/20 ltr:right-4 rtl:left-4"
-          >
-            ✕
-          </button>
-          <div className="mb-1 flex items-center gap-2">
-            <span className="font-heading text-[13px] font-bold tracking-[2px] text-gold" dir="ltr">
-              {String(index + 1).padStart(2, '0')}
-            </span>
-            {p.featured && <span className="rounded-full bg-gold px-2.5 py-0.5 text-[11px] font-bold text-navy">{tx('الأكثر طلبًا', 'Most requested')}</span>}
-          </div>
-          <h3 className="font-heading text-[24px] font-bold md:text-[28px]">{pkgText(p, 'name', ar)}</h3>
-          {pkgText(p, 'audience', ar) && <p className="mt-1 text-[14px] text-white/70">{pkgText(p, 'audience', ar)}</p>}
-          {facts.length > 0 && (
-            <dl className="mt-5 grid grid-cols-2 gap-2.5 md:grid-cols-4">
-              {facts.map((f) => (
-                <div key={f.k} className="rounded-xl bg-white/[0.07] px-3.5 py-2.5">
-                  <dt className="text-[11.5px] text-white/55">{f.k}</dt>
-                  <dd className="mt-0.5 text-[13.5px] font-semibold leading-5">{f.v}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 md:px-8">
-          {pkgText(p, 'description', ar) && (
-            <div className="mb-5">
-              <h4 className="mb-2 text-[13px] font-semibold tracking-[1.5px] text-accent">{tx('نبذة عن الباقة', 'OVERVIEW')}</h4>
-              <p className="text-[15px] leading-8 text-muted-2">{pkgText(p, 'description', ar)}</p>
-            </div>
-          )}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <DetailSection icon="📚" title={tx('ما يشمله البرنامج', 'What’s included')} text={pkgText(p, 'features', ar)} />
-            <DetailSection icon="📦" title={tx('المخرجات والتسليمات', 'Deliverables')} text={pkgText(p, 'deliverables', ar)} />
-            <DetailSection icon="🤝" title={tx('التزاماتنا', 'Our commitments')} text={pkgText(p, 'our_commitments', ar)} tone="navy" />
-            <DetailSection icon="🏥" title={tx('التزامات الجهة', 'Your commitments')} text={pkgText(p, 'client_commitments', ar)} tone="navy" />
-          </div>
-          <div className="mt-4">
-            <DetailSection icon="📄" title={tx('الشروط والأحكام', 'Terms & conditions')} text={pkgText(p, 'terms', ar)} tone="gold" />
-          </div>
-          <p className="mt-4 text-[12px] leading-6 text-muted">
-            {tx('تخضع جميع التعاقدات لـ', 'All engagements are subject to our ')}
-            <Link to="/terms" target="_blank" className="font-semibold text-navy">
-              {tx('الشروط والأحكام العامة', 'general Terms')}
-            </Link>
-            {tx('، وتُحدَّد التفاصيل النهائية في عرض السعر الرسمي.', '; final details are set in the formal quote.')}
-          </p>
-        </div>
-
-        {/* Footer */}
-        <div className="flex shrink-0 flex-col gap-2 border-t border-border bg-bg-soft px-6 py-4 sm:flex-row sm:items-center sm:justify-between md:px-8">
-          <span className="text-[13px] text-muted">{tx('يمكن تخصيص الباقة بالكامل حسب احتياجكم.', 'This package can be fully tailored to your needs.')}</span>
-          <Link to={quoteTo} className="rounded-full bg-gold px-7 py-2.5 text-center text-[14.5px] font-bold text-navy no-underline hover:bg-gold/85">
-            {tx('اطلب عرض سعر لهذه الباقة', 'Request a quote for this package')}
-          </Link>
-        </div>
-      </div>
-    </div>,
-    document.body,
   )
 }
 
@@ -394,12 +263,33 @@ export function InstitutionsPage() {
         </div>
       )}
       {openPkg && (
-        <PackageDetails
-          p={openPkg}
+        <DetailsDialog
           index={packages.findIndex((x) => x.id === openPkg.id)}
-          ar={ar}
-          tx={tx}
-          quoteTo={`${quoteLink}&package=${encodeURIComponent(openPkg.id)}`}
+          title={pkgText(openPkg, 'name', ar)}
+          subtitle={pkgText(openPkg, 'audience', ar)}
+          badge={openPkg.featured ? tx('الأكثر طلبًا', 'Most requested') : undefined}
+          facts={[
+            { k: tx('المدة', 'Duration'), v: pkgText(openPkg, 'duration', ar) },
+            { k: tx('طريقة التقديم', 'Delivery'), v: pkgText(openPkg, 'format', ar) },
+            { k: tx('عدد المتدربين', 'Group size'), v: pkgText(openPkg, 'capacity', ar) },
+            {
+              k: tx('التسعير', 'Pricing'),
+              v: openPkg.price_from
+                ? `${tx('يبدأ من', 'From')} ${openPkg.price_from.toLocaleString(ar ? 'ar-SA' : 'en-US')} ${tx('ر.س', 'SAR')}`
+                : tx('حسب احتياج الجهة', 'Tailored'),
+            },
+          ]}
+          overviewLabel={tx('نبذة عن الباقة', 'OVERVIEW')}
+          description={pkgText(openPkg, 'description', ar)}
+          blocks={[
+            { icon: '📚', title: tx('ما يشمله البرنامج', 'What’s included'), text: pkgText(openPkg, 'features', ar) },
+            { icon: '📦', title: tx('المخرجات والتسليمات', 'Deliverables'), text: pkgText(openPkg, 'deliverables', ar) },
+            { icon: '🤝', title: tx('التزاماتنا', 'Our commitments'), text: pkgText(openPkg, 'our_commitments', ar), tone: 'navy' },
+            { icon: '🏥', title: tx('التزامات الجهة', 'Your commitments'), text: pkgText(openPkg, 'client_commitments', ar), tone: 'navy' },
+            { icon: '📄', title: tx('الشروط والأحكام', 'Terms & conditions'), text: pkgText(openPkg, 'terms', ar), tone: 'gold', wide: true },
+          ]}
+          footerText={tx('يمكن تخصيص الباقة بالكامل حسب احتياجكم.', 'This package can be fully tailored to your needs.')}
+          cta={{ label: tx('اطلب عرض سعر لهذه الباقة', 'Request a quote for this package'), to: `${quoteLink}&package=${encodeURIComponent(openPkg.id)}` }}
           onClose={() => setOpenPkg(null)}
         />
       )}

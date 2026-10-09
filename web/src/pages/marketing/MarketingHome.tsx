@@ -4,7 +4,9 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
-import { useContentText } from '@/lib/content'
+import { fetchSiteContent, useContentText } from '@/lib/content'
+import { detailsFor, sdText } from '@/lib/serviceDetails'
+import { CheckItem, DetailsDialog, lines } from '@/components/DetailsDialog'
 import { listServices, type Service } from '@/lib/services'
 import { listTeamMembers } from '@/lib/team'
 import { Reveal } from '@/components/Reveal'
@@ -235,13 +237,18 @@ export function OfferingSection({
   )
 }
 
-// Paid services (presentation design, data analysis…). Each card shows the
-// cheapest fixed-price package as a "from" price and links to the service's
-// own page, where the visitor picks a package and fills the request brief.
+// Paid services (data analysis, proposals…). Same card structure as the
+// institution packages: numbered navy header, who-it's-for line, first scope
+// items, price box, and a "Details" window (owner-editable content, see
+// lib/serviceDetails) plus the request button to the service's own page.
 export function ServicesSection() {
   const { t, lang } = useLanguage()
+  const ar = lang === 'ar'
+  const tx = (a: string, e: string) => (ar ? a : e)
   const ct = useContentText()
   const { data: services } = useQuery({ queryKey: ['marketing-services'], queryFn: listServices })
+  const { data: content } = useQuery({ queryKey: ['site-content'], queryFn: fetchSiteContent })
+  const [openId, setOpenId] = useState<string | null>(null)
 
   // Fixed-price packages give a "from" price; otherwise the service's own
   // direct price is shown (with a struck-through original when discounted).
@@ -251,6 +258,16 @@ export function ServicesSection() {
     if (s.price_cents != null) return { from: false, price: s.price_cents, original: s.original_price_cents }
     return null
   }
+  const priceLabel = (s: Service) => {
+    const info = s.hide_price ? null : priceInfo(s)
+    if (!info) return t('home.services.onRequest')
+    return `${info.from ? `${t('home.services.from')} ` : ''}${formatSar(info.price, t)}`
+  }
+
+  const list = services ?? []
+  const openIndex = list.findIndex((s) => s.id === openId)
+  const open = openIndex >= 0 ? list[openIndex] : null
+  const openDetails = open ? detailsFor(content, open) : null
 
   return (
     <div id="services" className="px-4 py-12 md:px-16 md:py-20">
@@ -258,12 +275,16 @@ export function ServicesSection() {
         <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-accent">{t('home.services.eyebrow')}</div>
         <h2 className="font-heading text-2xl font-bold md:text-[30px]">{ct('home.services.title')}</h2>
       </div>
-      {services && services.length > 0 ? (
+      {list.length > 0 ? (
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {services.map((s, i) => {
+          {list.map((s, i) => {
             const info = s.hide_price ? null : priceInfo(s)
             const discounted = info && info.original != null && info.original > info.price
             const pct = discounted ? Math.round((1 - info!.price / info!.original!) * 100) : 0
+            const d = detailsFor(content, s)
+            const duration = d ? sdText(d, 'duration', ar) : ''
+            const audience = d ? sdText(d, 'audience', ar) : ''
+            const scope = d ? lines(sdText(d, 'features', ar)).slice(0, 4) : []
             return (
               <Reveal
                 key={s.id}
@@ -277,14 +298,34 @@ export function ServicesSection() {
                     </span>
                     {discounted && <span className="rounded-full bg-gold px-2.5 py-0.5 text-[11px] font-bold text-navy">−{pct}%</span>}
                   </div>
-                  <h3 className="font-heading text-[18px] font-bold leading-snug">{lang === 'en' ? s.title_en || s.title : s.title}</h3>
+                  <h3 className="font-heading text-[18px] font-bold leading-snug">{ar ? s.title : s.title_en || s.title}</h3>
+                  {duration && (
+                    <div className="mt-1.5 flex items-center gap-1.5 text-[13px] text-white/75">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3 2" />
+                      </svg>
+                      {duration}
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-1 flex-col p-5">
-                  <p className="mb-4 line-clamp-4 flex-1 text-[14px] leading-7 text-muted">{lang === 'en' ? s.description_en || s.description : s.description}</p>
+                  {d ? (
+                    <>
+                      {audience && <p className="mb-4 border-b border-border pb-4 text-[13.5px] leading-7 text-muted">{audience}</p>}
+                      <ul className="mb-5 flex flex-1 flex-col gap-2.5">
+                        {scope.map((f) => (
+                          <CheckItem key={f}>{f}</CheckItem>
+                        ))}
+                      </ul>
+                    </>
+                  ) : (
+                    <p className="mb-4 line-clamp-4 flex-1 text-[14px] leading-7 text-muted">{ar ? s.description : s.description_en || s.description}</p>
+                  )}
                   <div className="mb-4 rounded-xl bg-bg-soft px-4 py-3 text-center">
                     {info ? (
                       <>
-                        <div className="text-[11.5px] text-muted">{info.from ? t('home.services.from') : lang === 'ar' ? 'السعر' : 'Price'}</div>
+                        <div className="text-[11.5px] text-muted">{info.from ? t('home.services.from') : tx('السعر', 'Price')}</div>
                         <div className="flex items-baseline justify-center gap-2">
                           {discounted && <span className="text-[13px] text-faint line-through">{formatSar(info.original!, t)}</span>}
                           <span className="font-heading text-[18px] font-bold text-navy">{formatSar(info.price, t)}</span>
@@ -292,23 +333,33 @@ export function ServicesSection() {
                       </>
                     ) : (
                       <>
-                        <div className="text-[11.5px] text-muted">{lang === 'ar' ? 'التسعير' : 'Pricing'}</div>
+                        <div className="text-[11.5px] text-muted">{tx('التسعير', 'Pricing')}</div>
                         <div className="text-[14.5px] font-bold text-navy">{t('home.services.onRequest')}</div>
                       </>
                     )}
                   </div>
                   <div className="flex flex-col gap-2">
+                    {d ? (
+                      <button
+                        type="button"
+                        onClick={() => setOpenId(s.id)}
+                        className="rounded-lg border border-navy py-2.5 text-center text-[14px] font-bold text-navy transition-colors hover:bg-navy hover:text-white"
+                      >
+                        {tx('تفاصيل الخدمة', 'Service details')}
+                      </button>
+                    ) : (
+                      <Link
+                        to={`/quote?service=${encodeURIComponent(s.slug)}`}
+                        className="rounded-lg border border-navy py-2.5 text-center text-[14px] font-bold text-navy no-underline transition-colors hover:bg-navy hover:text-white"
+                      >
+                        {tx('اطلب عرض سعر', 'Request a quote')}
+                      </Link>
+                    )}
                     <Link
                       to={`/service/${s.slug}`}
                       className="rounded-lg bg-navy py-2.5 text-center text-[14px] font-bold text-white no-underline transition-colors hover:bg-navy-hover"
                     >
                       {t('home.services.cta')}
-                    </Link>
-                    <Link
-                      to={`/quote?service=${encodeURIComponent(s.slug)}`}
-                      className="rounded-lg border border-navy py-2.5 text-center text-[14px] font-bold text-navy no-underline transition-colors hover:bg-navy hover:text-white"
-                    >
-                      {lang === 'ar' ? 'اطلب عرض سعر' : 'Request a quote'}
                     </Link>
                   </div>
                 </div>
@@ -318,6 +369,30 @@ export function ServicesSection() {
         </div>
       ) : (
         <div className="text-center text-[14.5px] text-faint">{t('home.services.empty')}</div>
+      )}
+      {open && openDetails && (
+        <DetailsDialog
+          index={openIndex}
+          title={ar ? open.title : open.title_en || open.title}
+          subtitle={sdText(openDetails, 'audience', ar)}
+          facts={[
+            { k: tx('المدة', 'Duration'), v: sdText(openDetails, 'duration', ar) },
+            { k: tx('طريقة التقديم', 'Delivery'), v: sdText(openDetails, 'format', ar) },
+            { k: tx('التسعير', 'Pricing'), v: priceLabel(open) },
+          ]}
+          overviewLabel={tx('نبذة عن الخدمة', 'OVERVIEW')}
+          description={sdText(openDetails, 'overview', ar) || (ar ? open.description : open.description_en || open.description)}
+          blocks={[
+            { icon: '📚', title: tx('ما تشمله الخدمة', 'What’s included'), text: sdText(openDetails, 'features', ar) },
+            { icon: '📦', title: tx('المخرجات والتسليمات', 'Deliverables'), text: sdText(openDetails, 'deliverables', ar) },
+            { icon: '🤝', title: tx('التزاماتنا', 'Our commitments'), text: sdText(openDetails, 'our_commitments', ar), tone: 'navy' },
+            { icon: '🎓', title: tx('التزاماتك', 'Your commitments'), text: sdText(openDetails, 'client_commitments', ar), tone: 'navy' },
+            { icon: '📄', title: tx('الشروط والأحكام', 'Terms & conditions'), text: sdText(openDetails, 'terms', ar), tone: 'gold', wide: true },
+          ]}
+          footerText={tx('نرسل لك عرض سعر وخطة زمنية تناسب طلبك قبل البدء.', 'We send you a quote and timeline for your request before starting.')}
+          cta={{ label: tx('اطلب هذه الخدمة', 'Request this service'), to: `/service/${open.slug}` }}
+          onClose={() => setOpenId(null)}
+        />
       )}
     </div>
   )
