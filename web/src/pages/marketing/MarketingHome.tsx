@@ -246,7 +246,12 @@ export function ServicesSection() {
   const ar = lang === 'ar'
   const tx = (a: string, e: string) => (ar ? a : e)
   const ct = useContentText()
-  const { data: services } = useQuery({ queryKey: ['marketing-services'], queryFn: listServices })
+  const {
+    data: services,
+    isPending: servicesPending,
+    isError: servicesError,
+    refetch: refetchServices,
+  } = useQuery({ queryKey: ['marketing-services'], queryFn: listServices })
   const { data: content } = useQuery({ queryKey: ['site-content'], queryFn: fetchSiteContent })
   const [openId, setOpenId] = useState<string | null>(null)
 
@@ -384,6 +389,20 @@ export function ServicesSection() {
               </Reveal>
             )
           })}
+        </div>
+      ) : servicesPending ? (
+        // Loading placeholders, so a slow connection never reads as "no services".
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true">
+          {[0, 1, 2].map((k) => (
+            <div key={k} className="h-56 animate-pulse rounded-2xl border border-border bg-bg-soft" />
+          ))}
+        </div>
+      ) : servicesError ? (
+        <div className="text-center text-[14.5px] text-muted">
+          {tx('تعذّر تحميل الخدمات، تحقق من اتصالك.', 'Couldn’t load services. Check your connection.')}{' '}
+          <button type="button" onClick={() => void refetchServices()} className="font-semibold text-gold underline">
+            {tx('إعادة المحاولة', 'Try again')}
+          </button>
         </div>
       ) : (
         <div className="text-center text-[14.5px] text-faint">{t('home.services.empty')}</div>
