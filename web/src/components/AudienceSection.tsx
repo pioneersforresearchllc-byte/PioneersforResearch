@@ -66,7 +66,7 @@ export function AudienceSection() {
       desc: t('audience.institutions.desc'),
       bullets: [t('audience.institutions.b1'), t('audience.institutions.b2'), t('audience.institutions.b3')],
       cta: t('audience.institutions.cta'),
-      to: '/register-institution',
+      to: '/institutions',
     },
   ]
 

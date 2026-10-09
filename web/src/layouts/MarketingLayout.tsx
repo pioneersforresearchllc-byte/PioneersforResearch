@@ -70,6 +70,9 @@ export function MarketingLayout() {
           </Link>
         </>
       )}
+      <Link to="/institutions" className="nav-underline text-navy no-underline" onClick={() => setMenuOpen(false)}>
+        {t('nav.institutions')}
+      </Link>
       <a href="/#resources" className="nav-underline text-navy no-underline" onClick={() => setMenuOpen(false)}>
         {t('nav.resources')}
       </a>
@@ -205,6 +208,7 @@ export function MarketingLayout() {
             <ul className="flex flex-col gap-2.5 text-[13.5px]">
               <li><Link to="/services" className="text-white/70 no-underline hover:text-white">{t('nav.services')}</Link></li>
               <li><Link to="/courses" className="text-white/70 no-underline hover:text-white">{t('nav.courses')}</Link></li>
+              <li><Link to="/institutions" className="text-white/70 no-underline hover:text-white">{t('nav.institutions')}</Link></li>
               <li><Link to="/quote" className="text-white/70 no-underline hover:text-white">{t('quote.cta')}</Link></li>
               <li><Link to="/about" className="text-white/70 no-underline hover:text-white">{t('nav.about')}</Link></li>
               <li><a href="/#resources" className="text-white/70 no-underline hover:text-white">{t('nav.resources')}</a></li>

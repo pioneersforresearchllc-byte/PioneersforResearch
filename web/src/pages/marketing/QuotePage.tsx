@@ -31,10 +31,33 @@ export function QuotePage() {
     ? ['بكالوريوس', 'ماجستير', 'دكتوراه', 'زمالة / برنامج تخصصي', 'باحث مستقل', 'أخرى']
     : ['Bachelor', 'Master', 'PhD', 'Fellowship / residency', 'Independent researcher', 'Other']
 
+  const [params] = useSearchParams()
+  // /quote?for=institution (from the Institutions page) opens the organisation flavour:
+  // institutional programs instead of individual services, and "your organization"
+  // instead of academic stage. Always sent as a contact message / WhatsApp, never a service request.
+  const [audience, setAudience] = useState<'individual' | 'institution'>(params.get('for') === 'institution' ? 'institution' : 'individual')
+  const isOrg = audience === 'institution'
+  const ORG_SERVICES = [
+    { id: 'org-inhouse', label: tx('تدريب داخلي لمنسوبي الجهة', 'In-house staff training') },
+    { id: 'org-custom', label: tx('برنامج تدريبي مخصّص', 'Custom training program') },
+    { id: 'org-partner', label: tx('شراكة مع مركز تدريب', 'Training-center partnership') },
+    { id: 'org-consult', label: tx('استشارات بحثية مؤسسية', 'Institutional research consulting') },
+    { id: 'org-pilot', label: tx('ورشة تجريبية قصيرة', 'Short pilot workshop') },
+    { id: 'other', label: tx('غير متأكد / أخرى', 'Not sure / other') },
+  ]
+  const ORG_TYPES = ar
+    ? ['مستشفى / مركز بحث طبي', 'جامعة / كلية', 'مركز تدريب', 'جهة حكومية', 'شركة', 'أخرى']
+    : ['Hospital / medical research center', 'University / college', 'Training center', 'Government body', 'Company', 'Other']
+  const TRAINEES = ['1–10', '11–30', '31–100', '100+']
+  const MODES = ar ? ['حضوري في مقر الجهة', 'عن بُعد', 'مدمج'] : ['On-site', 'Remote', 'Hybrid']
+  const [orgName, setOrgName] = useState('')
+  const [orgType, setOrgType] = useState('')
+  const [trainees, setTrainees] = useState('')
+  const [mode, setMode] = useState('')
+
   const [step, setStep] = useState(0)
   // Selected service id, or 'other' for "not sure / other".
   const [service, setService] = useState('')
-  const [params] = useSearchParams()
   // /quote?service=<slug> (from a service page) pre-selects that service.
   useEffect(() => {
     const slug = params.get('service')
@@ -65,24 +88,44 @@ export function QuotePage() {
   const [sent, setSent] = useState<false | 'message' | 'request'>(false)
   const [busy, setBusy] = useState(false)
 
-  const serviceOptions = [
-    ...(services ?? []).map((s) => ({ id: s.id, label: ar ? s.title : s.title_en || s.title })),
-    { id: 'other', label: tx('غير متأكد / خدمة أخرى', 'Not sure / other') },
-  ]
+  const serviceOptions = isOrg
+    ? ORG_SERVICES
+    : [
+        ...(services ?? []).map((s) => ({ id: s.id, label: ar ? s.title : s.title_en || s.title })),
+        { id: 'other', label: tx('غير متأكد / خدمة أخرى', 'Not sure / other') },
+      ]
   const serviceLabel = serviceOptions.find((o) => o.id === service)?.label ?? ''
   // A real service request needs a specific service and a signed-in account (RLS).
-  const asRequest = !!session && !!service && service !== 'other'
+  const asRequest = !isOrg && !!session && !!service && service !== 'other'
 
-  const steps = [tx('الخدمة', 'Service'), tx('عنك', 'About you'), tx('طلبك', 'Your request'), tx('التواصل', 'Contact')]
+  const switchAudience = (next: 'individual' | 'institution') => {
+    if (next === audience) return
+    setAudience(next)
+    setService('')
+    setStep(0)
+  }
 
-  const canNext = [!!service, !!stage && !!field.trim(), !!details.trim(), !!name.trim() && (!!phone.trim() || !!email.trim())][step]
+  const steps = [tx('الخدمة', 'Service'), isOrg ? tx('جهتك', 'Your organization') : tx('عنك', 'About you'), tx('طلبك', 'Your request'), tx('التواصل', 'Contact')]
+
+  const canNext = [
+    !!service,
+    isOrg ? !!orgType && !!orgName.trim() : !!stage && !!field.trim(),
+    !!details.trim(),
+    !!name.trim() && (!!phone.trim() || !!email.trim()),
+  ][step]
 
   const summary = () =>
     [
-      tx('طلب عرض سعر', 'Quote request'),
+      isOrg ? tx('طلب عرض سعر — جهة / مؤسسة', 'Quote request — organization') : tx('طلب عرض سعر', 'Quote request'),
       `${tx('الخدمة', 'Service')}: ${serviceLabel}`,
-      `${tx('المرحلة', 'Stage')}: ${stage}`,
-      `${tx('التخصص', 'Field')}: ${field.trim()}`,
+      ...(isOrg
+        ? [
+            `${tx('الجهة', 'Organization')}: ${orgName.trim()}`,
+            `${tx('نوع الجهة', 'Type')}: ${orgType}`,
+            trainees ? `${tx('عدد المتدربين', 'Trainees')}: ${trainees}` : '',
+            mode ? `${tx('طريقة التقديم', 'Delivery')}: ${mode}` : '',
+          ]
+        : [`${tx('المرحلة', 'Stage')}: ${stage}`, `${tx('التخصص', 'Field')}: ${field.trim()}`]),
       deadline ? `${tx('موعد التسليم', 'Deadline')}: ${deadline}` : '',
       `${tx('التفاصيل', 'Details')}: ${details.trim()}`,
       `${tx('الاسم', 'Name')}: ${name.trim()}`,
@@ -189,8 +232,24 @@ export function QuotePage() {
       <div className="mx-auto max-w-2xl">
         <div className="mb-8 text-center">
           <div className="mb-2 text-[13px] font-semibold tracking-[2px] text-accent">{tx('عرض سعر مخصّص', 'TAILORED QUOTE')}</div>
-          <h1 className="font-heading text-[26px] font-bold text-navy md:text-[34px]">{tx('اطلب عرض سعر لطلبك', 'Get a quote for your request')}</h1>
+          <h1 className="font-heading text-[26px] font-bold text-navy md:text-[34px]">
+            {isOrg ? tx('اطلب عرض سعر لجهتك', 'Get a quote for your organization') : tx('اطلب عرض سعر لطلبك', 'Get a quote for your request')}
+          </h1>
           <p className="mt-2 text-[15px] text-muted">{tx('أربع خطوات سريعة — بدون التزام.', 'Four quick steps — no commitment.')}</p>
+        </div>
+
+        {/* individual / organization switch */}
+        <div className="mx-auto mb-6 grid max-w-sm grid-cols-2 gap-1 rounded-full border border-border bg-white p-1">
+          {(['individual', 'institution'] as const).map((a) => (
+            <button
+              key={a}
+              type="button"
+              onClick={() => switchAudience(a)}
+              className={`rounded-full px-4 py-2 text-[13.5px] font-semibold transition-colors ${audience === a ? 'bg-navy text-white' : 'text-navy hover:bg-navy/5'}`}
+            >
+              {a === 'individual' ? tx('فرد / باحث', 'Individual') : tx('جهة / مؤسسة', 'Organization')}
+            </button>
+          ))}
         </div>
 
         {/* progress */}
@@ -206,7 +265,7 @@ export function QuotePage() {
         <div className="rounded-3xl border border-border bg-white p-6 shadow-[0_20px_50px_-30px_rgba(11,31,58,0.45)] md:p-8">
           {step === 0 && (
             <div>
-              <h2 className="mb-4 text-[18px] font-bold text-navy">{tx('ما الخدمة التي تحتاجها؟', 'Which service do you need?')}</h2>
+              <h2 className="mb-4 text-[18px] font-bold text-navy">{isOrg ? tx('ما نوع التعاون المطلوب؟', 'What kind of engagement do you need?') : tx('ما الخدمة التي تحتاجها؟', 'Which service do you need?')}</h2>
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 {serviceOptions.map((s) => (
                   <button key={s.id} type="button" onClick={() => setService(s.id)} className={chip(service === s.id)}>
@@ -217,7 +276,38 @@ export function QuotePage() {
             </div>
           )}
 
-          {step === 1 && (
+          {step === 1 && isOrg && (
+            <div>
+              <h2 className="mb-4 text-[18px] font-bold text-navy">{tx('نوع الجهة', 'Type of organization')}</h2>
+              <div className="mb-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                {ORG_TYPES.map((o) => (
+                  <button key={o} type="button" onClick={() => setOrgType(o)} className={chip(orgType === o)}>
+                    {o}
+                  </button>
+                ))}
+              </div>
+              <label className="mb-1.5 block text-[14px] font-semibold text-navy">{tx('اسم الجهة', 'Organization name')}</label>
+              <input value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder={tx('مثال: مركز الأبحاث الطبية بمستشفى…', 'e.g. Medical Research Center at … Hospital')} className={`${input} mb-5`} />
+              <div className="mb-2 text-[14px] font-semibold text-navy">{tx('عدد المتدربين المتوقع (اختياري)', 'Expected number of trainees (optional)')}</div>
+              <div className="mb-5 flex flex-wrap gap-2">
+                {TRAINEES.map((n) => (
+                  <button key={n} type="button" dir="ltr" onClick={() => setTrainees(n)} className={`rounded-full border px-4 py-1.5 text-[13.5px] ${trainees === n ? 'border-navy bg-navy text-white' : 'border-border bg-white text-navy'}`}>
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <div className="mb-2 text-[14px] font-semibold text-navy">{tx('طريقة التقديم المفضّلة (اختياري)', 'Preferred delivery (optional)')}</div>
+              <div className="flex flex-wrap gap-2">
+                {MODES.map((m) => (
+                  <button key={m} type="button" onClick={() => setMode(m)} className={`rounded-full border px-4 py-1.5 text-[13.5px] ${mode === m ? 'border-navy bg-navy text-white' : 'border-border bg-white text-navy'}`}>
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {step === 1 && !isOrg && (
             <div>
               <h2 className="mb-4 text-[18px] font-bold text-navy">{tx('مرحلتك الدراسية', 'Your academic stage')}</h2>
               <div className="mb-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
@@ -242,7 +332,11 @@ export function QuotePage() {
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
                 rows={5}
-                placeholder={tx('عنوان البحث أو فكرته، وما المطلوب تحديدًا، وأي ملاحظات من مشرفك…', 'Your topic, exactly what you need, any notes from your supervisor…')}
+                placeholder={
+                  isOrg
+                    ? tx('الفئة المستهدفة (أطباء، تمريض، باحثون…)، والمحاور المطلوبة، والمدة أو التوقيت المقترح…', 'Target group (physicians, nurses, researchers…), topics needed, proposed duration or timing…')
+                    : tx('عنوان البحث أو فكرته، وما المطلوب تحديدًا، وأي ملاحظات من مشرفك…', 'Your topic, exactly what you need, any notes from your supervisor…')
+                }
                 className={`${input} resize-y`}
               />
             </div>
@@ -255,7 +349,7 @@ export function QuotePage() {
                 <div className="mb-4 rounded-xl bg-success/10 px-4 py-3 text-[13px] leading-6 text-success">
                   ✓ {tx('سيُسجَّل طلبك في حسابك كطلب خدمة، وتتابع عرض السعر ومراحل التنفيذ من «طلباتي».', 'Your request will be saved to your account; follow the quote and progress under “My requests”.')}
                 </div>
-              ) : !session && service !== 'other' ? (
+              ) : !isOrg && !session && service !== 'other' ? (
                 <div className="mb-4 rounded-xl bg-gold/10 px-4 py-3 text-[13px] leading-6 text-navy">
                   💡 {tx('لديك حساب؟', 'Have an account?')}{' '}
                   <Link to={`/login?redirect=${encodeURIComponent(`/quote${params.get('service') ? `?service=${params.get('service')}` : ''}`)}`} className="font-bold text-accent no-underline">
@@ -265,7 +359,7 @@ export function QuotePage() {
                 </div>
               ) : null}
               <div className="flex flex-col gap-3">
-                <input value={name} onChange={(e) => setName(e.target.value)} placeholder={tx('الاسم', 'Name')} className={input} />
+                <input value={name} onChange={(e) => setName(e.target.value)} placeholder={isOrg ? tx('اسم المسؤول ومسمّاه الوظيفي', 'Contact name & job title') : tx('الاسم', 'Name')} className={input} />
                 <input dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={tx('رقم الجوال / واتساب', 'Mobile / WhatsApp')} className={`${input} text-start`} />
                 <input dir="ltr" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={tx('البريد الإلكتروني', 'Email')} className={`${input} text-start`} />
               </div>
