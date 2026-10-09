@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { invokeFn } from '@/lib/invokeFn'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 
@@ -10,20 +10,22 @@ export function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  // A code was sent recently: let the user go enter it instead of waiting.
+  const [codeAlreadySent, setCodeAlreadySent] = useState(false)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
+    setCodeAlreadySent(false)
     if (!email.trim()) {
       setError(t('forgotPassword.fillField'))
       return
     }
     setBusy(true)
     try {
-      const { data } = await supabase.functions.invoke('send-password-reset-otp', {
-        body: { email: email.trim() },
+      const result = await invokeFn<{ sent?: boolean; retryAfterSeconds?: number }>('send-password-reset-otp', {
+        email: email.trim(),
       })
-      const result = data as { sent?: boolean; error?: string; retryAfterSeconds?: number } | null
       if (result?.error === 'email_not_found') {
         setError(t('forgotPassword.emailNotFound'))
         return
@@ -31,6 +33,7 @@ export function ForgotPasswordPage() {
       if (result?.error === 'rate_limited') {
         const minutes = Math.max(1, Math.ceil((result.retryAfterSeconds ?? 300) / 60))
         setError(t('forgotPassword.rateLimited', { minutes: String(minutes) }))
+        setCodeAlreadySent(true)
         return
       }
       if (!result?.sent) {
@@ -59,6 +62,15 @@ export function ForgotPasswordPage() {
           className={inputClass}
         />
         <FieldError>{error}</FieldError>
+        {codeAlreadySent && (
+          <button
+            type="button"
+            onClick={() => navigate('/reset-password', { state: { email: email.trim() } })}
+            className="rounded-xl border border-navy py-2.75 text-[14px] font-semibold text-navy hover:bg-bg-soft"
+          >
+            {t('forgotPassword.haveCode')}
+          </button>
+        )}
         <button
           type="submit"
           disabled={busy}

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { invokeFn } from '@/lib/invokeFn'
 import { AuthCard, FieldError, PasswordInput, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 
@@ -41,12 +41,10 @@ export function ResetPasswordPage() {
     }
     setBusy(true)
     try {
-      const { data, error: fnErr } = await supabase.functions.invoke('verify-password-reset-otp', {
-        body: { email, code: code.trim(), newPassword },
-      })
-      const result = data as { reset?: boolean; error?: string } | null
-      if (fnErr || !result?.reset) {
-        setError(result?.error || t('resetPassword.genericError'))
+      const result = await invokeFn<{ reset?: boolean }>('verify-password-reset-otp', { email, code: code.trim(), newPassword })
+      if (!result?.reset) {
+        // Server error codes are English identifiers — show the translated message.
+        setError(t('resetPassword.genericError'))
         return
       }
       navigate('/login', { state: { passwordResetDone: true } })
@@ -57,8 +55,7 @@ export function ResetPasswordPage() {
 
   const resend = async () => {
     setError('')
-    const { data } = await supabase.functions.invoke('send-password-reset-otp', { body: { email } })
-    const result = data as { error?: string; retryAfterSeconds?: number } | null
+    const result = await invokeFn<{ retryAfterSeconds?: number }>('send-password-reset-otp', { email })
     if (result?.error === 'rate_limited') {
       const minutes = Math.max(1, Math.ceil((result.retryAfterSeconds ?? 300) / 60))
       setError(t('resetPassword.rateLimited', { minutes: String(minutes) }))

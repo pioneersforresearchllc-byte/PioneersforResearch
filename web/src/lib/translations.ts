@@ -410,9 +410,10 @@ export const translations = {
   },
   'forgotPassword.genericError': { ar: 'تعذر إرسال الرمز، حاول مجددًا', en: "Couldn't send the code, try again" },
   'forgotPassword.rateLimited': {
-    ar: 'انتظر {minutes} دقيقة قبل طلب رمز جديد',
-    en: 'Wait {minutes} minute(s) before requesting a new code',
+    ar: 'أرسلنا لك رمزًا قبل قليل — تحقّق من بريدك (وصندوق الرسائل غير المرغوبة). يمكنك طلب رمز جديد بعد {minutes} دقيقة.',
+    en: 'We sent you a code a moment ago — check your inbox (and spam). You can request a new one in {minutes} minute(s).',
   },
+  'forgotPassword.haveCode': { ar: 'وصلني الرمز — أدخله الآن', en: 'I have the code — enter it now' },
 
   'resetPassword.title': { ar: 'إعادة تعيين كلمة المرور', en: 'Reset Password' },
   'resetPassword.subtitle': {
