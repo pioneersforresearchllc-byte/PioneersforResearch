@@ -258,12 +258,23 @@ export function ServicesSection() {
     if (s.price_cents != null) return { from: false, price: s.price_cents, original: s.original_price_cents }
     return null
   }
+  // JSX, not a template string: formatSar renders the Riyal symbol as an element.
   const priceLabel = (s: Service) => {
     const from = detailsFor(content, s)?.price_from
-    if (from) return `${t('home.services.from')} ${formatSar(from * 100, t)}`
+    if (from)
+      return (
+        <>
+          {t('home.services.from')} {formatSar(from * 100, t)}
+        </>
+      )
     const info = s.hide_price ? null : priceInfo(s)
     if (!info) return t('home.services.onRequest')
-    return `${info.from ? `${t('home.services.from')} ` : ''}${formatSar(info.price, t)}`
+    return (
+      <>
+        {info.from ? `${t('home.services.from')} ` : ''}
+        {formatSar(info.price, t)}
+      </>
+    )
   }
 
   const list = services ?? []

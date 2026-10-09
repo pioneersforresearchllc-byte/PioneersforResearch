@@ -76,7 +76,7 @@ export function DetailsDialog({
   title: string
   subtitle?: string
   badge?: string
-  facts: { k: string; v: string }[]
+  facts: { k: string; v: ReactNode }[]
   overviewLabel: string
   description?: string
   blocks: DetailBlock[]

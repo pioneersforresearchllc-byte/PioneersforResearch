@@ -7,6 +7,7 @@ import { fetchSiteContent, resolveWhatsapp } from '@/lib/content'
 import { Reveal } from '@/components/Reveal'
 import { featureLines, pkgText, resolveOrgPackages, type OrgPackage } from '@/lib/orgPackages'
 import { CheckItem, DetailsDialog } from '@/components/DetailsDialog'
+import { Price } from '@/components/Riyal'
 
 type Tx = (a: string, e: string) => string
 
@@ -38,9 +39,9 @@ function PriceBox({ p, ar, tx }: { p: OrgPackage; ar: boolean; tx: Tx }) {
     <div className="mb-4 rounded-xl bg-bg-soft px-4 py-3 text-center">
       {p.price_from ? (
         <>
-          <div className="text-[11.5px] text-muted">{tx('يبدأ من', 'Starting from')}</div>
+          <div className="text-[11.5px] text-muted">{tx('ابتداءً من', 'Starting from')}</div>
           <div className="font-heading text-[20px] font-bold text-navy">
-            {p.price_from.toLocaleString(ar ? 'ar-SA' : 'en-US')} <span className="text-[13px] font-semibold">{tx('ر.س', 'SAR')}</span>
+            <Price cents={p.price_from * 100} locale={ar ? 'ar-SA' : 'en-US'} />
           </div>
         </>
       ) : (
@@ -275,7 +276,11 @@ export function InstitutionsPage() {
             {
               k: tx('التسعير', 'Pricing'),
               v: openPkg.price_from
-                ? `${tx('يبدأ من', 'From')} ${openPkg.price_from.toLocaleString(ar ? 'ar-SA' : 'en-US')} ${tx('ر.س', 'SAR')}`
+                ? (
+                    <>
+                      {tx('ابتداءً من', 'Starting from')} <Price cents={openPkg.price_from * 100} locale={ar ? 'ar-SA' : 'en-US'} />
+                    </>
+                  )
                 : tx('حسب احتياج الجهة', 'Tailored'),
             },
           ]}

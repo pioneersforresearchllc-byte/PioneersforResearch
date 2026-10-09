@@ -925,7 +925,7 @@ export const translations = {
   'home.services.title': { ar: 'الخدمات', en: 'Services' },
   'home.services.empty': { ar: 'لا توجد خدمات متاحة حاليًا.', en: 'No services available right now.' },
   'home.services.cta': { ar: 'اطلب الخدمة', en: 'Request Service' },
-  'home.services.from': { ar: 'تبدأ من', en: 'From' },
+  'home.services.from': { ar: 'ابتداءً من', en: 'Starting from' },
   'home.services.eyebrow': { ar: 'خدماتنا الاحترافية', en: 'OUR SERVICES' },
   'home.services.onRequest': { ar: 'السعر عند الطلب', en: 'Price on request' },
 
