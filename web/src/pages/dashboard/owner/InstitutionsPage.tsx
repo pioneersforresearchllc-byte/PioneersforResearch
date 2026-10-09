@@ -3,6 +3,7 @@ import { useLanguage } from '@/lib/i18n'
 import { listInstitutions, rejectInstitution, verifyInstitution, type Institution } from '@/lib/institutions'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
+import { OrgPackagesEditor } from './OrgPackagesEditor'
 
 export function OwnerInstitutionsPage() {
   const { t, lang } = useLanguage()
@@ -42,6 +43,7 @@ export function OwnerInstitutionsPage() {
 
   return (
     <div>
+      <OrgPackagesEditor />
       <div className="mb-5 font-heading text-xl font-bold text-navy">{t('oInst.title')}</div>
       {isLoading && <LoadingState />}
       {data && data.length === 0 && <EmptyState title={t('oInst.empty')} />}

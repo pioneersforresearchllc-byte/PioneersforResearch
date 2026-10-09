@@ -7,6 +7,7 @@ import { useLanguage } from '@/lib/i18n'
 import { listServices, submitServiceRequest } from '@/lib/services'
 import { fetchSiteContent, resolveWhatsapp } from '@/lib/content'
 import { getLeadSource, leadSourceLine } from '@/lib/attribution'
+import { resolveOrgPackages } from '@/lib/orgPackages'
 
 /**
  * "Get a quote" wizard. Prices are quoted per request, so instead of a price
@@ -37,12 +38,14 @@ export function QuotePage() {
   // instead of academic stage. Always sent as a contact message / WhatsApp, never a service request.
   const [audience, setAudience] = useState<'individual' | 'institution'>(params.get('for') === 'institution' ? 'institution' : 'individual')
   const isOrg = audience === 'institution'
+  // The owner-editable packages from /institutions come first (id "pkg:<id>"), then general engagement types.
   const ORG_SERVICES = [
-    { id: 'org-inhouse', label: tx('تدريب داخلي لمنسوبي الجهة', 'In-house staff training') },
+    ...resolveOrgPackages(content)
+      .filter((p) => p.active)
+      .map((p) => ({ id: `pkg:${p.id}`, label: `${tx('باقة', 'Package')}: ${ar ? p.name_ar : p.name_en || p.name_ar}` })),
     { id: 'org-custom', label: tx('برنامج تدريبي مخصّص', 'Custom training program') },
     { id: 'org-partner', label: tx('شراكة مع مركز تدريب', 'Training-center partnership') },
     { id: 'org-consult', label: tx('استشارات بحثية مؤسسية', 'Institutional research consulting') },
-    { id: 'org-pilot', label: tx('ورشة تجريبية قصيرة', 'Short pilot workshop') },
     { id: 'other', label: tx('غير متأكد / أخرى', 'Not sure / other') },
   ]
   const ORG_TYPES = ar
@@ -58,8 +61,14 @@ export function QuotePage() {
   const [step, setStep] = useState(0)
   // Selected service id, or 'other' for "not sure / other".
   const [service, setService] = useState('')
+  // /quote?for=institution&package=<id> (from a package card) pre-selects that package.
+  useEffect(() => {
+    const pkg = params.get('package')
+    if (pkg && isOrg && !service) setService(`pkg:${pkg}`)
+  }, [params, isOrg, service])
   // /quote?service=<slug> (from a service page) pre-selects that service.
   useEffect(() => {
+    if (isOrg) return
     const slug = params.get('service')
     if (!slug || service || !services) return
     const match = services.find((s) => s.slug === slug)

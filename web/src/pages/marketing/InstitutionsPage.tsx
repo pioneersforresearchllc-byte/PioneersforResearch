@@ -1,9 +1,188 @@
+import { useEffect, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import { useDocumentMeta } from '@/lib/useDocumentMeta'
 import { fetchSiteContent, resolveWhatsapp } from '@/lib/content'
 import { Reveal } from '@/components/Reveal'
+import { featureLines, pkgText, resolveOrgPackages, type OrgPackage } from '@/lib/orgPackages'
+
+type Tx = (a: string, e: string) => string
+
+function CheckItem({ children }: { children: ReactNode }) {
+  return (
+    <li className="flex items-start gap-2 text-[13.5px] leading-6 text-muted-2">
+      <svg className="mt-1 shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c9a24b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M5 12l5 5L20 7" />
+      </svg>
+      <span>{children}</span>
+    </li>
+  )
+}
+
+function PackageHeader({ p, index, ar, tx }: { p: OrgPackage; index: number; ar: boolean; tx: Tx }) {
+  return (
+    <div className={`px-5 pb-4 pt-5 text-white ${p.featured ? 'bg-gradient-to-br from-navy to-[#14335c]' : 'bg-navy'}`}>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="font-heading text-[13px] font-bold tracking-[2px] text-gold" dir="ltr">
+          {String(index + 1).padStart(2, '0')}
+        </span>
+        {p.featured && <span className="rounded-full bg-gold px-2.5 py-0.5 text-[11px] font-bold text-navy">{tx('الأكثر طلبًا', 'Most requested')}</span>}
+      </div>
+      <h3 className="font-heading text-[19px] font-bold">{pkgText(p, 'name', ar)}</h3>
+      {pkgText(p, 'duration', ar) && (
+        <div className="mt-1.5 flex items-center gap-1.5 text-[13px] text-white/75">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3 2" />
+          </svg>
+          {pkgText(p, 'duration', ar)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PriceBox({ p, ar, tx }: { p: OrgPackage; ar: boolean; tx: Tx }) {
+  return (
+    <div className="mb-4 rounded-xl bg-bg-soft px-4 py-3 text-center">
+      {p.price_from ? (
+        <>
+          <div className="text-[11.5px] text-muted">{tx('يبدأ من', 'Starting from')}</div>
+          <div className="font-heading text-[20px] font-bold text-navy">
+            {p.price_from.toLocaleString(ar ? 'ar-SA' : 'en-US')} <span className="text-[13px] font-semibold">{tx('ر.س', 'SAR')}</span>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="text-[11.5px] text-muted">{tx('التسعير', 'Pricing')}</div>
+          <div className="text-[15px] font-bold text-navy">{tx('حسب احتياج الجهة', 'Tailored to your needs')}</div>
+        </>
+      )}
+    </div>
+  )
+}
+
+/** One titled list block inside the details window; hidden when the owner left it empty. */
+function DetailSection({ icon, title, text, tone = 'plain' }: { icon: string; title: string; text: string; tone?: 'plain' | 'navy' | 'gold' }) {
+  const items = featureLines(text)
+  if (items.length === 0) return null
+  const box = tone === 'navy' ? 'bg-navy/[0.04] border-navy/10' : tone === 'gold' ? 'bg-gold/[0.07] border-gold/30' : 'bg-white border-border'
+  return (
+    <section className={`rounded-2xl border p-5 ${box}`}>
+      <h4 className="mb-3 flex items-center gap-2 text-[15.5px] font-bold text-navy">
+        <span aria-hidden className="text-[18px]">{icon}</span>
+        {title}
+      </h4>
+      <ul className="flex flex-col gap-2">
+        {items.map((f) => (
+          <CheckItem key={f}>{f}</CheckItem>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+function PackageDetails({ p, index, ar, tx, quoteTo, onClose }: { p: OrgPackage; index: number; ar: boolean; tx: Tx; quoteTo: string; onClose: () => void }) {
+  // Esc closes; lock page scroll behind the window.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prev
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [onClose])
+
+  const facts = [
+    { k: tx('المدة', 'Duration'), v: pkgText(p, 'duration', ar) },
+    { k: tx('طريقة التقديم', 'Delivery'), v: pkgText(p, 'format', ar) },
+    { k: tx('عدد المتدربين', 'Group size'), v: pkgText(p, 'capacity', ar) },
+    { k: tx('التسعير', 'Pricing'), v: p.price_from ? `${tx('يبدأ من', 'From')} ${p.price_from.toLocaleString(ar ? 'ar-SA' : 'en-US')} ${tx('ر.س', 'SAR')}` : tx('حسب احتياج الجهة', 'Tailored') },
+  ].filter((f) => f.v)
+
+  // Portal to <body>: the page-transition wrapper's transform would otherwise trap
+  // this fixed overlay beneath the sticky site header.
+  return createPortal(
+    <div dir={ar ? 'rtl' : 'ltr'} className="fixed inset-0 z-50 flex items-end justify-center bg-[#0a1c34]/60 p-0 backdrop-blur-[2px] sm:items-center sm:p-4" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={pkgText(p, 'name', ar)}
+        onClick={(e) => e.stopPropagation()}
+        className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
+      >
+        {/* Header */}
+        <div className="relative shrink-0 bg-gradient-to-br from-navy to-[#14335c] px-6 pb-6 pt-6 text-white md:px-8">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={tx('إغلاق', 'Close')}
+            className="absolute top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-[16px] text-white hover:bg-white/20 ltr:right-4 rtl:left-4"
+          >
+            ✕
+          </button>
+          <div className="mb-1 flex items-center gap-2">
+            <span className="font-heading text-[13px] font-bold tracking-[2px] text-gold" dir="ltr">
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            {p.featured && <span className="rounded-full bg-gold px-2.5 py-0.5 text-[11px] font-bold text-navy">{tx('الأكثر طلبًا', 'Most requested')}</span>}
+          </div>
+          <h3 className="font-heading text-[24px] font-bold md:text-[28px]">{pkgText(p, 'name', ar)}</h3>
+          {pkgText(p, 'audience', ar) && <p className="mt-1 text-[14px] text-white/70">{pkgText(p, 'audience', ar)}</p>}
+          {facts.length > 0 && (
+            <dl className="mt-5 grid grid-cols-2 gap-2.5 md:grid-cols-4">
+              {facts.map((f) => (
+                <div key={f.k} className="rounded-xl bg-white/[0.07] px-3.5 py-2.5">
+                  <dt className="text-[11.5px] text-white/55">{f.k}</dt>
+                  <dd className="mt-0.5 text-[13.5px] font-semibold leading-5">{f.v}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-6 py-6 md:px-8">
+          {pkgText(p, 'description', ar) && (
+            <div className="mb-5">
+              <h4 className="mb-2 text-[13px] font-semibold tracking-[1.5px] text-accent">{tx('نبذة عن الباقة', 'OVERVIEW')}</h4>
+              <p className="text-[15px] leading-8 text-muted-2">{pkgText(p, 'description', ar)}</p>
+            </div>
+          )}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <DetailSection icon="📚" title={tx('ما يشمله البرنامج', 'What’s included')} text={pkgText(p, 'features', ar)} />
+            <DetailSection icon="📦" title={tx('المخرجات والتسليمات', 'Deliverables')} text={pkgText(p, 'deliverables', ar)} />
+            <DetailSection icon="🤝" title={tx('التزاماتنا', 'Our commitments')} text={pkgText(p, 'our_commitments', ar)} tone="navy" />
+            <DetailSection icon="🏥" title={tx('التزامات الجهة', 'Your commitments')} text={pkgText(p, 'client_commitments', ar)} tone="navy" />
+          </div>
+          <div className="mt-4">
+            <DetailSection icon="📄" title={tx('الشروط والأحكام', 'Terms & conditions')} text={pkgText(p, 'terms', ar)} tone="gold" />
+          </div>
+          <p className="mt-4 text-[12px] leading-6 text-muted">
+            {tx('تخضع جميع التعاقدات لـ', 'All engagements are subject to our ')}
+            <Link to="/terms" target="_blank" className="font-semibold text-navy">
+              {tx('الشروط والأحكام العامة', 'general Terms')}
+            </Link>
+            {tx('، وتُحدَّد التفاصيل النهائية في عرض السعر الرسمي.', '; final details are set in the formal quote.')}
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div className="flex shrink-0 flex-col gap-2 border-t border-border bg-bg-soft px-6 py-4 sm:flex-row sm:items-center sm:justify-between md:px-8">
+          <span className="text-[13px] text-muted">{tx('يمكن تخصيص الباقة بالكامل حسب احتياجكم.', 'This package can be fully tailored to your needs.')}</span>
+          <Link to={quoteTo} className="rounded-full bg-gold px-7 py-2.5 text-center text-[14.5px] font-bold text-navy no-underline hover:bg-gold/85">
+            {tx('اطلب عرض سعر لهذه الباقة', 'Request a quote for this package')}
+          </Link>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  )
+}
 
 /**
  * Public landing page for organisations (hospitals, medical research centers,
@@ -18,6 +197,8 @@ export function InstitutionsPage() {
   const tx = (a: string, e: string) => (ar ? a : e)
   const { data: content } = useQuery({ queryKey: ['site-content'], queryFn: fetchSiteContent })
   const wa = resolveWhatsapp(content)
+  const packages = resolveOrgPackages(content).filter((p) => p.active)
+  const [openPkg, setOpenPkg] = useState<OrgPackage | null>(null)
   useDocumentMeta(
     'للمؤسسات والجهات الصحية | Pioneers Health Research',
     'برامج تدريب واستشارات في البحث العلمي الصحي مصمّمة للمستشفيات ومراكز الأبحاث والجامعات ومراكز التدريب في المملكة.',
@@ -161,8 +342,70 @@ export function InstitutionsPage() {
         </div>
       </div>
 
+      {/* Program packages (owner-editable) */}
+      {packages.length > 0 && (
+        <div id="packages" className="mx-auto max-w-6xl px-4 py-14 md:px-8 md:py-20">
+          <Reveal>
+            <div className="mb-3 text-center text-[13px] font-semibold tracking-[2px] text-accent">{tx('الباقات', 'PACKAGES')}</div>
+            <h2 className="font-heading mb-3 text-center text-2xl font-bold text-navy md:text-[30px]">{tx('باقات البرامج المؤسسية', 'Institutional program packages')}</h2>
+            <p className="mx-auto mb-10 max-w-2xl text-center text-[15px] leading-8 text-muted">
+              {tx('نماذج جاهزة تساعدكم على تحديد حجم التعاون، ويمكن تخصيص أي باقة بالكامل حسب احتياج جهتكم.', 'Ready-made formats to help you scope the engagement — any package can be fully tailored to your needs.')}
+            </p>
+          </Reveal>
+          <div className={`grid grid-cols-1 gap-5 sm:grid-cols-2 ${packages.length >= 4 ? 'lg:grid-cols-4' : packages.length === 3 ? 'lg:grid-cols-3' : ''}`}>
+            {packages.map((p, i) => (
+              <Reveal
+                key={p.id}
+                className={`relative flex flex-col overflow-hidden rounded-2xl border bg-white ${p.featured ? 'border-gold shadow-[0_18px_40px_-22px_rgba(201,162,75,0.75)]' : 'border-border shadow-[0_10px_30px_-22px_rgba(11,31,58,0.35)]'}`}
+              >
+                <PackageHeader p={p} index={i} ar={ar} tx={tx} />
+                <div className="flex flex-1 flex-col p-5">
+                  <p className="mb-4 border-b border-border pb-4 text-[13.5px] leading-7 text-muted">{pkgText(p, 'audience', ar)}</p>
+                  <ul className="mb-5 flex flex-1 flex-col gap-2.5">
+                    {featureLines(pkgText(p, 'features', ar))
+                      .slice(0, 4)
+                      .map((f) => (
+                        <CheckItem key={f}>{f}</CheckItem>
+                      ))}
+                  </ul>
+                  <PriceBox p={p} ar={ar} tx={tx} />
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setOpenPkg(p)}
+                      className="rounded-lg border border-navy py-2.5 text-center text-[14px] font-bold text-navy transition-colors hover:bg-navy hover:text-white"
+                    >
+                      {tx('تفاصيل الباقة', 'Package details')}
+                    </button>
+                    <Link
+                      to={`${quoteLink}&package=${encodeURIComponent(p.id)}`}
+                      className={`rounded-lg py-2.5 text-center text-[14px] font-bold no-underline transition-colors ${p.featured ? 'bg-gold text-navy hover:bg-gold/85' : 'bg-navy text-white hover:bg-navy-hover'}`}
+                    >
+                      {tx('اطلب عرض سعر', 'Request a quote')}
+                    </Link>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <p className="mt-6 text-center text-[12.5px] leading-6 text-muted">
+            {tx('تصدر عروض الأسعار بشكل رسمي باسم الجهة، وتشمل محاور البرنامج والجدول الزمني وآلية التقييم.', 'Quotes are issued formally in your organization’s name, including program outline, schedule and assessment method.')}
+          </p>
+        </div>
+      )}
+      {openPkg && (
+        <PackageDetails
+          p={openPkg}
+          index={packages.findIndex((x) => x.id === openPkg.id)}
+          ar={ar}
+          tx={tx}
+          quoteTo={`${quoteLink}&package=${encodeURIComponent(openPkg.id)}`}
+          onClose={() => setOpenPkg(null)}
+        />
+      )}
+
       {/* Health sector track */}
-      <div id="health" className="mx-auto max-w-6xl px-4 py-14 md:px-8 md:py-20">
+      <div id="health" className="mx-auto max-w-6xl border-t border-border px-4 py-14 md:px-8 md:py-20">
         <Reveal>
           <div className="mb-3 text-center text-[13px] font-semibold tracking-[2px] text-accent">{tx('القطاع الصحي', 'HEALTH SECTOR')}</div>
           <h2 className="font-heading mb-3 text-center text-2xl font-bold text-navy md:text-[30px]">{tx('برامج البحث الطبي', 'Medical research programs')}</h2>
