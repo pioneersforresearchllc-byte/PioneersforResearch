@@ -241,11 +241,14 @@ export function ServiceDetailPage() {
       </Link>
 
       <div className="mx-auto max-w-160">
-        {/* HEADER — image, title, description, credentials */}
+        {/* HEADER — formal navy band (no image: service images carried Arabic-only text), description, credentials */}
         <div className="mb-8 overflow-hidden rounded-3xl border border-border bg-white shadow-[0_20px_50px_-30px_rgba(11,31,58,0.45)]">
-          {service.image_url && <img src={service.image_url} alt="" className="aspect-[2.4] w-full object-cover" />}
+          <div className="relative overflow-hidden bg-gradient-to-br from-navy to-[#14335c] px-6 py-7 text-white md:px-8 md:py-9">
+            <div className="pointer-events-none absolute -top-16 h-48 w-48 rounded-full bg-gold/15 blur-[70px] ltr:right-0 rtl:left-0" />
+            <div className="relative mb-2 text-[12.5px] font-semibold tracking-[2px] text-gold">{lang === 'ar' ? 'خدمة بحثية' : 'RESEARCH SERVICE'}</div>
+            <h1 className="font-heading relative text-[24px] font-bold leading-[1.5] md:text-[30px]">{title}</h1>
+          </div>
           <div className="p-6 md:p-8">
-            <h1 className="font-heading mb-3 text-[24px] font-bold leading-[1.5] text-navy md:text-[30px]">{title}</h1>
             <p className="mb-5 whitespace-pre-line text-[15.5px] leading-[2] text-muted-2">{description}</p>
             <div className="flex flex-wrap gap-2">
               {(lang === 'ar'

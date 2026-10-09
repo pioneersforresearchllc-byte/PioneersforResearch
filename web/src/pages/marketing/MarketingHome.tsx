@@ -8,7 +8,6 @@ import { useContentText } from '@/lib/content'
 import { listServices, type Service } from '@/lib/services'
 import { listTeamMembers } from '@/lib/team'
 import { Reveal } from '@/components/Reveal'
-import { Carousel3D } from '@/components/Carousel3D'
 import { leadSourceLine } from '@/lib/attribution'
 import {
   ConsultCta,
@@ -260,61 +259,63 @@ export function ServicesSection() {
         <h2 className="font-heading text-2xl font-bold md:text-[30px]">{ct('home.services.title')}</h2>
       </div>
       {services && services.length > 0 ? (
-        <Carousel3D
-          items={services}
-          getKey={(s) => s.id}
-          renderItem={(s, active) => {
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {services.map((s, i) => {
             const info = s.hide_price ? null : priceInfo(s)
             const discounted = info && info.original != null && info.original > info.price
             const pct = discounted ? Math.round((1 - info!.price / info!.original!) * 100) : 0
             return (
-              <div
-                className={`group flex h-[500px] flex-col overflow-hidden rounded-[18px] border bg-white transition-shadow duration-500 md:h-[520px] ${
-                  active
-                    ? 'border-navy/20 shadow-[0_30px_60px_-20px_rgba(11,31,58,0.45)]'
-                    : 'border-border shadow-[0_12px_30px_-16px_rgba(11,31,58,0.3)]'
-                }`}
+              <Reveal
+                key={s.id}
+                className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-white shadow-[0_10px_30px_-22px_rgba(11,31,58,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-navy/40 hover:shadow-[0_18px_40px_-20px_rgba(11,31,58,0.4)]"
               >
-                <div className="relative">
-                  {s.image_url ? (
-                    <img src={s.image_url} className="aspect-[1.9] w-full object-cover transition-transform duration-500 group-hover:scale-105" alt="" />
-                  ) : (
-                    <div className="flex aspect-[1.9] w-full items-center justify-center bg-gradient-to-br from-[#14335c] to-[#1f8a5b] text-[38px] transition-transform duration-500 group-hover:scale-105">
-                      🧩
-                    </div>
-                  )}
-                  {discounted && (
-                    <span className="absolute end-3 top-3 rounded-full bg-gold px-2.5 py-1 text-[11px] font-bold text-white shadow-md">
-                      −{pct}%
+                {/* Formal header (no image — service images carried Arabic-only text). */}
+                <div className="bg-navy px-5 pb-4 pt-5 text-white">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <span className="font-heading text-[13px] font-bold tracking-[2px] text-gold" dir="ltr">
+                      {String(i + 1).padStart(2, '0')}
                     </span>
-                  )}
+                    {discounted && <span className="rounded-full bg-gold px-2.5 py-0.5 text-[11px] font-bold text-navy">−{pct}%</span>}
+                  </div>
+                  <h3 className="font-heading text-[18px] font-bold leading-snug">{lang === 'en' ? s.title_en || s.title : s.title}</h3>
                 </div>
-                <div className="flex flex-1 flex-col p-7">
-                  <h3 className="mb-3 text-lg font-semibold text-navy">{lang === 'en' ? s.title_en || s.title : s.title}</h3>
-                  <p className="mb-4 line-clamp-5 flex-1 text-[14.5px] leading-[1.9] text-muted">
-                    {lang === 'en' ? s.description_en || s.description : s.description}
-                  </p>
-                  {s.hide_price ? (
-                    <div className="mb-4 text-[13px] font-medium text-muted">{t('home.services.onRequest')}</div>
-                  ) : info ? (
-                    <div className="mb-4 flex items-baseline gap-2">
-                      {info.from && <span className="text-[12.5px] text-muted">{t('home.services.from')}</span>}
-                      {discounted && <span className="text-[13px] text-faint line-through">{formatSar(info.original!, t)}</span>}
-                      <span className="text-[17px] font-bold text-navy">{formatSar(info.price, t)}</span>
-                    </div>
-                  ) : null}
-                  <Link
-                    to={`/service/${s.slug}`}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-navy py-2.75 text-center text-[13.5px] font-semibold text-white no-underline transition-colors hover:bg-navy-hover"
-                  >
-                    {t('home.services.cta')}
-                    <span className="transition-transform duration-200 group-hover:translate-x-1 rtl:group-hover:-translate-x-1">←</span>
-                  </Link>
+                <div className="flex flex-1 flex-col p-5">
+                  <p className="mb-4 line-clamp-4 flex-1 text-[14px] leading-7 text-muted">{lang === 'en' ? s.description_en || s.description : s.description}</p>
+                  <div className="mb-4 rounded-xl bg-bg-soft px-4 py-3 text-center">
+                    {info ? (
+                      <>
+                        <div className="text-[11.5px] text-muted">{info.from ? t('home.services.from') : lang === 'ar' ? 'السعر' : 'Price'}</div>
+                        <div className="flex items-baseline justify-center gap-2">
+                          {discounted && <span className="text-[13px] text-faint line-through">{formatSar(info.original!, t)}</span>}
+                          <span className="font-heading text-[18px] font-bold text-navy">{formatSar(info.price, t)}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-[11.5px] text-muted">{lang === 'ar' ? 'التسعير' : 'Pricing'}</div>
+                        <div className="text-[14.5px] font-bold text-navy">{t('home.services.onRequest')}</div>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Link
+                      to={`/service/${s.slug}`}
+                      className="rounded-lg bg-navy py-2.5 text-center text-[14px] font-bold text-white no-underline transition-colors hover:bg-navy-hover"
+                    >
+                      {t('home.services.cta')}
+                    </Link>
+                    <Link
+                      to={`/quote?service=${encodeURIComponent(s.slug)}`}
+                      className="rounded-lg border border-navy py-2.5 text-center text-[14px] font-bold text-navy no-underline transition-colors hover:bg-navy hover:text-white"
+                    >
+                      {lang === 'ar' ? 'اطلب عرض سعر' : 'Request a quote'}
+                    </Link>
+                  </div>
                 </div>
-              </div>
+              </Reveal>
             )
-          }}
-        />
+          })}
+        </div>
       ) : (
         <div className="text-center text-[14.5px] text-faint">{t('home.services.empty')}</div>
       )}
