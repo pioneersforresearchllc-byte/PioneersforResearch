@@ -70,17 +70,28 @@ export function ServiceChat({ requestId }: { requestId: string }) {
 
   const list = messages ?? []
 
+  // Be honest about who reads this thread: the client, the assigned expert
+  // and the Pioneers admin team.
+  const ar = lang === 'ar'
+  const isStudent = profile?.role === 'student'
+  const hint = isStudent
+    ? ar ? 'مع فريق Pioneers — مشرفك والإدارة' : 'With the Pioneers team — your mentor and the admin'
+    : ar ? 'بين العميل والخبير والإدارة' : 'Client, expert and admin'
+  const emptyText = isStudent
+    ? ar ? 'اكتب سؤالك أو ملاحظتك هنا 👋' : 'Write your question or note here 👋'
+    : ar ? 'ابدأ المحادثة مع العميل 👋' : 'Start the conversation with the client 👋'
+
   return (
     <div className="rounded-xl border border-border bg-white">
       <div className="flex items-center gap-2 border-b border-border-2 px-4 py-2.5">
         <span className="text-[14px] font-bold text-navy">💬 {t('workspace.chat')}</span>
-        <span className="text-[11.5px] text-faint">{t('workspace.chatHint')}</span>
+        <span className="text-[11.5px] text-faint">{hint}</span>
       </div>
 
       <div ref={scrollRef} className="flex max-h-80 min-h-[9rem] flex-col gap-2 overflow-y-auto px-3.5 py-3">
         {isLoading && <div className="text-[13px] text-muted">…</div>}
         {!isLoading && list.length === 0 && (
-          <div className="my-auto text-center text-[12.5px] text-faint">{t('workspace.chatEmpty')}</div>
+          <div className="my-auto text-center text-[12.5px] text-faint">{emptyText}</div>
         )}
         {list.map((m: ServiceMessage) => (
           <Bubble
