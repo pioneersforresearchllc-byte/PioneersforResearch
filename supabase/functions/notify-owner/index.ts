@@ -52,11 +52,14 @@ const SUBJECTS: Record<string, string> = {
   receipt: 'Payment receipt to confirm',
   review: 'New review to approve',
   site_error: 'ALERT - a customer hit an error',
+  assigned: 'A new request was assigned to you',
+  work_done: 'Work finished - issue the final invoice',
+  contact_flag: 'ALERT - contact details shared in chat',
 }
 
 // Sources the public can trigger: at most one alert per window, so a burst
 // of errors (or someone spamming the table) can't flood the owner's inbox.
-const THROTTLE_MS: Record<string, number> = { site_error: 10 * 60 * 1000 }
+const THROTTLE_MS: Record<string, number> = { site_error: 10 * 60 * 1000, contact_flag: 10 * 60 * 1000 }
 
 const SITE_ERROR_AREAS: Record<string, string> = {
   signup_otp: 'إرسال رمز التحقق عند التسجيل',
@@ -74,7 +77,50 @@ interface Alert {
   path: string
 }
 
-const SOURCES: Record<string, { table: string; freshCol: string; build: (r: Row) => Alert | null }> = {
+interface Source {
+  table: string
+  freshCol: string
+  build: (r: Row) => Alert | null
+  /** Alert this one user instead of the owners (e.g. the assigned expert). */
+  recipient?: (r: Row) => string | null
+  /** Once-only ledger key; defaults to the source name. */
+  ledger?: (r: Row) => string
+}
+
+const SOURCES: Record<string, Source> = {
+  assigned: {
+    table: 'service_requests',
+    freshCol: 'assigned_at',
+    recipient: (r) => (r.assigned_teacher_id as string | null) ?? null,
+    // A re-assignment to someone else is a new alert for them.
+    ledger: (r) => `assigned:${r.assigned_teacher_id}`,
+    build: (r) => ({
+      title: '🗂️ طلب جديد مُسند إليك',
+      body: `${r.subject || r.full_name || ''}`.trim() || 'افتح الطلب لمعرفة التفاصيل',
+      path: '/teacher/assigned',
+    }),
+  },
+  work_done: {
+    table: 'service_requests',
+    freshCol: 'work_done_at',
+    build: (r) =>
+      r.assigned_teacher_id
+        ? {
+            title: '✅ الخبير أنهى العمل — أصدر الفاتورة النهائية',
+            body: `${r.full_name || ''} — ${r.subject || ''}`.trim(),
+            path: '/owner/service-requests',
+          }
+        : null,
+  },
+  contact_flag: {
+    table: 'contact_flags',
+    freshCol: 'created_at',
+    build: (r) => ({
+      title: r.masked ? '🚫 محاولة مشاركة وسيلة تواصل في المحادثة (تم حجبها)' : '⚠️ كلام عن التواصل خارج المنصة',
+      body: `${r._sender_name || 'مستخدم'}: ${String(r.original || '').replace(/\s+/g, ' ').slice(0, 160)}`,
+      path: r.source === 'service_messages' ? '/owner/service-requests' : '/owner/messages',
+    }),
+  },
   service_request: {
     table: 'service_requests',
     freshCol: 'created_at',
@@ -153,6 +199,10 @@ Deno.serve(async (req) => {
   if (!row) return json({ skipped: 'not found' })
   const fresh = row[src.freshCol] ? Date.now() - new Date(String(row[src.freshCol])).getTime() < FRESH_MS : false
   if (!fresh) return json({ skipped: 'not fresh' })
+  if (body.source === 'contact_flag' && row.user_id) {
+    const { data: sender } = await admin.from('profiles').select('name, role').eq('id', row.user_id).maybeSingle()
+    row._sender_name = sender ? `${sender.name} (${sender.role === 'teacher' ? 'خبير' : 'طالب'})` : ''
+  }
   const alert = src.build(row)
   if (!alert) return json({ skipped: 'not applicable' })
 
@@ -169,12 +219,19 @@ Deno.serve(async (req) => {
   // Once-only: the ledger insert wins exactly once per (source, row).
   const { data: claimed } = await admin
     .from('owner_alerts')
-    .upsert({ source: body.source, row_id: body.id }, { onConflict: 'source,row_id', ignoreDuplicates: true })
+    .upsert({ source: src.ledger ? src.ledger(row) : body.source, row_id: body.id }, { onConflict: 'source,row_id', ignoreDuplicates: true })
     .select('row_id')
   if (!claimed || claimed.length === 0) return json({ skipped: 'already alerted' })
 
-  const { data: owners } = await admin.from('profiles').select('id').eq('role', 'owner')
-  const ownerIds = (owners ?? []).map((o) => o.id as string)
+  let ownerIds: string[]
+  if (src.recipient) {
+    const one = src.recipient(row)
+    if (!one) return json({ skipped: 'no recipient' })
+    ownerIds = [one]
+  } else {
+    const { data: owners } = await admin.from('profiles').select('id').eq('role', 'owner')
+    ownerIds = (owners ?? []).map((o) => o.id as string)
+  }
   if (ownerIds.length === 0) return json({ skipped: 'no owners' })
 
   const result = { inApp: 0, push: 0, email: 0 }

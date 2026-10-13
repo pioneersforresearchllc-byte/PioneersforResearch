@@ -15,6 +15,8 @@ import { LoadingState } from '@/components/LoadingState'
 import { ServiceWorkspace } from '@/components/ServiceWorkspace'
 import { DeliverablesBox } from '@/components/DeliverablesBox'
 import { STAGE_STYLES as STATUS_STYLES, stageLabel } from '@/lib/requestStages'
+import { listMyPayouts, type MyPayout } from '@/lib/experts'
+import { Price } from '@/components/Riyal'
 
 
 function Field({ label, value }: { label: string; value: string | number | null }) {
@@ -46,8 +48,24 @@ export function TeacherAssignedRequestsPage() {
     queryFn: () => listAssignedRequests(profile!.id),
   })
 
+  const [actionError, setActionError] = useState('')
+  const { data: payouts } = useQuery({
+    queryKey: ['my-payouts', profile?.id],
+    enabled: !!profile,
+    queryFn: () => listMyPayouts(profile!.id),
+  })
+
   const setStatus = async (id: string, status: RequestStatus) => {
-    await updateRequestStatus(id, status)
+    setActionError('')
+    try {
+      await updateRequestStatus(id, status)
+    } catch {
+      setActionError(
+        lang === 'ar'
+          ? 'تعذّر تحديث حالة الطلب — حاول مرة أخرى، وإن تكرر تواصل مع الإدارة.'
+          : 'Could not update the request — try again or contact the admin.',
+      )
+    }
     void queryClient.invalidateQueries({ queryKey: ['assigned-requests', profile?.id] })
   }
 
@@ -68,6 +86,13 @@ export function TeacherAssignedRequestsPage() {
     <div>
       <div className="mb-1.5 font-heading text-xl font-bold text-navy">{t('assignedRequests.title')}</div>
       <div className="mb-5 text-[13.5px] text-muted">{t('assignedRequests.subtitle')}</div>
+
+      <div className="mb-4 rounded-lg border border-gold/40 bg-gold/[0.07] px-3.5 py-2.5 text-[12.5px] leading-6 text-navy">
+        {lang === 'ar'
+          ? '🔒 كل التواصل مع العملاء يتم داخل المنصة فقط (المحادثة والحصص والملفات). أرقام الجوال والإيميلات والروابط الخارجية تُحجب تلقائيًا، وأي تواصل خارجها مخالف لاتفاقية العمل.'
+          : '🔒 All contact with clients stays on the platform (chat, sessions, files). Phone numbers, emails and outside links are hidden automatically; contact outside it breaches your agreement.'}
+      </div>
+      {actionError && <div className="mb-3 rounded-lg bg-error-bg px-3.5 py-2.5 text-[13px] text-error">{actionError}</div>}
 
       {isLoading && <LoadingState />}
       {requests && list.length === 0 && <EmptyState title={t('assignedRequests.empty')} />}
@@ -123,6 +148,7 @@ export function TeacherAssignedRequestsPage() {
                 onBack={() => setSelectedId(null)}
                 onStatus={setStatus}
                 onOpenFile={openFile}
+                payout={payouts?.find((p) => p.request_id === selected.id) ?? null}
               />
             ) : (
               <div className="flex h-full min-h-[280px] items-center justify-center rounded-xl border border-dashed border-border bg-white p-8 text-center text-[13.5px] text-faint">
@@ -145,6 +171,7 @@ function StudentDetail({
   onBack,
   onStatus,
   onOpenFile,
+  payout,
 }: {
   r: ServiceRequestRow
   t: TFn
@@ -152,7 +179,9 @@ function StudentDetail({
   onBack: () => void
   onStatus: (id: string, s: RequestStatus) => void
   onOpenFile: (path: string) => void
+  payout: MyPayout | null
 }) {
+  const { lang } = useLanguage()
   return (
     <div className="rounded-xl border border-border bg-white p-5">
       <button onClick={onBack} className="mb-3 text-[12.5px] font-semibold text-accent hover:underline lg:hidden">
@@ -172,6 +201,16 @@ function StudentDetail({
           {statusLabel(r.status)}
         </span>
       </div>
+
+      {payout && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg bg-gold/[0.08] px-3 py-2 text-[13px] text-navy">
+          <span>💼 {lang === 'ar' ? 'مستحقاتك من هذا الطلب:' : 'Your payout:'}</span>
+          <Price cents={payout.amount_cents} locale={lang === 'ar' ? 'ar-SA' : 'en-US'} className="font-bold" />
+          <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${payout.paid_at ? 'bg-success-bg text-success' : 'bg-gold/20 text-accent'}`}>
+            {payout.paid_at ? (lang === 'ar' ? 'تم الصرف' : 'Paid') : lang === 'ar' ? 'تُصرف بعد اكتمال الطلب' : 'Paid after completion'}
+          </span>
+        </div>
+      )}
 
       <div className="mb-3 grid grid-cols-1 gap-1.5 text-[13px] sm:grid-cols-2">
         <Field label={t('adminRequests.deliveryBy')} value={r.delivery_date} />

@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { triggerPush } from '@/lib/push'
+import { myChatContactIds } from '@/lib/experts'
 import type { UserRole } from '@/types/profile'
 import type {
   AttachmentKind,
@@ -30,6 +31,12 @@ export async function searchEligibleUsers(myRole: UserRole, query: string): Prom
     .limit(20)
   if (query.trim()) {
     q = q.or(`name.ilike.%${query.trim()}%,username.ilike.%${query.trim()}%`)
+  }
+  // Teachers and students only see the people they actually work with
+  // (the database enforces the same rule — migration 0077).
+  if (myRole === 'teacher' || myRole === 'student') {
+    const allowed = await myChatContactIds()
+    if (allowed) q = q.in('id', allowed.length ? allowed : ['00000000-0000-0000-0000-000000000000'])
   }
   const { data, error } = await q
   if (error) throw error

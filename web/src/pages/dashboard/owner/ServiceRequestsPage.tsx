@@ -24,6 +24,8 @@ import {
 } from '@/lib/services'
 import { STAGE_ICONS, STAGE_ORDER, STAGE_STYLES, stageLabel, stageTab } from '@/lib/requestStages'
 import { DeliverablesBox } from '@/components/DeliverablesBox'
+import { ACTIVE_STAGES, listExpertProfiles, listPayouts, markPayoutPaid, setPayout, type ExpertProfile, type RequestPayout } from '@/lib/experts'
+import { AI_BOT_USERNAME } from '@/lib/chat'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
 
@@ -252,6 +254,113 @@ function NoteBox({ r, onSaved }: { r: ServiceRequestRow; onSaved: () => void }) 
   )
 }
 
+/** What the assigned expert earns from this request, and paying it out. */
+function PayoutPanel({
+  r,
+  payout,
+  expert,
+  onChanged,
+}: {
+  r: ServiceRequestRow
+  payout: RequestPayout | null
+  expert: ExpertProfile | null
+  onChanged: () => void
+}) {
+  const { lang } = useLanguage()
+  const tx = (a: string, e: string) => (lang === 'ar' ? a : e)
+  const price = r.agreed_price_cents ?? r.final_price_cents ?? r.packagePriceCents ?? null
+  const share = expert?.share_percent ?? 50
+  const suggested = price != null ? Math.round((price * share) / 100) : null
+  const [amount, setAmount] = useState(payout ? String(payout.amount_cents / 100) : suggested != null ? String(suggested / 100) : '')
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+  const stale = payout && payout.teacher_id !== r.assigned_teacher_id
+
+  const save = async () => {
+    const cents = Math.round(Number(amount) * 100)
+    if (!Number.isFinite(cents) || cents < 0) return setMsg(tx('أدخل مبلغًا صحيحًا.', 'Enter a valid amount.'))
+    setBusy(true)
+    setMsg('')
+    try {
+      await setPayout(r.id, r.assigned_teacher_id!, cents)
+      onChanged()
+    } catch {
+      setMsg(tx('تعذّر الحفظ — تأكد من تشغيل ملف قاعدة البيانات 0077.', 'Could not save — run migration 0077.'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const pay = async () => {
+    if (!payout) return
+    if (!confirm(tx(`تأكيد صرف ${payout.amount_cents / 100} ريال للخبير؟ سيُسجَّل تلقائيًا كمصروف «مستحقات المدرّبين».`, `Confirm paying ${payout.amount_cents / 100} SAR? It will be recorded as a trainer-fees expense.`)))
+      return
+    setBusy(true)
+    setMsg('')
+    try {
+      await markPayoutPaid(r.id)
+      onChanged()
+    } catch {
+      setMsg(tx('تعذّر تسجيل الصرف.', 'Could not record the payout.'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="mb-3 rounded-lg border border-gold/40 bg-gold/[0.06] p-3">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <span className="text-[12.5px] font-bold text-navy">💼 {tx('مستحقات الخبير', 'Expert payout')}</span>
+        {payout?.paid_at ? (
+          <span className="rounded-full bg-success-bg px-2.5 py-0.5 text-[11.5px] font-semibold text-success">
+            ✓ {tx('تم الصرف', 'Paid')} · {new Date(payout.paid_at).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}
+          </span>
+        ) : payout ? (
+          <span className="rounded-full bg-gold/20 px-2.5 py-0.5 text-[11.5px] font-semibold text-accent">{tx('لم تُصرف بعد', 'Not paid yet')}</span>
+        ) : null}
+      </div>
+      {payout?.paid_at ? (
+        <div className="text-[13px] text-navy">
+          <Price cents={payout.amount_cents} locale={lang === 'ar' ? 'ar-SA' : 'en-US'} />
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="text-[11.5px] font-semibold text-muted">
+            {tx('المبلغ (ريال)', 'Amount (SAR)')}
+            <input
+              type="number"
+              min={0}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="mt-1 block w-32 rounded-md border border-border bg-white px-2.5 py-1.5 text-[13px] text-navy"
+            />
+          </label>
+          <button onClick={() => void save()} disabled={busy} className="rounded-md bg-navy px-3.5 py-1.5 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-60">
+            {payout ? tx('تحديث', 'Update') : tx('حفظ', 'Save')}
+          </button>
+          {payout && !stale && (
+            <button
+              onClick={() => void pay()}
+              disabled={busy || r.status !== 'done'}
+              title={r.status !== 'done' ? tx('يُصرف بعد اكتمال الطلب ودفع العميل', 'Pay once the request is done and paid') : ''}
+              className="rounded-md bg-success px-3.5 py-1.5 text-[12.5px] font-semibold text-white hover:opacity-90 disabled:opacity-40"
+            >
+              {tx('تم صرف المستحقات', 'Mark paid')}
+            </button>
+          )}
+          {suggested != null && (
+            <span className="text-[11.5px] text-muted">
+              {tx(`المقترح: ${share}% من السعر = ${suggested / 100} ريال`, `Suggested: ${share}% of price = ${suggested / 100} SAR`)}
+            </span>
+          )}
+        </div>
+      )}
+      {stale && <div className="mt-1.5 text-[12px] text-error">{tx('تغيّر الخبير المسند — احفظ المبلغ من جديد ليُنسب للخبير الحالي.', 'The expert changed — save again to attribute it to the current expert.')}</div>}
+      {msg && <div className="mt-1.5 text-[12px] text-error">{msg}</div>}
+    </div>
+  )
+}
+
 export function OwnerServiceRequestsPage() {
   const { t, lang } = useLanguage()
   const tx = (a: string, e: string) => (lang === 'ar' ? a : e)
@@ -264,6 +373,20 @@ export function OwnerServiceRequestsPage() {
     queryFn: () => listRequestInvoices(ids),
   })
   const { data: teachers } = useQuery({ queryKey: ['active-teachers'], queryFn: listActiveTeachers })
+  const { data: experts } = useQuery({ queryKey: ['expert-profiles'], queryFn: listExpertProfiles })
+  const { data: payouts } = useQuery({
+    queryKey: ['request-payouts', ids],
+    enabled: ids.length > 0,
+    queryFn: () => listPayouts(ids),
+  })
+  // Experts who deliver this service first, then the least busy.
+  const rankExperts = (serviceId: string) => {
+    const activeCount = (id: string) => (requests ?? []).filter((x) => x.assigned_teacher_id === id && ACTIVE_STAGES.includes(x.status)).length
+    return (teachers ?? [])
+      .filter((tt) => tt.username !== AI_BOT_USERNAME)
+      .map((tt) => ({ tt, match: !!experts?.[tt.id]?.service_ids.includes(serviceId), active: activeCount(tt.id) }))
+      .sort((a, b) => Number(b.match) - Number(a.match) || a.active - b.active || a.tt.name.localeCompare(b.tt.name))
+  }
   const [tab, setTab] = useState<RequestStatus | 'all'>('all')
   const [q, setQ] = useState('')
   const [openId, setOpenId] = useState<string | null>(null)
@@ -469,13 +592,18 @@ export function OwnerServiceRequestsPage() {
                       {t('adminRequests.assignee')}
                       <select
                         value={r.assigned_teacher_id ?? ''}
-                        onChange={(e) => void assignRequestTeacher(r.id, e.target.value || null).then(refresh)}
-                        className="mt-1 block w-48 rounded-md border border-border bg-white px-2.5 py-1.5 text-[13px] text-navy"
+                        onChange={(e) =>
+                          void assignRequestTeacher(r.id, e.target.value || null)
+                            .then(refresh)
+                            .catch(() => setError(tx('تعذّر إسناد الطلب — حاول مرة أخرى.', 'Could not assign — try again.')))
+                        }
+                        className="mt-1 block w-64 rounded-md border border-border bg-white px-2.5 py-1.5 text-[13px] text-navy"
                       >
                         <option value="">{t('adminRequests.unassigned')}</option>
-                        {(teachers ?? []).map((tt) => (
+                        {rankExperts(r.service_id).map(({ tt, match, active }) => (
                           <option key={tt.id} value={tt.id}>
-                            {tt.name}
+                            {match ? '⭐ ' : ''}
+                            {tt.name} · {tx(`${active} نشط`, `${active} active`)}
                           </option>
                         ))}
                       </select>
@@ -495,6 +623,16 @@ export function OwnerServiceRequestsPage() {
                       </select>
                     </label>
                   </div>
+
+                  {r.assigned_teacher_id && (
+                    <PayoutPanel
+                      key={`${r.id}-${r.assigned_teacher_id}-${payouts?.[r.id]?.amount_cents ?? 'none'}`}
+                      r={r}
+                      payout={payouts?.[r.id] ?? null}
+                      expert={experts?.[r.assigned_teacher_id] ?? null}
+                      onChanged={() => void queryClient.invalidateQueries({ queryKey: ['request-payouts'] })}
+                    />
+                  )}
 
                   {r.deposit_percent !== undefined && <DeliverablesBox requestId={r.id} manage locked={!m.settled} />}
 
