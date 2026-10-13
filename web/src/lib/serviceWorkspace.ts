@@ -125,7 +125,9 @@ export interface MyServiceWorkspace {
 }
 
 // The student's active service subscriptions — anything they've paid for.
-const ACTIVE_STATUSES = ['paid', 'in_progress', 'done']
+// Everything except cancelled: before payment the student already talks to the
+// admin here, and 'awaiting_final' must stay visible while the final payment is due.
+const ACTIVE_STATUSES = ['pending', 'negotiating', 'awaiting_deposit', 'awaiting_payment', 'paid', 'in_progress', 'awaiting_final', 'done']
 
 export async function listMyServiceWorkspaces(userId: string): Promise<MyServiceWorkspace[]> {
   const { data, error } = await supabase

@@ -5,19 +5,16 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { getServicesActivity, listMyServiceWorkspaces } from '@/lib/serviceWorkspace'
 import { ServiceWorkspace } from '@/components/ServiceWorkspace'
+import { ServiceChat } from '@/components/ServiceChat'
+import { isPaidPhase, type RequestStatus } from '@/lib/services'
+import { STAGE_STYLES, stageLabel } from '@/lib/requestStages'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
 import { buttonClasses } from '@/components/ui/Button'
 
-const STATUS_STYLE: Record<string, string> = {
-  paid: 'bg-success/10 text-success',
-  in_progress: 'bg-accent/10 text-accent',
-  done: 'bg-success/10 text-success',
-}
-
 export function StudentServicesPage() {
   const { profile } = useAuth()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const { data, isLoading } = useQuery({
     queryKey: ['my-service-workspaces', profile?.id],
     queryFn: () => listMyServiceWorkspaces(profile!.id),
@@ -64,8 +61,8 @@ export function StudentServicesPage() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-heading text-[15px] font-bold text-navy">{s.serviceTitle}</span>
-                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${STATUS_STYLE[s.status] ?? 'bg-bg-soft text-muted'}`}>
-                      {t(`myRequests.status.${s.status}` as 'myRequests.status.paid')}
+                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${STAGE_STYLES[s.status as RequestStatus] ?? 'bg-bg-soft text-muted'}`}>
+                      {stageLabel(s.status as RequestStatus, lang)}
                     </span>
                   </div>
                   <div className="mt-1 truncate text-[12.5px] text-muted">
@@ -92,7 +89,19 @@ export function StudentServicesPage() {
 
               {isOpen && (
                 <div className="border-t border-border-2 bg-bg-soft/40 p-4">
-                  <ServiceWorkspace requestId={s.id} manage={false} isStudent />
+                  {isPaidPhase(s.status as RequestStatus) ? (
+                    <ServiceWorkspace requestId={s.id} manage={false} isStudent />
+                  ) : (
+                    // Before payment there's no expert yet — the chat goes to the admin.
+                    <>
+                      <div className="mb-3 rounded-lg bg-gold/[0.08] px-3.5 py-2.5 text-[12.5px] text-navy">
+                        {lang === 'ar'
+                          ? 'طلبك قيد المراجعة — تواصل مع الإدارة هنا بخصوص التفاصيل والسعر، وبعد الدفع يُسند لك خبير وتُفتح مساحة العمل كاملة.'
+                          : 'Your request is being reviewed — talk to the admin here about details and price. After payment an expert is assigned and the full workspace opens.'}
+                      </div>
+                      <ServiceChat requestId={s.id} />
+                    </>
+                  )}
                 </div>
               )}
             </div>

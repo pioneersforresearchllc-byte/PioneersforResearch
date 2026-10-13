@@ -137,7 +137,21 @@ export async function markConversationRead(conversationId: string, userId: strin
   if (error) throw error
 }
 
-export async function findOrCreateDm(myUserId: string, otherUserId: string): Promise<string> {
+// Concurrent calls for the same pair share one promise — two at once (e.g.
+// React's double-mount) used to create two DMs, and from then on the lookup
+// below matched several rows and kept creating more.
+const dmInFlight = new Map<string, Promise<string>>()
+
+export function findOrCreateDm(myUserId: string, otherUserId: string): Promise<string> {
+  const key = [myUserId, otherUserId].sort().join(':')
+  const pending = dmInFlight.get(key)
+  if (pending) return pending
+  const p = findOrCreateDmOnce(myUserId, otherUserId).finally(() => dmInFlight.delete(key))
+  dmInFlight.set(key, p)
+  return p
+}
+
+async function findOrCreateDmOnce(myUserId: string, otherUserId: string): Promise<string> {
   const { data: mine } = await supabase.from('conversation_members').select('conversation_id').eq('user_id', myUserId)
   const { data: theirs } = await supabase
     .from('conversation_members')
@@ -146,13 +160,15 @@ export async function findOrCreateDm(myUserId: string, otherUserId: string): Pro
   const shared = new Set((mine ?? []).map((m) => m.conversation_id))
   const commonIds = (theirs ?? []).map((m) => m.conversation_id).filter((id) => shared.has(id))
   if (commonIds.length > 0) {
-    const { data: dm } = await supabase
+    // Oldest DM wins, even if duplicates already exist.
+    const { data: dms } = await supabase
       .from('conversations')
       .select('id')
       .in('id', commonIds)
       .eq('type', 'dm')
-      .maybeSingle()
-    if (dm) return dm.id
+      .order('created_at', { ascending: true })
+      .limit(1)
+    if (dms?.[0]) return dms[0].id
   }
 
   const { data: conv, error: convErr } = await supabase
@@ -170,6 +186,20 @@ export async function findOrCreateDm(myUserId: string, otherUserId: string): Pro
     ])
   if (memErr) throw memErr
   return conv.id
+}
+
+/** The admin account students and experts reach for support (username 'admin', else the first owner). */
+async function supportOwnerId(): Promise<string | null> {
+  const { data } = await supabase.from('profiles').select('id, username').eq('role', 'owner').order('created_at', { ascending: true })
+  const owners = data ?? []
+  return (owners.find((o) => o.username === 'admin') ?? owners[0])?.id ?? null
+}
+
+/** Makes sure every student/expert has a DM with the admin, pinned in their list. */
+export async function ensureSupportConversation(myUserId: string): Promise<string | null> {
+  const ownerId = await supportOwnerId()
+  if (!ownerId || ownerId === myUserId) return null
+  return findOrCreateDm(myUserId, ownerId)
 }
 
 export async function createGroup(creatorId: string, name: string, memberIds: string[]): Promise<string> {

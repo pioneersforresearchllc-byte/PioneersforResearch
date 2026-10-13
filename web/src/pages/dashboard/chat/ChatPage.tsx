@@ -11,6 +11,7 @@ import { MessageComposer } from '@/pages/dashboard/chat/MessageComposer'
 import { NewConversationModal } from '@/pages/dashboard/chat/NewConversationModal'
 import { GroupInfoPanel } from '@/pages/dashboard/chat/GroupInfoPanel'
 import {
+  ensureSupportConversation,
   listConversations,
   listMessages,
   markConversationRead,
@@ -46,6 +47,14 @@ export function ChatPage() {
       void queryClient.invalidateQueries({ queryKey: ['conversations', myUserId] })
     })
   }, [myUserId, queryClient])
+
+  // Students and experts always have the admin pinned to reach support.
+  useEffect(() => {
+    if (!myUserId || myRole === 'owner') return
+    void ensureSupportConversation(myUserId)
+      .then(() => queryClient.invalidateQueries({ queryKey: ['conversations', myUserId] }))
+      .catch(() => undefined)
+  }, [myUserId, myRole, queryClient])
 
   useEffect(() => {
     if (!activeId) {

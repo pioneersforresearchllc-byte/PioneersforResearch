@@ -26,8 +26,6 @@ function previewFor(c: ConversationSummary, t: TranslateFn) {
   return m.text ?? ''
 }
 
-const AI_BOT_USERNAME = 'ai-assistant'
-
 export function ConversationList({ conversations, activeId, onSelect, onStartNew, loading }: ConversationListProps) {
   const { t } = useLanguage()
   const [search, setSearch] = useState('')
@@ -35,12 +33,12 @@ export function ConversationList({ conversations, activeId, onSelect, onStartNew
   const filtered = useMemo(() => {
     const q = search.trim()
     const base = q ? conversations.filter((c) => labelFor(c, t).includes(q)) : conversations
-    // The AI assistant always sits at the top, regardless of last-message
-    // recency — it's meant to be reachable without hunting for it.
+    // The admin (support) DM always sits at the top, regardless of
+    // last-message recency — it's meant to be reachable without hunting for it.
     return [...base].sort((a, b) => {
-      const aIsBot = a.otherMember?.username === AI_BOT_USERNAME ? 1 : 0
-      const bIsBot = b.otherMember?.username === AI_BOT_USERNAME ? 1 : 0
-      return bIsBot - aIsBot
+      const aIsAdmin = a.otherMember?.role === 'owner' ? 1 : 0
+      const bIsAdmin = b.otherMember?.role === 'owner' ? 1 : 0
+      return bIsAdmin - aIsAdmin
     })
   }, [conversations, search, t])
 

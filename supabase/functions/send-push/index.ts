@@ -265,11 +265,22 @@ async function resolve(
     const callerIsStudent = caller.id === studentId
     const callerIsManager = caller.id === teacherId || caller.role === 'owner'
     if (!callerIsStudent && !callerIsManager) return null
-    // Student writes → notify the teacher. Teacher/owner writes → notify student.
-    const recipient = callerIsStudent ? teacherId : studentId
-    if (!recipient) return null
+    // Student writes → notify the teacher (or the admins while no teacher is
+    // assigned yet). Teacher/owner writes → notify student.
+    let recipients: string[]
+    if (callerIsStudent) {
+      if (teacherId) {
+        recipients = [teacherId]
+      } else {
+        const { data: owners } = await admin.from('profiles').select('id').eq('role', 'owner')
+        recipients = (owners ?? []).map((o) => o.id as string)
+      }
+    } else {
+      recipients = [studentId]
+    }
+    if (recipients.length === 0) return null
     return {
-      userIds: [recipient],
+      userIds: recipients,
       title: '💬 رسالة جديدة في الخدمة — Pioneers',
       body: `${caller.name}: أرسل لك رسالة في محادثة الخدمة.`,
       urlFor: servicePathForRole,

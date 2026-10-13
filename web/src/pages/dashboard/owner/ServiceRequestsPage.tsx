@@ -24,6 +24,7 @@ import {
 } from '@/lib/services'
 import { STAGE_ICONS, STAGE_ORDER, STAGE_STYLES, stageLabel, stageTab } from '@/lib/requestStages'
 import { DeliverablesBox } from '@/components/DeliverablesBox'
+import { ServiceWorkspace } from '@/components/ServiceWorkspace'
 import { ACTIVE_STAGES, listExpertProfiles, listPayouts, markPayoutPaid, setPayout, type ExpertProfile, type RequestPayout } from '@/lib/experts'
 import { AI_BOT_USERNAME } from '@/lib/chat'
 import { EmptyState } from '@/components/EmptyState'
@@ -635,6 +636,18 @@ export function OwnerServiceRequestsPage() {
                   )}
 
                   {r.deposit_percent !== undefined && <DeliverablesBox requestId={r.id} manage locked={!m.settled} />}
+
+                  {/* The same workspace the student and expert see: you can follow
+                      the conversation, sessions and tasks, and step in. */}
+                  <div className="mt-4 border-t border-border-2 pt-4">
+                    <div className="mb-1 text-[13.5px] font-bold text-navy">💬 {tx('المحادثة ومساحة العمل', 'Conversation & workspace')}</div>
+                    <div className="mb-3 text-[12px] text-muted">
+                      {r.assigned_teacher_id
+                        ? tx('ما تكتبه هنا يصل للعميل وللخبير المسند.', 'What you write here reaches the client and the assigned expert.')
+                        : tx('لا يوجد خبير مسند بعد — المحادثة الآن بينك وبين العميل.', 'No expert yet — this conversation is between you and the client.')}
+                    </div>
+                    <ServiceWorkspace requestId={r.id} manage isStudent={false} />
+                  </div>
 
                   <NoteBox key={`${r.id}-${r.owner_note ?? ''}`} r={r} onSaved={refresh} />
 
