@@ -38,19 +38,9 @@ export async function searchEligibleUsers(myRole: UserRole, query: string): Prom
     const allowed = await myChatContactIds()
     if (allowed) q = q.in('id', allowed.length ? allowed : ['00000000-0000-0000-0000-000000000000'])
   }
-  const { data, error } = await q
+  const { data, error } = await q.neq('username', AI_BOT_USERNAME)
   if (error) throw error
-  const results = (data ?? []) as ChatProfile[]
-
-  // The AI assistant is reachable by everyone regardless of the normal
-  // role-search restrictions above (it's not a real teacher/student).
-  if (!results.some((r) => r.username === AI_BOT_USERNAME)) {
-    const { data: bot } = await supabase.from('profiles').select(PROFILE_COLS).eq('username', AI_BOT_USERNAME).maybeSingle()
-    if (bot && (!query.trim() || bot.name.includes(query) || bot.username.includes(query))) {
-      results.unshift(bot as ChatProfile)
-    }
-  }
-  return results
+  return (data ?? []) as ChatProfile[]
 }
 
 async function membersForConversations(conversationIds: string[]): Promise<ConversationMember[]> {
@@ -118,12 +108,14 @@ export async function listConversations(myUserId: string): Promise<ConversationS
     }),
   )
 
-  summaries.sort((a, b) => {
+  // The AI assistant was retired — hide its old conversations.
+  const visible = summaries.filter((s) => s.otherMember?.username !== AI_BOT_USERNAME)
+  visible.sort((a, b) => {
     const at = a.lastMessage?.created_at ?? a.created_at
     const bt = b.lastMessage?.created_at ?? b.created_at
     return bt.localeCompare(at)
   })
-  return summaries
+  return visible
 }
 
 export async function listMessages(conversationId: string): Promise<Message[]> {
@@ -178,15 +170,6 @@ export async function findOrCreateDm(myUserId: string, otherUserId: string): Pro
     ])
   if (memErr) throw memErr
   return conv.id
-}
-
-// Ensures the AI assistant DM exists for this user (creating it silently on
-// first call) so it's always pinned in their conversation list instead of
-// something they have to search for.
-export async function ensureAiBotConversation(myUserId: string): Promise<string | null> {
-  const { data: bot } = await supabase.from('profiles').select('id').eq('username', AI_BOT_USERNAME).maybeSingle()
-  if (!bot) return null
-  return findOrCreateDm(myUserId, bot.id)
 }
 
 export async function createGroup(creatorId: string, name: string, memberIds: string[]): Promise<string> {
@@ -302,25 +285,10 @@ export async function sendMessage(params: {
 
   // Fire-and-forget: if the AI assistant is in this conversation, ask it to
   // reply. Never blocks the sender's own message from showing immediately.
-  void maybeTriggerAiReply(params.conversationId)
-
   // Fire-and-forget push to the other participant(s) (send-push resolves who).
   triggerPush('chat', params.conversationId)
 
   return data as Message
-}
-
-async function maybeTriggerAiReply(conversationId: string) {
-  const { data: bot } = await supabase.from('profiles').select('id').eq('username', AI_BOT_USERNAME).maybeSingle()
-  if (!bot) return
-  const { data: isBotMember } = await supabase
-    .from('conversation_members')
-    .select('user_id')
-    .eq('conversation_id', conversationId)
-    .eq('user_id', bot.id)
-    .maybeSingle()
-  if (!isBotMember) return
-  await supabase.functions.invoke('ai-bot-reply', { body: { conversationId } })
 }
 
 export const EDIT_WINDOW_MS = 15 * 60 * 1000
