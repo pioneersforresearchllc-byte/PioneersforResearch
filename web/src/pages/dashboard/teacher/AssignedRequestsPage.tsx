@@ -13,15 +13,9 @@ import {
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
 import { ServiceWorkspace } from '@/components/ServiceWorkspace'
+import { DeliverablesBox } from '@/components/DeliverablesBox'
+import { STAGE_STYLES as STATUS_STYLES, stageLabel } from '@/lib/requestStages'
 
-const STATUS_STYLES: Record<RequestStatus, string> = {
-  pending: 'bg-bg-soft text-muted',
-  awaiting_payment: 'bg-gold/15 text-gold',
-  paid: 'bg-success/10 text-success',
-  in_progress: 'bg-accent/10 text-accent',
-  done: 'bg-success/10 text-success',
-  cancelled: 'bg-bg-soft text-muted',
-}
 
 function Field({ label, value }: { label: string; value: string | number | null }) {
   if (value === null || value === '' || value === undefined) return null
@@ -41,7 +35,7 @@ function initials(name: string): string {
 
 export function TeacherAssignedRequestsPage() {
   const { profile } = useAuth()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const queryClient = useQueryClient()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
@@ -62,18 +56,7 @@ export function TeacherAssignedRequestsPage() {
     if (url) window.open(url, '_blank')
   }
 
-  const statusLabel = (s: RequestStatus) =>
-    s === 'pending'
-      ? t('adminRequests.status.pending')
-      : s === 'awaiting_payment'
-        ? t('adminRequests.status.awaiting_payment')
-        : s === 'paid'
-          ? t('adminRequests.status.paid')
-          : s === 'in_progress'
-            ? t('adminRequests.status.in_progress')
-            : s === 'done'
-              ? t('adminRequests.status.done')
-              : t('adminRequests.status.cancelled')
+  const statusLabel = (s: RequestStatus) => stageLabel(s, lang)
 
   const list = requests ?? []
   const filtered = query.trim()
@@ -245,16 +228,22 @@ function StudentDetail({
         </button>
       )}
       {r.status === 'in_progress' && (
-        <button onClick={() => onStatus(r.id, 'done')} className="rounded-md bg-navy px-4 py-2 text-[12.5px] font-semibold text-white hover:bg-navy-hover">
+        // With an agreed price the student still owes the final payment, so the
+        // work goes to "awaiting final payment" (files stay locked) — not done.
+        <button
+          onClick={() => onStatus(r.id, r.agreed_price_cents != null ? 'awaiting_final' : 'done')}
+          className="rounded-md bg-navy px-4 py-2 text-[12.5px] font-semibold text-white hover:bg-navy-hover"
+        >
           {t('assignedRequests.markDone')}
         </button>
       )}
-      {(r.status === 'pending' || r.status === 'awaiting_payment') && (
+      {(r.status === 'pending' || r.status === 'negotiating' || r.status === 'awaiting_deposit' || r.status === 'awaiting_payment') && (
         <div className="text-[12.5px] text-muted">{t('assignedRequests.waitingPayment')}</div>
       )}
 
       {isPaidPhase(r.status) && (
         <div className="mt-4 border-t border-border-2 pt-4">
+          {r.deposit_percent !== undefined && <DeliverablesBox requestId={r.id} manage locked={false} />}
           <ServiceWorkspace requestId={r.id} manage isStudent={false} />
         </div>
       )}

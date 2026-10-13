@@ -1,15 +1,27 @@
 import { useLanguage } from '@/lib/i18n'
 import type { RequestStatus } from '@/lib/services'
 
-/** Visual progress of a service request: received → quote → in work → delivered. */
+const STEP_OF: Record<RequestStatus, number> = {
+  pending: 0,
+  negotiating: 1,
+  awaiting_deposit: 2,
+  awaiting_payment: 2,
+  paid: 3,
+  in_progress: 3,
+  awaiting_final: 4,
+  done: 5,
+  cancelled: 0,
+}
+
+/** Visual progress: received → agreement → deposit → in work → final payment → delivered. */
 export function RequestStepper({ status }: { status: RequestStatus }) {
   const { lang } = useLanguage()
   if (status === 'cancelled') return null
   const steps =
     lang === 'ar'
-      ? ['استلمنا طلبك', 'عرض السعر', 'قيد التنفيذ', 'تم التسليم']
-      : ['Received', 'Quote', 'In progress', 'Delivered']
-  const current = status === 'pending' ? 0 : status === 'awaiting_payment' ? 1 : status === 'done' ? 3 : 2
+      ? ['استلمنا طلبك', 'الاتفاق', 'الدفعة المقدمة', 'قيد التنفيذ', 'الدفعة النهائية', 'تم التسليم']
+      : ['Received', 'Agreement', 'Deposit', 'In progress', 'Final payment', 'Delivered']
+  const current = STEP_OF[status]
   return (
     <ol className="my-4 flex items-start">
       {steps.map((s, i) => {

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
+import { STAGE_STYLES as STATUS_STYLES, stageLabel } from '@/lib/requestStages'
 import { getOverviewStats } from '@/lib/owner'
 import { getOwnerAttention } from '@/lib/attention'
 import { listServiceRequests, type RequestStatus } from '@/lib/services'
@@ -39,14 +40,6 @@ const ATTENTION_LABELS: Record<string, { ar: string; en: string; icon: string }>
   reviews: { ar: 'آراء عملاء تنتظر الموافقة', en: 'Reviews awaiting approval', icon: '⭐' },
 }
 
-const STATUS_STYLES: Record<RequestStatus, string> = {
-  pending: 'bg-gold/15 text-accent',
-  awaiting_payment: 'bg-gold/15 text-gold',
-  paid: 'bg-success/10 text-success',
-  in_progress: 'bg-accent/10 text-accent',
-  done: 'bg-success/10 text-success',
-  cancelled: 'bg-bg-soft text-muted',
-}
 
 export function OwnerOverviewPage() {
   const { t, lang } = useLanguage()
@@ -92,7 +85,7 @@ export function OwnerOverviewPage() {
 
   const latest = (requests ?? []).slice(0, 5)
   const unread = (messages ?? []).filter((m) => !m.read).slice(0, 3)
-  const statusLabel = (s: RequestStatus) => t(`myRequests.status.${s}` as 'myRequests.status.pending')
+  const statusLabel = (s: RequestStatus) => stageLabel(s, lang)
 
   return (
     <div>

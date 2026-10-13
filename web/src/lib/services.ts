@@ -158,12 +158,26 @@ export async function submitServiceRequest(input: ServiceRequestInput) {
   if (error) throw error
 }
 
-export type RequestStatus = 'pending' | 'awaiting_payment' | 'paid' | 'in_progress' | 'done' | 'cancelled'
+export type RequestStatus =
+  | 'pending'
+  | 'negotiating'
+  | 'awaiting_deposit'
+  | 'awaiting_payment'
+  | 'paid'
+  | 'in_progress'
+  | 'awaiting_final'
+  | 'done'
+  | 'cancelled'
 
 export interface ServiceRequestRow extends ServiceRequestInput {
   id: string
   status: RequestStatus
   final_price_cents: number | null
+  // Added by migration 0075 — undefined until it runs.
+  agreed_price_cents?: number | null
+  deposit_percent?: number
+  owner_note?: string | null
+  deliverables_unlocked?: boolean
   assigned_teacher_id: string | null
   student_unseen: boolean
   created_at: string
@@ -181,7 +195,14 @@ export interface ServiceRequestRow extends ServiceRequestInput {
  * policy in migration 0024 so the UI hides the button the DB would reject.
  */
 export function canDeleteRequest(status: RequestStatus): boolean {
-  return status === 'pending' || status === 'awaiting_payment' || status === 'cancelled' || status === 'done'
+  return (
+    status === 'pending' ||
+    status === 'negotiating' ||
+    status === 'awaiting_deposit' ||
+    status === 'awaiting_payment' ||
+    status === 'cancelled' ||
+    status === 'done'
+  )
 }
 
 /**
@@ -191,7 +212,126 @@ export function canDeleteRequest(status: RequestStatus): boolean {
  * to a pre-payment stage.
  */
 export function isPaidPhase(status: RequestStatus): boolean {
-  return status === 'paid' || status === 'in_progress' || status === 'done'
+  return status === 'paid' || status === 'in_progress' || status === 'awaiting_final' || status === 'done'
+}
+
+// ── Deal, deposit & final payment (migration 0075) ─────────────────────────
+
+/** A bank-transfer invoice issued against a request. */
+export interface RequestInvoice {
+  id: string
+  service_request_id: string
+  kind: 'deposit' | 'final' | 'other'
+  title: string
+  amount_cents: number
+  status: 'unpaid' | 'submitted' | 'paid' | 'cancelled'
+  created_at: string
+  paid_at: string | null
+}
+
+/** Invoices linked to these requests, grouped by request. Empty before 0075. */
+export async function listRequestInvoices(requestIds: string[]): Promise<Record<string, RequestInvoice[]>> {
+  if (requestIds.length === 0) return {}
+  const { data, error } = await supabase
+    .from('student_invoices')
+    .select('id, service_request_id, kind, title, amount_cents, status, created_at, paid_at')
+    .in('service_request_id', requestIds)
+    .order('created_at')
+  if (error) return {}
+  const out: Record<string, RequestInvoice[]> = {}
+  for (const r of (data ?? []) as RequestInvoice[]) (out[r.service_request_id] ??= []).push(r)
+  return out
+}
+
+export function moneySummary(r: ServiceRequestRow, invoices: RequestInvoice[] = []) {
+  const live = invoices.filter((i) => i.status !== 'cancelled')
+  const paid = live.filter((i) => i.status === 'paid').reduce((s, i) => s + i.amount_cents, 0)
+  const invoiced = live.reduce((s, i) => s + i.amount_cents, 0)
+  const agreed = r.agreed_price_cents ?? null
+  return {
+    agreed,
+    paid,
+    invoiced,
+    remaining: agreed != null ? Math.max(0, agreed - paid) : null,
+    toInvoice: agreed != null ? Math.max(0, agreed - invoiced) : null,
+    hasDeposit: live.some((i) => i.kind === 'deposit'),
+    settled: !!r.deliverables_unlocked || (agreed != null && paid >= agreed),
+  }
+}
+
+export async function saveRequestDeal(id: string, agreedPriceCents: number | null, depositPercent: number) {
+  const { error } = await supabase
+    .from('service_requests')
+    .update({ agreed_price_cents: agreedPriceCents, deposit_percent: depositPercent })
+    .eq('id', id)
+  if (error) throw error
+}
+
+export async function saveOwnerNote(id: string, note: string) {
+  const { error } = await supabase.from('service_requests').update({ owner_note: note.trim() || null }).eq('id', id)
+  if (error) throw error
+}
+
+export async function setDeliverablesUnlocked(id: string, unlocked: boolean) {
+  const { error } = await supabase.from('service_requests').update({ deliverables_unlocked: unlocked }).eq('id', id)
+  if (error) throw error
+}
+
+/** Issues the deposit or final invoice; the request moves to the matching "awaiting" stage. */
+export async function createRequestInvoice(id: string, kind: 'deposit' | 'final', amountCents: number) {
+  const { error } = await supabase.rpc('admin_create_request_invoice', {
+    p_request: id,
+    p_kind: kind,
+    p_amount_cents: amountCents,
+  })
+  if (error) throw error
+  triggerPush('service_request', id)
+}
+
+// ── Final deliverables (locked until the request is paid in full) ──────────
+
+export interface Deliverable {
+  id: string
+  request_id: string
+  path: string
+  file_name: string
+  created_at: string
+}
+
+export async function listDeliverables(requestId: string): Promise<Deliverable[]> {
+  const { data, error } = await supabase
+    .from('service_deliverables')
+    .select('id, request_id, path, file_name, created_at')
+    .eq('request_id', requestId)
+    .order('created_at', { ascending: false })
+  if (error) return []
+  return (data ?? []) as Deliverable[]
+}
+
+export async function uploadDeliverable(requestId: string, file: File) {
+  // Storage keys must be ASCII — keep the real name in the table instead.
+  const ext = (file.name.split('.').pop() ?? '').replace(/[^\w]/g, '').slice(0, 8)
+  const path = `${requestId}/final/${crypto.randomUUID()}${ext ? `.${ext}` : ''}`
+  const { error: upErr } = await supabase.storage.from('service-files').upload(path, file)
+  if (upErr) throw upErr
+  const { error } = await supabase.from('service_deliverables').insert({ request_id: requestId, path, file_name: file.name })
+  if (error) {
+    await supabase.storage.from('service-files').remove([path])
+    throw error
+  }
+  triggerPush('service_request', requestId)
+}
+
+export async function deleteDeliverable(d: Deliverable) {
+  await supabase.storage.from('service-files').remove([d.path])
+  const { error } = await supabase.from('service_deliverables').delete().eq('id', d.id)
+  if (error) throw error
+}
+
+/** Signed download link, or null when the storage policy refuses (locked). */
+export async function signDeliverable(path: string): Promise<string | null> {
+  const { data } = await supabase.storage.from('service-files').createSignedUrl(path, 60 * 60)
+  return data?.signedUrl ?? null
 }
 
 const REQUEST_SELECT =

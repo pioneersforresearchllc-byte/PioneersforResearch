@@ -36,14 +36,18 @@ export async function listRevenue(): Promise<RevenueLine[]> {
   const [online, invoices, manual, inst] = await Promise.all([
     supabase.from('payments').select('id, amount_cents, created_at, status').eq('status', 'completed'),
     supabase.from('student_invoices').select('id, title, amount_cents, paid_at, created_at, status').eq('status', 'paid'),
-    supabase.from('manual_payments').select('id, description, amount_cents, paid_at'),
+    supabase.from('manual_payments').select('id, description, amount_cents, paid_at, note'),
     supabase.from('institution_invoices').select('id, amount_cents, created_at, status').eq('status', 'paid'),
   ])
   const lines: RevenueLine[] = []
   for (const r of online.data ?? []) lines.push({ id: `p-${r.id}`, date: day(r.created_at as string), source: 'online', description: 'Online payment', amount_cents: r.amount_cents as number })
   for (const r of invoices.data ?? [])
     lines.push({ id: `i-${r.id}`, date: day((r.paid_at as string) || (r.created_at as string)), source: 'invoice', description: r.title as string, amount_cents: r.amount_cents as number })
-  for (const r of manual.data ?? []) lines.push({ id: `m-${r.id}`, date: day(r.paid_at as string), source: 'manual', description: r.description as string, amount_cents: r.amount_cents as number })
+  // Confirming a student invoice also writes a mirror row here (note
+  // 'invoice:<id>'); the invoice itself is already counted above, so skip the
+  // mirror — otherwise every paid invoice counts twice (and deleted test
+  // invoices linger through their mirror).
+  for (const r of (manual.data ?? []).filter((m) => !String(m.note ?? '').startsWith('invoice:'))) lines.push({ id: `m-${r.id}`, date: day(r.paid_at as string), source: 'manual', description: r.description as string, amount_cents: r.amount_cents as number })
   for (const r of inst.data ?? []) lines.push({ id: `n-${r.id}`, date: day(r.created_at as string), source: 'institution', description: 'Institution invoice', amount_cents: r.amount_cents as number })
   return lines.sort((a, b) => b.date.localeCompare(a.date))
 }

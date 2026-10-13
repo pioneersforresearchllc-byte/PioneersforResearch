@@ -1,10 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { Price } from '@/components/Riyal'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
-import { listMyServiceRequests, markMyRequestsSeen, startServiceCheckout, type RequestStatus } from '@/lib/services'
+import {
+  listMyServiceRequests,
+  listRequestInvoices,
+  markMyRequestsSeen,
+  moneySummary,
+  startServiceCheckout,
+  type RequestStatus,
+} from '@/lib/services'
+import { STAGE_STYLES, stageLabel } from '@/lib/requestStages'
+import { DeliverablesBox } from '@/components/DeliverablesBox'
 import { PAYMENTS_ENABLED } from '@/lib/config'
 import { validateDiscount, type DiscountPreview } from '@/lib/discounts'
 import { EmptyState } from '@/components/EmptyState'
@@ -27,18 +36,10 @@ export function MyRequestsRedirect() {
   return <Navigate to={`${base}/requests`} replace />
 }
 
-const STATUS_STYLES: Record<RequestStatus, string> = {
-  pending: 'bg-bg-soft text-muted',
-  awaiting_payment: 'bg-gold/15 text-gold',
-  paid: 'bg-success/10 text-success',
-  in_progress: 'bg-accent/10 text-accent',
-  done: 'bg-success/10 text-success',
-  cancelled: 'bg-bg-soft text-muted',
-}
-
 export function MyRequestsPage() {
   const { profile } = useAuth()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const tx = (a: string, e: string) => (lang === 'ar' ? a : e)
   const queryClient = useQueryClient()
   const [payingId, setPayingId] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -56,6 +57,12 @@ export function MyRequestsPage() {
     enabled: !!profile,
     queryFn: () => listMyServiceRequests(profile!.id),
   })
+  const ids = (requests ?? []).map((r) => r.id)
+  const { data: invoices } = useQuery({
+    queryKey: ['my-request-invoices', ids.join(',')],
+    enabled: ids.length > 0,
+    queryFn: () => listRequestInvoices(ids),
+  })
 
   // Opening the list counts as seeing every development in it: remember which
   // rows were new (for the highlight), then clear the flags so the tab badge
@@ -71,18 +78,8 @@ export function MyRequestsPage() {
     })
   }, [requests, queryClient, profile?.id])
 
-  const statusLabel = (s: RequestStatus) =>
-    s === 'pending'
-      ? t('myRequests.status.pending')
-      : s === 'awaiting_payment'
-        ? t('myRequests.status.awaiting_payment')
-        : s === 'paid'
-          ? t('myRequests.status.paid')
-          : s === 'in_progress'
-            ? t('myRequests.status.in_progress')
-            : s === 'done'
-              ? t('myRequests.status.done')
-              : t('myRequests.status.cancelled')
+  const statusLabel = (s: RequestStatus) => stageLabel(s, lang)
+  const billingPath = profile?.role === 'student' ? '/student/billing' : null
 
   const reasonMsg = (reason?: string) =>
     reason === 'new_users_only'
@@ -161,7 +158,7 @@ export function MyRequestsPage() {
                   {r.packageTitle ? ` · ${r.packageTitle}` : ''}
                 </div>
               </div>
-              <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-semibold ${STATUS_STYLES[r.status]}`}>
+              <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-semibold ${STAGE_STYLES[r.status]}`}>
                 {statusLabel(r.status)}
               </span>
             </div>
@@ -234,7 +231,51 @@ export function MyRequestsPage() {
               </div>
             )}
 
+            {(() => {
+              const m = moneySummary(r, invoices?.[r.id] ?? [])
+              const due = (invoices?.[r.id] ?? []).find((i) => i.status === 'unpaid' || i.status === 'submitted')
+              return (
+                <>
+                  {m.agreed != null && (
+                    <div className="mb-3 rounded-lg bg-bg-soft p-3 text-[13px] text-navy">
+                      <div className="flex flex-wrap gap-x-4 gap-y-1">
+                        <span>
+                          {tx('السعر المتفق عليه', 'Agreed price')}: <b><Price cents={m.agreed} /></b>
+                        </span>
+                        <span>
+                          {tx('المدفوع', 'Paid')}: <b><Price cents={m.paid} /></b>
+                        </span>
+                        <span className={m.remaining ? 'text-accent' : 'text-success'}>
+                          {tx('المتبقي', 'Remaining')}: <b><Price cents={m.remaining ?? 0} /></b>
+                        </span>
+                      </div>
+                      {due && (
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <span>
+                            {due.status === 'submitted'
+                              ? tx('استلمنا إيصالك، وسنؤكده قريبًا.', 'We received your receipt and will confirm it shortly.')
+                              : due.kind === 'deposit'
+                                ? tx('صدرت فاتورة الدفعة المقدمة لبدء العمل.', 'Your deposit invoice is ready, to start the work.')
+                                : tx('صدرت فاتورة الدفعة النهائية لاستلام الملفات.', 'Your final invoice is ready, to receive the files.')}
+                          </span>
+                          {due.status === 'unpaid' && billingPath && (
+                            <Link to={billingPath} className="rounded-md bg-navy px-3.5 py-1.5 text-[12.5px] font-semibold text-white no-underline">
+                              {tx('ادفع الآن', 'Pay now')}
+                            </Link>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {r.deposit_percent !== undefined && <DeliverablesBox requestId={r.id} manage={false} locked={!m.settled} />}
+                </>
+              )
+            })()}
+
             {r.status === 'pending' && <div className="text-[13px] text-muted">{t('myRequests.pendingNote')}</div>}
+            {r.status === 'negotiating' && (
+              <div className="text-[13px] text-muted">{tx('نتواصل معك للاتفاق على التفاصيل والسعر.', 'We’re in touch with you to agree on the details and price.')}</div>
+            )}
             {(r.status === 'paid' || r.status === 'in_progress') && (
               <div className="text-[13px] text-muted">{t('myRequests.paidNote')}</div>
             )}
