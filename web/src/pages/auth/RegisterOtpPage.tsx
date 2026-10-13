@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 import { useAuth } from '@/context/AuthContext'
-import { fnErrorBody, isUsernameConflict, isValidUsername } from '@/lib/authHelpers'
+import { fnErrorBody, isUsernameConflict, isValidUsername, reportSiteError } from '@/lib/authHelpers'
 import { savePhone } from '@/lib/phone'
 import { recordTermsAcceptance } from '@/lib/legal'
 
@@ -17,6 +17,11 @@ interface RegisterOtpState {
   acceptedTerms?: boolean
   successRoute: string
   devCode?: string | null
+}
+
+function userIdOf(state: RegisterOtpState): string | undefined {
+  const id = state.profilePayload.user_id
+  return typeof id === 'string' ? id : undefined
 }
 
 export function RegisterOtpPage() {
@@ -83,6 +88,8 @@ export function RegisterOtpPage() {
           setError(t('registerOtp.usernameTakenPick'))
           return
         }
+        const reason = (profileData as { error?: string } | null)?.error ?? profileErr?.message
+        await reportSiteError('signup_profile', String(reason), state.email, userIdOf(state))
         setError(t('registerOtp.completeError'))
         return
       }
@@ -112,6 +119,7 @@ export function RegisterOtpPage() {
         const minutes = Math.max(1, Math.ceil((Number(body.retryAfterSeconds) || 300) / 60))
         setError(t('registerOtp.rateLimited', { minutes: String(minutes) }))
       } else {
+        await reportSiteError('signup_otp', `resend: ${String(body?.error ?? fnErr.message)}`, state.email, userIdOf(state))
         setError(t('registerOtp.resendError'))
       }
       return

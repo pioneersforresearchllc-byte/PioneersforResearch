@@ -51,6 +51,16 @@ const SUBJECTS: Record<string, string> = {
   application: 'New application',
   receipt: 'Payment receipt to confirm',
   review: 'New review to approve',
+  site_error: 'ALERT - a customer hit an error',
+}
+
+// Sources the public can trigger: at most one alert per window, so a burst
+// of errors (or someone spamming the table) can't flood the owner's inbox.
+const THROTTLE_MS: Record<string, number> = { site_error: 10 * 60 * 1000 }
+
+const SITE_ERROR_AREAS: Record<string, string> = {
+  signup_otp: 'إرسال رمز التحقق عند التسجيل',
+  signup_profile: 'إكمال إنشاء الحساب بعد رمز التحقق',
 }
 
 function json(body: unknown, status = 200) {
@@ -112,6 +122,18 @@ const SOURCES: Record<string, { table: string; freshCol: string; build: (r: Row)
     freshCol: 'created_at',
     build: (r) => ({ title: '⭐ رأي عميل بانتظار الموافقة', body: `${r.name || ''}: ${String(r.body || '').slice(0, 120)}`, path: '/owner/reviews' }),
   },
+  site_error: {
+    table: 'site_errors',
+    freshCol: 'created_at',
+    build: (r) => ({
+      title: '🚨 عميل واجه خطأ في الموقع',
+      body:
+        `${SITE_ERROR_AREAS[String(r.area)] || String(r.area)}` +
+        `${r.email ? ` — ${r.email}` : ''}` +
+        `${r.detail ? `\n${String(r.detail).slice(0, 200)}` : ''}`,
+      path: '/owner/accounts',
+    }),
+  },
 }
 
 Deno.serve(async (req) => {
@@ -133,6 +155,16 @@ Deno.serve(async (req) => {
   if (!fresh) return json({ skipped: 'not fresh' })
   const alert = src.build(row)
   if (!alert) return json({ skipped: 'not applicable' })
+
+  const throttle = THROTTLE_MS[body.source || '']
+  if (throttle) {
+    const { count } = await admin
+      .from('owner_alerts')
+      .select('row_id', { count: 'exact', head: true })
+      .eq('source', body.source)
+      .gt('created_at', new Date(Date.now() - throttle).toISOString())
+    if ((count ?? 0) > 0) return json({ skipped: 'throttled' })
+  }
 
   // Once-only: the ledger insert wins exactly once per (source, row).
   const { data: claimed } = await admin

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { AuthCard, FieldError, PasswordInput, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
-import { clearAbandonedSignup, fnErrorBody, isUsernameTaken, isValidUsername } from '@/lib/authHelpers'
+import { clearAbandonedSignup, isUsernameTaken, isValidUsername, requestSignupOtp } from '@/lib/authHelpers'
 import { AgreeTerms } from '@/components/AgreeTerms'
 import { recordTermsAcceptance } from '@/lib/legal'
 
@@ -145,15 +145,13 @@ export function TeacherApplyPage() {
         cv_file_url: cvFileUrl,
       }
 
-      const { data: otpData, error: otpErr } = await supabase.functions.invoke('send-signup-otp')
-      const otpResult = otpData as { error?: string; autoVerified?: boolean; devCode?: string } | null
-      if (otpErr) {
-        const body = await fnErrorBody(otpErr)
-        setError(t(body?.error === 'invalid_email' ? 'teacherApply.invalidEmail' : 'registerOtp.sendError'))
+      const otpResult = await requestSignupOtp(email.trim(), userId)
+      if (otpResult.kind === 'invalidEmail') {
+        setError(t('teacherApply.invalidEmail'))
         return
       }
 
-      if (otpResult?.autoVerified) {
+      if (otpResult.kind === 'autoVerified') {
         const { data: profileData, error: profileErr } = await supabase.functions.invoke('create-profile', {
           body: profilePayload,
         })
@@ -172,7 +170,7 @@ export function TeacherApplyPage() {
           profilePayload,
           acceptedTerms: true,
           successRoute: '/teacher-pending',
-          devCode: otpResult?.devCode ?? null,
+          devCode: otpResult.kind === 'sent' ? otpResult.devCode : null,
         },
       })
     } finally {

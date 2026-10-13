@@ -79,11 +79,9 @@ async function sendResetEmail(to: string, code: string) {
   } catch {
     return false
   } finally {
-    try {
-      await client.close()
-    } catch {
-      // already closed/never opened — ignore
-    }
+    // Not awaited: denomailer's close() can spin the CPU into the 546 worker
+    // limit AFTER the mail was sent, so the caller would see a failure.
+    void client.close().catch(() => {})
   }
 }
 

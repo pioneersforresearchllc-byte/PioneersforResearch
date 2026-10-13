@@ -17,6 +17,48 @@ export async function fnErrorBody(err: unknown): Promise<Record<string, unknown>
   return null
 }
 
+/**
+ * Tells the owner (email + push + bell, via the site_errors trigger) that a
+ * customer hit an error in a critical flow. Best effort, never throws.
+ */
+export async function reportSiteError(area: string, detail: string, email?: string, userId?: string) {
+  try {
+    await supabase.from('site_errors').insert({
+      area,
+      detail: detail.slice(0, 500),
+      email: email?.slice(0, 200) ?? null,
+      user_id: userId ?? null,
+    })
+  } catch {
+    // reporting must never break the customer's flow
+  }
+}
+
+export type SignupOtpResult =
+  | { kind: 'sent'; devCode: string | null }
+  | { kind: 'autoVerified' }
+  | { kind: 'invalidEmail' }
+  // A code may already be on its way (rate limited / unclear failure) —
+  // send the customer to the code page, where they can also resend.
+  | { kind: 'goToCodePage' }
+
+/** Calls send-signup-otp right after signUp; never leaves the customer at a dead end. */
+export async function requestSignupOtp(email: string, userId: string): Promise<SignupOtpResult> {
+  const { data, error } = await supabase.functions.invoke('send-signup-otp')
+  if (!error) {
+    const result = data as { autoVerified?: boolean; devCode?: string } | null
+    if (result?.autoVerified) return { kind: 'autoVerified' }
+    return { kind: 'sent', devCode: result?.devCode ?? null }
+  }
+  const body = await fnErrorBody(error)
+  if (body?.error === 'invalid_email') return { kind: 'invalidEmail' }
+  if (body?.error !== 'rate_limited') {
+    const status = error instanceof FunctionsHttpError ? (error.context as Response).status : 'network'
+    await reportSiteError('signup_otp', `${status}: ${String(body?.error ?? error.message)}`, email, userId)
+  }
+  return { kind: 'goToCodePage' }
+}
+
 /** Usernames are a login identifier: no spaces, and no '@' (that would be read as an email). */
 export function isValidUsername(username: string): boolean {
   return /^[^\s@]{3,30}$/u.test(username)

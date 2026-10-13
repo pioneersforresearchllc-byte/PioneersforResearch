@@ -11,7 +11,7 @@ import { PhoneField } from '@/components/PhoneField'
 import { normalizePhone, savePhone } from '@/lib/phone'
 import { recordTermsAcceptance } from '@/lib/legal'
 import { AgreeTerms } from '@/components/AgreeTerms'
-import { clearAbandonedSignup, fnErrorBody, isUsernameTaken, isValidUsername } from '@/lib/authHelpers'
+import { clearAbandonedSignup, isUsernameTaken, isValidUsername, requestSignupOtp } from '@/lib/authHelpers'
 
 export function RegisterPage() {
   const navigate = useNavigate()
@@ -113,18 +113,16 @@ export function RegisterPage() {
 
       const profilePayload = { user_id: userId, role: 'student' as const, name: name.trim(), username: username.trim() }
 
-      const { data: otpData, error: otpErr } = await supabase.functions.invoke('send-signup-otp')
-      const otpResult = otpData as { error?: string; autoVerified?: boolean; devCode?: string } | null
-      if (otpErr) {
-        const body = await fnErrorBody(otpErr)
-        setError(t(body?.error === 'invalid_email' ? 'register.invalidEmail' : 'registerOtp.sendError'))
+      const otpResult = await requestSignupOtp(email.trim(), userId)
+      if (otpResult.kind === 'invalidEmail') {
+        setError(t('register.invalidEmail'))
         return
       }
 
-      // Our own email quota was exhausted — the server already verified
+      // Our own email sending failed — the server already verified
       // the domain and auto-approved this signup, so skip straight to
       // creating the profile instead of asking for a code we never sent.
-      if (otpResult?.autoVerified) {
+      if (otpResult.kind === 'autoVerified') {
         const { data: profileData, error: profileErr } = await supabase.functions.invoke('create-profile', {
           body: profilePayload,
         })
@@ -147,7 +145,7 @@ export function RegisterPage() {
           phone,
           acceptedTerms: true,
           successRoute: '/student',
-          devCode: otpResult?.devCode ?? null,
+          devCode: otpResult.kind === 'sent' ? otpResult.devCode : null,
         },
       })
     } finally {

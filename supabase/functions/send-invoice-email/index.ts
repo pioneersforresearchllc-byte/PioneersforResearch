@@ -207,10 +207,8 @@ Deno.serve(async (req) => {
     console.error('send-invoice-email failed', err)
     return json({ error: String(err), sent: false }, 200)
   } finally {
-    try {
-      await client.close()
-    } catch {
-      // ignore
-    }
+    // Not awaited: denomailer's close() can spin the CPU into the 546 worker
+    // limit AFTER the mail was sent, so the caller would see a failure.
+    void client.close().catch(() => {})
   }
 })

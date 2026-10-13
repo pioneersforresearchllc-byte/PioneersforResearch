@@ -93,11 +93,9 @@ async function sendOtpEmail(to: string, code: string): Promise<{ ok: boolean; re
   } catch (err) {
     return { ok: false, reason: String(err) }
   } finally {
-    try {
-      await client.close()
-    } catch {
-      // already closed/never opened — ignore
-    }
+    // Not awaited: denomailer's close() can spin the CPU into the 546 worker
+    // limit AFTER the mail was sent, so the caller would see a failure.
+    void client.close().catch(() => {})
   }
 }
 

@@ -83,7 +83,7 @@ async function handle(req: Request): Promise<Response> {
   const { data: ownerVerified } = await userClient.rpc('is_verified_owner')
   if (!ownerVerified) return json({ error: 'not a verified owner' }, 403)
 
-  let body: { audience?: string; subject?: string; message?: string }
+  let body: { audience?: string; subject?: string; message?: string; kind?: string }
   try {
     body = await req.json()
   } catch {
@@ -98,6 +98,10 @@ async function handle(req: Request): Promise<Response> {
   }
   if (!subject) return json({ error: 'missing subject' }, 400)
   if (!message) return json({ error: 'missing message' }, 400)
+  // 'marketing' = offers/news: only users whose latest recorded choice is
+  // opt-in (consent_events, migration 0074), with an opt-out footer.
+  // 'notice' (default) = service / account / legal notices to everyone.
+  const marketing = body.kind === 'marketing'
 
   const roles = audience === 'all' ? ['student', 'teacher'] : [audience === 'students' ? 'student' : 'teacher']
 
@@ -112,6 +116,15 @@ async function handle(req: Request): Promise<Response> {
   if (profErr) return json({ error: profErr.message }, 500)
 
   const targetIds = new Set((profiles ?? []).map((p) => p.id as string))
+  if (marketing) {
+    const { data: optedIn, error: optErr } = await admin.rpc('marketing_recipient_ids')
+    if (optErr) return json({ error: `marketing consent lookup failed: ${optErr.message}` }, 500)
+    const allowed = new Set(((optedIn ?? []) as unknown[]).map((r) => (typeof r === 'string' ? r : Object.values(r as object)[0]) as string))
+    for (const id of [...targetIds]) if (!allowed.has(id)) targetIds.delete(id)
+  }
+  const footer = marketing
+    ? '\n\n---\nوصلتك هذه الرسالة لأنك وافقت على استلام العروض. لإيقافها: من «حسابي» في المنصة، أو رد على هذه الرسالة بكلمة «إيقاف».\nYou receive this because you opted in to offers. To stop: your account settings, or reply STOP.'
+    : ''
   if (targetIds.size === 0) {
     await recordBroadcast(admin, user.id, audience, subject, message, 0)
     return json({ sent: false, recipientCount: 0, reason: 'no recipients' })
@@ -166,18 +179,16 @@ async function handle(req: Request): Promise<Response> {
         // denomailer mis-folds UTF-8 subjects (the From header slips into the body and
         // Gmail rejects the mail), so a non-ASCII subject moves into the body's first line.
         subject: /^[\x20-\x7E]*$/.test(subject) ? subject : 'Pioneers Health Research - New announcement',
-        content: /^[\x20-\x7E]*$/.test(subject) ? message : `${subject}\n\n${message}`,
+        content: (/^[\x20-\x7E]*$/.test(subject) ? message : `${subject}\n\n${message}`) + footer,
       })
     }
   } finally {
-    try {
-      await client.close()
-    } catch {
-      // already closed / never opened — ignore
-    }
+    // Not awaited: denomailer's close() can spin the CPU into the 546 worker
+    // limit AFTER the mail was sent, so the caller would see a failure.
+    void client.close().catch(() => {})
   }
 
-  await recordBroadcast(admin, user.id, audience, subject, message, recipientCount)
+  await recordBroadcast(admin, user.id, audience, marketing ? `[marketing] ${subject}` : subject, message, recipientCount)
   return json({ sent: true, recipientCount })
 }
 

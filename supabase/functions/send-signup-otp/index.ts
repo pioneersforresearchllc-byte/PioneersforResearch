@@ -29,6 +29,7 @@ const SMTP_USER = Deno.env.get('SMTP_USER')
 const SMTP_PASS = Deno.env.get('SMTP_PASS')
 const SMTP_FROM = Deno.env.get('SMTP_FROM') || SMTP_USER || ''
 const RESEND_COOLDOWN_MS = 5 * 60 * 1000
+const SEND_TIMEOUT_MS = 15 * 1000
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -67,16 +68,21 @@ async function sendOtpEmail(to: string, code: string): Promise<'sent' | 'not_con
     // RFC-2047 encoded-word wrapped ("=?utf-8?Q?…?="), which some clients
     // failed to decode and showed as raw source. Keeping the code in plain
     // ASCII digits guarantees it's always readable.
-    await client.send({
-      from: SMTP_FROM,
-      to,
-      subject: `Pioneers for Research - Verification Code: ${code}`,
-      content:
-        `Your verification code is: ${code}\n` +
-        `Valid for 10 minutes.\n\n` +
-        `رمز تأكيد إنشاء حسابك: ${code}\n` +
-        `صالح لمدة 10 دقائق. إذا لم تطلب هذا الرمز، تجاهل هذه الرسالة.`,
-    })
+    // A hung SMTP connection must not run the worker into its limit — give
+    // up after SEND_TIMEOUT_MS and let the caller use the fallback instead.
+    await Promise.race([
+      client.send({
+        from: SMTP_FROM,
+        to,
+        subject: `Pioneers for Research - Verification Code: ${code}`,
+        content:
+          `Your verification code is: ${code}\n` +
+          `Valid for 10 minutes.\n\n` +
+          `رمز تأكيد إنشاء حسابك: ${code}\n` +
+          `صالح لمدة 10 دقائق. إذا لم تطلب هذا الرمز، تجاهل هذه الرسالة.`,
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('smtp timeout')), SEND_TIMEOUT_MS)),
+    ])
     return 'sent'
   } catch (err) {
     // Real delivery failure — most likely Gmail's daily/weekly personal
@@ -85,11 +91,9 @@ async function sendOtpEmail(to: string, code: string): Promise<'sent' | 'not_con
     console.error('smtp send failed', err)
     return 'failed'
   } finally {
-    try {
-      await client.close()
-    } catch {
-      // already closed/never opened — ignore
-    }
+    // Not awaited: denomailer's close() can spin the CPU into the 546 worker
+    // limit AFTER the mail was sent, so the caller would see a failure.
+    void client.close().catch(() => {})
   }
 }
 
@@ -152,6 +156,15 @@ Deno.serve(async (req) => {
   const codeHash = await sha256Hex(code)
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
 
+  // Store the code BEFORE emailing it: if anything dies after the mail goes
+  // out, the code the customer received is still valid on the OTP page.
+  const { data: otpRow, error: insertErr } = await admin
+    .from('signup_otps')
+    .insert({ user_id: user.id, code_hash: codeHash, expires_at: expiresAt })
+    .select('id')
+    .single()
+  if (insertErr || !otpRow) return json({ error: insertErr?.message ?? 'insert failed' }, 500)
+
   const emailResult = await sendOtpEmail(user.email, code)
 
   if (emailResult === 'failed') {
@@ -159,23 +172,15 @@ Deno.serve(async (req) => {
     if (!validDomain) return json({ error: 'invalid_email' }, 400)
 
     // Can't deliver the code ourselves — auto-verify instead of permanently
-    // blocking a real user because our own sending quota ran out.
-    const { error: insertErr } = await admin.from('signup_otps').insert({
-      user_id: user.id,
-      code_hash: codeHash,
-      expires_at: expiresAt,
-      consumed: true,
-      verified_at: new Date().toISOString(),
-    })
-    if (insertErr) return json({ error: insertErr.message }, 500)
+    // blocking a real user because our own email sending failed.
+    const { error: updateErr } = await admin
+      .from('signup_otps')
+      .update({ consumed: true, verified_at: new Date().toISOString() })
+      .eq('id', otpRow.id)
+    if (updateErr) return json({ error: updateErr.message }, 500)
 
     return json({ sent: true, emailed: false, autoVerified: true })
   }
-
-  const { error: insertErr } = await admin
-    .from('signup_otps')
-    .insert({ user_id: user.id, code_hash: codeHash, expires_at: expiresAt })
-  if (insertErr) return json({ error: insertErr.message }, 500)
 
   return json({
     sent: true,
