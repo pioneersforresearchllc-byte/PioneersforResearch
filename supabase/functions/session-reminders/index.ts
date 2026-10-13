@@ -7,7 +7,7 @@
 // with a shared secret: set CRON_SECRET and send it as the `x-cron-secret`
 // header. Needs the same SMTP_* and VAPID_* secrets the other functions use.
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
+import { SMTPClient } from '../_shared/smtp.ts'
 import webpush from 'npm:web-push@3.6.7'
 
 function firstFromJsonDict(raw: string | undefined): string {

@@ -2,7 +2,7 @@
 // ready. Called right after the owner marks a request "done", so the customer
 // is told their work has been delivered without having to keep checking.
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
+import { SMTPClient } from '../_shared/smtp.ts'
 
 function firstFromJsonDict(raw: string | undefined): string {
   if (!raw) return ''

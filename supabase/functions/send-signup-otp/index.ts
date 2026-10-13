@@ -7,7 +7,7 @@
 // just the UI flow. Sandboxed like send-otp: with no SMTP_USER/SMTP_PASS
 // set, the code is returned directly in the response instead of emailed.
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
+import { SMTPClient } from '../_shared/smtp.ts'
 
 function firstFromJsonDict(raw: string | undefined): string {
   if (!raw) return ''

@@ -12,7 +12,7 @@
 //   - an email to each owner's account address.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
-import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
+import { SMTPClient } from '../_shared/smtp.ts'
 
 function firstFromJsonDict(raw: string | undefined): string {
   if (!raw) return ''

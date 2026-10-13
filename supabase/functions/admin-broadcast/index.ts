@@ -10,7 +10,7 @@
 // SMTP_USER/SMTP_PASS configured, nothing is sent and the recipient count is
 // still returned so the flow can be exercised in dev.
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
+import { SMTPClient } from '../_shared/smtp.ts'
 
 function firstFromJsonDict(raw: string | undefined): string {
   if (!raw) return ''

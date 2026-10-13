@@ -9,7 +9,7 @@
 // optionally SMTP_FROM) as function secrets to switch to real delivery —
 // no code change needed.
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
+import { SMTPClient } from '../_shared/smtp.ts'
 
 // This project migrated to Supabase's new JWT Signing Keys, which
 // deprecates the auto-injected SUPABASE_SERVICE_ROLE_KEY / SUPABASE_ANON_KEY
