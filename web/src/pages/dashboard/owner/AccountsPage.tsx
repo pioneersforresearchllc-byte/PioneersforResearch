@@ -30,7 +30,7 @@ function formatDate(iso: string | null, lang: string, never: string) {
 }
 
 function ManageUserModal({ account, onClose, onChanged }: { account: AccountRow; onClose: () => void; onChanged: () => void }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const queryClient = useQueryClient()
   const [suspended, setSuspended] = useState(account.suspended)
   const [restrictions, setRestrictions] = useState<string[]>(account.restrictions ?? [])
@@ -132,6 +132,40 @@ function ManageUserModal({ account, onClose, onChanged }: { account: AccountRow;
             {account.name} · @{account.username}
           </div>
         </div>
+
+        {/* Account type: fix a teacher who signed up as a student (or the reverse).
+            Never offers owner — admin rights stay a deliberate, separate step. */}
+        {(account.role === 'student' || account.role === 'teacher') && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-3.5">
+            <span className="text-[13.5px] font-medium text-navy">
+              {lang === 'ar' ? 'نوع الحساب' : 'Account type'}:{' '}
+              <b>{account.role === 'teacher' ? (lang === 'ar' ? 'معلم' : 'Teacher') : lang === 'ar' ? 'طالب' : 'Student'}</b>
+            </span>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                const next = account.role === 'teacher' ? 'student' : 'teacher'
+                const label = next === 'teacher' ? (lang === 'ar' ? 'معلم' : 'teacher') : lang === 'ar' ? 'طالب' : 'student'
+                if (!confirm(lang === 'ar' ? `تحويل ${account.name} إلى ${label}؟` : `Change ${account.name} to ${label}?`)) return
+                void run(async () => {
+                  const { error } = await supabase.from('profiles').update({ role: next, status: 'active' }).eq('id', account.id)
+                  if (error) throw error
+                  onClose()
+                })
+              }}
+              className="rounded-md bg-navy px-3.5 py-1.75 text-[12.5px] font-semibold text-white disabled:opacity-50"
+            >
+              {account.role === 'teacher'
+                ? lang === 'ar'
+                  ? 'تحويل إلى طالب'
+                  : 'Change to student'
+                : lang === 'ar'
+                  ? 'ترقية إلى معلم'
+                  : 'Upgrade to teacher'}
+            </button>
+          </div>
+        )}
 
         {/* Suspend */}
         <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-border p-3.5">
