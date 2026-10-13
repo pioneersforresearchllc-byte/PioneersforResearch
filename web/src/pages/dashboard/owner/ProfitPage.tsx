@@ -5,9 +5,13 @@ import {
   addExpense,
   deleteExpense,
   EXPENSE_CATEGORIES,
+  getFinanceSettings,
   listExpenses,
   listRevenue,
+  saveFinanceSettings,
+  type FinanceSettings,
   type ExpenseCategory,
+  type RevenueLine,
   type RevenueSource,
 } from '@/lib/profit'
 import { Price } from '@/components/Riyal'
@@ -47,6 +51,25 @@ export function OwnerProfitPage() {
   const qc = useQueryClient()
   const revQ = useQuery({ queryKey: ['profit-revenue'], queryFn: listRevenue })
   const expQ = useQuery({ queryKey: ['profit-expenses'], queryFn: listExpenses })
+  const setQ = useQuery({ queryKey: ['finance-settings'], queryFn: getFinanceSettings })
+  const settings: FinanceSettings = setQ.data ?? { start: '', excluded: [] }
+  const excludedSet = useMemo(() => new Set(settings.excluded), [settings.excluded])
+  const [showExcluded, setShowExcluded] = useState(false)
+  const [startDraft, setStartDraft] = useState<string | null>(null)
+  const persist = async (next: FinanceSettings) => {
+    qc.setQueryData(['finance-settings'], next)
+    await saveFinanceSettings(next)
+  }
+  const toggleExclude = (id: string) =>
+    void persist({
+      ...settings,
+      excluded: excludedSet.has(id) ? settings.excluded.filter((x) => x !== id) : [...settings.excluded, id],
+    })
+  // Revenue that counts: on/after the accounting start date and not excluded.
+  const counted = useMemo(
+    () => (revQ.data ?? []).filter((r) => (!settings.start || r.date >= settings.start) && !excludedSet.has(r.id)),
+    [revQ.data, settings.start, excludedSet],
+  )
 
   const [period, setPeriod] = useState<Period>('month')
   const [from, setFrom] = useState('')
@@ -66,7 +89,7 @@ export function OwnerProfitPage() {
   }, [period, from, to])
   const inRange = (d: string) => (!start || d >= start) && (!end || d <= end)
 
-  const revenue = (revQ.data ?? []).filter((r) => inRange(r.date))
+  const revenue = counted.filter((r) => inRange(r.date))
   const expenses = (expQ.data ?? []).filter((e) => inRange(e.spent_on))
   const revTotal = revenue.reduce((s, r) => s + r.amount_cents, 0)
   const expTotal = expenses.reduce((s, e) => s + e.amount_cents, 0)
@@ -83,7 +106,7 @@ export function OwnerProfitPage() {
       list.push({ key, label: d.toLocaleDateString(locale, { month: 'short', year: '2-digit' }), rev: 0, exp: 0 })
     }
     const idx = new Map(list.map((m, i) => [m.key, i]))
-    for (const r of revQ.data ?? []) {
+    for (const r of counted) {
       const i = idx.get(ym(r.date))
       if (i !== undefined) list[i].rev += r.amount_cents
     }
@@ -92,7 +115,7 @@ export function OwnerProfitPage() {
       if (i !== undefined) list[i].exp += e.amount_cents
     }
     return list
-  }, [revQ.data, expQ.data, locale])
+  }, [counted, expQ.data, locale])
 
   const bySource = (Object.keys(SRC_LABEL) as RevenueSource[])
     .map((s) => ({ s, v: revenue.filter((r) => r.source === s).reduce((a, r) => a + r.amount_cents, 0) }))
@@ -196,6 +219,34 @@ export function OwnerProfitPage() {
         />
       </div>
 
+      {/* Bookkeeping filter: accounting start date */}
+      <div className="mb-5 flex flex-wrap items-end gap-3 rounded-2xl border border-border bg-white p-4">
+        <label className="flex flex-col gap-1 text-[12px] text-muted">
+          {tx('بداية الحسابات (تُتجاهل الإيرادات قبلها)', 'Accounting start (revenue before it is ignored)')}
+          <input type="date" value={startDraft ?? settings.start} onChange={(e) => setStartDraft(e.target.value)} className={input} />
+        </label>
+        {startDraft !== null && startDraft !== settings.start && (
+          <button
+            type="button"
+            onClick={() => void persist({ ...settings, start: startDraft }).then(() => setStartDraft(null))}
+            className="rounded-lg bg-navy px-4 py-2 text-[13px] font-semibold text-white"
+          >
+            {tx('حفظ', 'Save')}
+          </button>
+        )}
+        {settings.start && startDraft === null && (
+          <button type="button" onClick={() => void persist({ ...settings, start: '' })} className="text-[12.5px] text-muted underline">
+            {tx('إلغاء التاريخ', 'Clear date')}
+          </button>
+        )}
+        <span className="text-[12px] text-faint">
+          {tx(
+            'ضع تاريخ إطلاق الموقع الفعلي، فتختفي كل الدفعات التجريبية قبله دون حذفها. ولاستبعاد دفعة بعينها استخدم جدول تفاصيل الإيرادات بالأسفل.',
+            'Set your real launch date to hide every test payment before it without deleting anything. To exclude a single payment, use the revenue details table below.',
+          )}
+        </span>
+      </div>
+
       {/* Monthly chart: grouped bars, one axis */}
       <MonthlyChart months={months} ar={ar} locale={locale} />
 
@@ -218,6 +269,17 @@ export function OwnerProfitPage() {
           locale={locale}
         />
       </div>
+
+      {/* Revenue lines for the period, each excludable as a test payment */}
+      <RevenueTable
+        lines={(revQ.data ?? []).filter((r) => inRange(r.date) && (!settings.start || r.date >= settings.start))}
+        excluded={excludedSet}
+        showExcluded={showExcluded}
+        onToggleShow={() => setShowExcluded((v) => !v)}
+        onToggle={toggleExclude}
+        ar={ar}
+        locale={locale}
+      />
 
       {/* Add expense */}
       <div className="mb-5 rounded-2xl border border-border bg-white p-5">
@@ -317,6 +379,83 @@ export function OwnerProfitPage() {
           'ملاحظة: إذا سجّلت دفعة يدويًا في «المالية» لنفس فاتورة أكّدت دفعها، ستُحسب مرتين — سجّل كل دفعة في مكان واحد فقط.',
           'Note: a payment recorded manually under Finance for an invoice you also marked paid counts twice — record each payment in one place only.',
         )}
+      </p>
+    </div>
+  )
+}
+
+function RevenueTable({
+  lines,
+  excluded,
+  showExcluded,
+  onToggleShow,
+  onToggle,
+  ar,
+  locale,
+}: {
+  lines: RevenueLine[]
+  excluded: Set<string>
+  showExcluded: boolean
+  onToggleShow: () => void
+  onToggle: (id: string) => void
+  ar: boolean
+  locale: 'ar-SA' | 'en-US'
+}) {
+  const tx = (a: string, e: string) => (ar ? a : e)
+  const hiddenCount = lines.filter((l) => excluded.has(l.id)).length
+  const shown = lines.filter((l) => showExcluded || !excluded.has(l.id))
+  return (
+    <div className="mb-7 rounded-2xl border border-border bg-white p-5">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="text-[14.5px] font-bold text-navy">{tx('تفاصيل الإيرادات', 'Revenue details')}</div>
+        {hiddenCount > 0 && (
+          <button type="button" onClick={onToggleShow} className="rounded-md border border-border px-2.5 py-1 text-[12px] text-navy">
+            {showExcluded ? tx('إخفاء المستبعدة', 'Hide excluded') : tx(`عرض المستبعدة (${hiddenCount})`, `Show excluded (${hiddenCount})`)}
+          </button>
+        )}
+      </div>
+      {shown.length === 0 ? (
+        <div className="text-[13px] text-muted">{tx('لا توجد إيرادات في هذه الفترة.', 'No revenue in this period.')}</div>
+      ) : (
+        <div className="max-h-[420px] overflow-auto">
+          <table className="w-full min-w-[520px] text-[13px]">
+            <thead className="sticky top-0 bg-white text-muted">
+              <tr>
+                <th className="py-2 text-start font-semibold">{tx('التاريخ', 'Date')}</th>
+                <th className="py-2 text-start font-semibold">{tx('المصدر', 'Source')}</th>
+                <th className="py-2 text-start font-semibold">{tx('الوصف', 'Description')}</th>
+                <th className="py-2 text-end font-semibold">{tx('المبلغ', 'Amount')}</th>
+                <th className="py-2" />
+              </tr>
+            </thead>
+            <tbody>
+              {shown
+                .slice()
+                .sort((a, b) => b.amount_cents - a.amount_cents)
+                .map((l) => {
+                  const off = excluded.has(l.id)
+                  return (
+                    <tr key={l.id} className={`border-t border-border ${off ? 'opacity-50' : ''}`}>
+                      <td className="py-2 text-muted">{l.date}</td>
+                      <td className="py-2">{ar ? SRC_LABEL[l.source].ar : SRC_LABEL[l.source].en}</td>
+                      <td className={`py-2 text-navy ${off ? 'line-through' : ''}`}>{l.description}</td>
+                      <td className="py-2 text-end font-semibold text-navy">
+                        <Price cents={l.amount_cents} locale={locale} />
+                      </td>
+                      <td className="py-2 text-end">
+                        <button type="button" onClick={() => onToggle(l.id)} className={`text-[12px] ${off ? 'text-success' : 'text-error'}`}>
+                          {off ? tx('إرجاع', 'Restore') : tx('استبعاد (تجريبي)', 'Exclude (test)')}
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p className="mt-2 text-[11.5px] text-faint">
+        {tx('مرتّبة من الأكبر للأصغر. الاستبعاد لا يحذف أي بيانات، ويمكن إرجاعه.', 'Sorted largest first. Excluding deletes nothing and can be undone.')}
       </p>
     </div>
   )

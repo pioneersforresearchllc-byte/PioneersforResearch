@@ -52,6 +52,34 @@ export async function listRevenue(): Promise<RevenueLine[]> {
   return lines.sort((a, b) => b.date.localeCompare(a.date))
 }
 
+/**
+ * Owner's bookkeeping filters, kept in site_content (no migration needed):
+ *  - start: revenue dated before it is ignored (test payments before launch)
+ *  - excluded: individual revenue line ids marked as test/not real
+ */
+export interface FinanceSettings {
+  start: string
+  excluded: string[]
+}
+const FINANCE_KEY = 'finance.settings'
+
+export async function getFinanceSettings(): Promise<FinanceSettings> {
+  const { data } = await supabase.from('site_content').select('value_en').eq('key', FINANCE_KEY).maybeSingle()
+  try {
+    const v = JSON.parse((data?.value_en as string) || '{}') as Partial<FinanceSettings>
+    return { start: v.start ?? '', excluded: Array.isArray(v.excluded) ? v.excluded : [] }
+  } catch {
+    return { start: '', excluded: [] }
+  }
+}
+
+export async function saveFinanceSettings(s: FinanceSettings) {
+  const { error } = await supabase
+    .from('site_content')
+    .upsert({ key: FINANCE_KEY, value_ar: null, value_en: JSON.stringify(s), updated_at: new Date().toISOString() })
+  if (error) throw error
+}
+
 /** null when the expenses table isn't there yet (before 0070). */
 export async function listExpenses(): Promise<Expense[] | null> {
   const { data, error } = await supabase.from('expenses').select('*').order('spent_on', { ascending: false })
