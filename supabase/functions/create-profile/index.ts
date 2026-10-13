@@ -102,8 +102,13 @@ Deno.serve(async (req) => {
     return json({ error: 'invalid role' }, 400)
   }
 
-  // Verify the auth user actually exists and has no profile yet (defends
-  // against this function being called for an arbitrary user_id).
+  // Every signup flow calls this with the new user's own session; refuse to
+  // create a profile (and pick its role) for somebody else's account.
+  const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')
+  const { data: caller } = await admin.auth.getUser(token)
+  if (!caller?.user || caller.user.id !== payload.user_id) return json({ error: 'not your account' }, 403)
+
+  // Verify the auth user actually exists and has no profile yet.
   const { data: authUser, error: authErr } = await admin.auth.admin.getUserById(payload.user_id)
   if (authErr || !authUser?.user) return json({ error: 'unknown user_id' }, 404)
 
@@ -194,10 +199,18 @@ Deno.serve(async (req) => {
       })
       .select('id')
       .single()
-    if (instErr) return json({ error: instErr.message }, 500)
-    await admin
-      .from('institution_members')
-      .insert({ institution_id: institution.id, user_id: payload.user_id, member_role: 'admin' })
+    const { error: memberErr } = instErr
+      ? { error: instErr }
+      : await admin
+          .from('institution_members')
+          .insert({ institution_id: institution.id, user_id: payload.user_id, member_role: 'admin' })
+    if (memberErr) {
+      // Roll back so a retry starts clean instead of hitting
+      // "profile already exists" with no organisation behind it.
+      if (institution) await admin.from('institutions').delete().eq('id', institution.id)
+      await admin.from('profiles').delete().eq('id', payload.user_id)
+      return json({ error: memberErr.message }, 500)
+    }
   }
 
   return json({ profile: data })

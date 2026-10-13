@@ -11,7 +11,7 @@ import { PhoneField } from '@/components/PhoneField'
 import { normalizePhone, savePhone } from '@/lib/phone'
 import { recordTermsAcceptance } from '@/lib/legal'
 import { AgreeTerms } from '@/components/AgreeTerms'
-import { clearAbandonedSignup, isUsernameTaken, isValidUsername, requestSignupOtp } from '@/lib/authHelpers'
+import { clearAbandonedSignup, isUsernameTaken, isValidUsername, reportSiteError, requestSignupOtp } from '@/lib/authHelpers'
 
 export function RegisterPage() {
   const navigate = useNavigate()
@@ -19,6 +19,9 @@ export function RegisterPage() {
   const { refreshProfile } = useAuth()
   const location = useLocation()
   useEffect(() => captureReferralFromUrl(location.search), [location.search])
+  // Where to go after signup (e.g. back to a course page) — same safety rule as login.
+  const rawRedirect = new URLSearchParams(location.search).get('redirect')
+  const successRoute = rawRedirect && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/student'
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
@@ -98,6 +101,7 @@ export function RegisterPage() {
       }
 
       if (signUpErr || !signUpData.user) {
+        await reportSiteError('signup', `student: ${signUpErr?.message ?? 'no user'}`, email.trim())
         setError(t('register.genericError'))
         return
       }
@@ -134,7 +138,7 @@ export function RegisterPage() {
         await savePhone(userId, phone).catch(() => undefined)
         await recordTermsAcceptance(userId).catch(() => undefined)
         await refreshProfile()
-        navigate('/student')
+        navigate(successRoute)
         return
       }
 
@@ -144,7 +148,7 @@ export function RegisterPage() {
           profilePayload,
           phone,
           acceptedTerms: true,
-          successRoute: '/student',
+          successRoute,
           devCode: otpResult.kind === 'sent' ? otpResult.devCode : null,
         },
       })

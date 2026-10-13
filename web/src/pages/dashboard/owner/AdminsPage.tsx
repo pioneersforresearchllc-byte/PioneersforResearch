@@ -1,12 +1,42 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createAdmin, listAdmins, removeAdmin } from '@/lib/owner'
+import { supabase } from '@/lib/supabase'
+import { fnErrorBody, isValidUsername } from '@/lib/authHelpers'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { LoadingState } from '@/components/LoadingState'
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+
+// create-admin answers with an error code; show it in the owner's language.
+const ADMIN_ERRORS: Record<string, { ar: string; en: string }> = {
+  invalid_email: { ar: 'البريد الإلكتروني غير صحيح — اكتب بريدًا كاملًا مثل name@example.com', en: 'Invalid email — enter a full address like name@example.com' },
+  invalid_username: { ar: 'اسم المستخدم من 3 إلى 30 حرفًا بدون مسافات أو @', en: 'Username must be 3–30 characters, no spaces or @' },
+  password_short: { ar: 'كلمة المرور 6 أحرف على الأقل', en: 'Password must be at least 6 characters' },
+  username_taken: { ar: 'اسم المستخدم مستخدم بالفعل', en: 'That username is already taken' },
+  email_in_use: { ar: 'هذا البريد مرتبط بحساب آخر في المنصة', en: 'This email already belongs to another account' },
+  missing_fields: { ar: 'املأ جميع الحقول', en: 'Fill in all fields' },
+}
+
+async function adminErrorText(e: unknown, lang: string, fallback: string): Promise<string> {
+  const code = (await fnErrorBody(e))?.error
+  const known = typeof code === 'string' ? ADMIN_ERRORS[code] : undefined
+  if (known) return lang === 'ar' ? known.ar : known.en
+  return typeof code === 'string' ? code : fallback
+}
+
+async function removeAdminAccount(userId: string) {
+  const { error } = await supabase.functions.invoke('create-admin', { body: { action: 'remove', userId } })
+  if (!error) return
+  // Older create-admin (not yet redeployed) has no 'remove' action.
+  if ((await fnErrorBody(error))?.error === 'missing required fields') return removeAdmin(userId)
+  throw error
+}
+
 function NewAdminModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const errText = (code: keyof typeof ADMIN_ERRORS) => (lang === 'ar' ? ADMIN_ERRORS[code].ar : ADMIN_ERRORS[code].en)
   const [name, setName] = useState('')
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -20,6 +50,14 @@ function NewAdminModal({ onClose, onCreated }: { onClose: () => void; onCreated:
       setError(t('oAdmins.fillFields'))
       return
     }
+    if (!EMAIL_RE.test(email.trim())) {
+      setError(errText('invalid_email'))
+      return
+    }
+    if (!isValidUsername(username.trim())) {
+      setError(errText('invalid_username'))
+      return
+    }
     setBusy(true)
     setError('')
     try {
@@ -27,7 +65,7 @@ function NewAdminModal({ onClose, onCreated }: { onClose: () => void; onCreated:
       onCreated()
       onClose()
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('oAdmins.createError'))
+      setError(await adminErrorText(e, lang, t('oAdmins.createError')))
     } finally {
       setBusy(false)
     }
@@ -88,7 +126,7 @@ function NewAdminModal({ onClose, onCreated }: { onClose: () => void; onCreated:
 }
 
 export function OwnerAdminsPage() {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const queryClient = useQueryClient()
   const { profile } = useAuth()
   const [showNew, setShowNew] = useState(false)
@@ -100,7 +138,11 @@ export function OwnerAdminsPage() {
 
   const remove = async (id: string, name: string) => {
     if (!confirm(t('oAdmins.confirmRemove', { name }))) return
-    await removeAdmin(id)
+    try {
+      await removeAdminAccount(id)
+    } catch (e) {
+      alert(await adminErrorText(e, lang, t('oAdmins.createError')))
+    }
     refresh()
   }
 

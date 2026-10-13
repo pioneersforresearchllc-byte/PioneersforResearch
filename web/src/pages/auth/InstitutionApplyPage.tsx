@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { AuthCard, FieldError, PasswordInput, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
-import { clearAbandonedSignup, isUsernameTaken, isValidUsername, requestSignupOtp } from '@/lib/authHelpers'
+import { clearAbandonedSignup, isUsernameTaken, isValidUsername, reportSiteError, requestSignupOtp } from '@/lib/authHelpers'
 import { AgreeTerms } from '@/components/AgreeTerms'
 import { recordTermsAcceptance } from '@/lib/legal'
 
@@ -80,6 +80,7 @@ export function InstitutionApplyPage() {
       }
 
       if (signUpErr || !signUpData.user) {
+        await reportSiteError('signup', `institution: ${signUpErr?.message ?? 'no user'}`, email.trim())
         setError(t('instApply.genericError'))
         return
       }
