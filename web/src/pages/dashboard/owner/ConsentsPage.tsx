@@ -10,6 +10,7 @@ const KIND_LABEL: Record<string, { ar: string; en: string }> = {
   marketing_opt_out: { ar: 'سحب موافقة التسويق', en: 'Marketing opt-out' },
   sensitive_data: { ar: 'موافقة صريحة على معالجة البيانات الحساسة', en: 'Explicit consent to sensitive data' },
   service_request_terms: { ar: 'قبول الشروط عند إرسال طلب', en: 'Terms accepted on a service request' },
+  consultant_agreement: { ar: 'قبول اتفاقية المستشار والمدرّب', en: 'Consultant & Trainer Agreement accepted' },
 }
 
 function csvCell(v: unknown) {

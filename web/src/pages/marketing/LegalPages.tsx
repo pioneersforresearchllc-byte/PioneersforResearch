@@ -4,23 +4,43 @@ import { useLanguage } from '@/lib/i18n'
 import { fetchSiteContent, resolveWhatsapp } from '@/lib/content'
 import { EMAIL, PRIVACY, REFUND, TERMS, type Doc, type Lang } from '@/lib/legalDocs'
 import { legalDocsHash, TERMS_VERSION } from '@/lib/legal'
+import { CONSULTANT_AGREEMENT, CONSULTANT_AGREEMENT_VERSION, consultantAgreementHash } from '@/lib/consultantAgreement'
 
-const EFFECTIVE = {
-  ar: `تاريخ السريان وآخر تحديث: 14 أكتوبر 2026 — الإصدار ${TERMS_VERSION}`,
-  en: `Effective & last updated: 14 October 2026 — version ${TERMS_VERSION}`,
-}
+const effective = (version: string) => ({
+  ar: `تاريخ السريان وآخر تحديث: 14 أكتوبر 2026 — الإصدار ${version}`,
+  en: `Effective & last updated: 14 October 2026 — version ${version}`,
+})
+const EFFECTIVE = effective(TERMS_VERSION)
 
-function LegalDoc({ doc, lang }: { doc: Doc; lang: Lang }) {
+/** Full legal document page. Defaults to the Terms/Privacy/Refund set; the
+ *  Consultant Agreement passes its own version and fingerprint. */
+export function LegalDoc({
+  doc,
+  lang,
+  version = EFFECTIVE,
+  hashKey = ['legal-docs-hash', TERMS_VERSION],
+  hashFn = legalDocsHash,
+  embedded = false,
+}: {
+  doc: Doc
+  lang: Lang
+  version?: Record<Lang, string>
+  hashKey?: string[]
+  hashFn?: () => Promise<string>
+  embedded?: boolean
+}) {
   const { data: content } = useQuery({ queryKey: ['site-content'], queryFn: fetchSiteContent })
   const wa = resolveWhatsapp(content)
-  const { data: hash } = useQuery({ queryKey: ['legal-docs-hash', TERMS_VERSION], queryFn: legalDocsHash, staleTime: Infinity })
+  const { data: hash } = useQuery({ queryKey: hashKey, queryFn: hashFn, staleTime: Infinity })
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 md:px-8 md:py-16">
-      <Link to="/" className="mb-4 inline-block text-[13px] text-muted no-underline">
-        {lang === 'ar' ? '→ الرئيسية' : '← Home'}
-      </Link>
+    <div className={embedded ? '' : 'mx-auto max-w-3xl px-4 py-10 md:px-8 md:py-16'}>
+      {!embedded && (
+        <Link to="/" className="mb-4 inline-block text-[13px] text-muted no-underline">
+          {lang === 'ar' ? '→ الرئيسية' : '← Home'}
+        </Link>
+      )}
       <h1 className="font-heading mb-2 text-[26px] font-bold text-navy md:text-[32px]">{doc.title}</h1>
-      <div className="mb-6 text-[12.5px] text-faint">{EFFECTIVE[lang]}</div>
+      <div className="mb-6 text-[12.5px] text-faint">{version[lang]}</div>
       <p className="mb-4 text-[15px] leading-8 text-muted-2">{doc.intro}</p>
       <div className="mb-8 rounded-xl border border-border bg-bg-soft px-4 py-3 text-[13.5px] leading-7 text-navy">
         {lang === 'ar' ? 'للتواصل: ' : 'Contact: '}
@@ -40,6 +60,7 @@ function LegalDoc({ doc, lang }: { doc: Doc; lang: Lang }) {
           <Link to="/terms" className="text-muted">{lang === 'ar' ? 'الشروط والأحكام' : 'Terms'}</Link>
           <Link to="/privacy" className="text-muted">{lang === 'ar' ? 'سياسة الخصوصية' : 'Privacy'}</Link>
           <Link to="/refund" className="text-muted">{lang === 'ar' ? 'سياسة الاسترجاع والإلغاء' : 'Refund & cancellation'}</Link>
+          <Link to="/consultant-agreement" className="text-muted">{lang === 'ar' ? 'اتفاقية المستشار والمدرّب' : 'Consultant agreement'}</Link>
         </div>
       </div>
       <div className="flex flex-col gap-6">
@@ -78,4 +99,17 @@ export function PrivacyPage() {
 export function RefundPage() {
   const { lang } = useLanguage()
   return <LegalDoc doc={REFUND[lang]} lang={lang} />
+}
+
+export function ConsultantAgreementPage() {
+  const { lang } = useLanguage()
+  return (
+    <LegalDoc
+      doc={CONSULTANT_AGREEMENT[lang]}
+      lang={lang}
+      version={effective(CONSULTANT_AGREEMENT_VERSION)}
+      hashKey={['consultant-agreement-hash', CONSULTANT_AGREEMENT_VERSION]}
+      hashFn={consultantAgreementHash}
+    />
+  )
 }

@@ -10,6 +10,7 @@ import { PushPrompt } from '@/components/PushPrompt'
 import { PhoneGate } from '@/components/PhoneGate'
 import { TermsGate } from '@/components/TermsGate'
 import { MarketingPrompt } from '@/components/Consent'
+import { ConsultantAgreementGate } from '@/components/ConsultantAgreementGate'
 
 export interface DashboardTab {
   key: string
@@ -252,6 +253,7 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
             <PushPrompt />
             <PhoneGate />
             <TermsGate />
+            <ConsultantAgreementGate />
             <MarketingPrompt />
             <PageTransition>
               <Outlet />

@@ -32,7 +32,7 @@ import { OwnerOtpPage } from '@/pages/auth/OwnerOtpPage'
 // Lazy — pulls in the (large) Daily video SDK only when a call is opened.
 const CallPage = lazy(() => import('@/pages/call/CallPage').then((m) => ({ default: m.CallPage })))
 import { MarketingHome } from '@/pages/marketing/MarketingHome'
-import { TermsPage, PrivacyPage, RefundPage } from '@/pages/marketing/LegalPages'
+import { TermsPage, PrivacyPage, RefundPage, ConsultantAgreementPage } from '@/pages/marketing/LegalPages'
 import { QuotePage } from '@/pages/marketing/QuotePage'
 import { VerifyLookupPage } from '@/pages/marketing/VerifyLookupPage'
 import { OwnerReviewsPage } from '@/pages/dashboard/owner/ReviewsPage'
@@ -235,6 +235,7 @@ export default function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/refund" element={<RefundPage />} />
+        <Route path="/consultant-agreement" element={<ConsultantAgreementPage />} />
         <Route path="/quote" element={<QuotePage />} />
         <Route path="/verify" element={<VerifyLookupPage />} />
         </Route>

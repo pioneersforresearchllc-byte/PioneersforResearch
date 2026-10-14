@@ -27,6 +27,7 @@ import { DeliverablesBox } from '@/components/DeliverablesBox'
 import { ServiceWorkspace } from '@/components/ServiceWorkspace'
 import { ACTIVE_STAGES, listExpertProfiles, listPayouts, markPayoutPaid, setPayout, type ExpertProfile, type RequestPayout } from '@/lib/experts'
 import { AI_BOT_USERNAME } from '@/lib/chat'
+import { listAgreementSigners } from '@/lib/consultantAgreement'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
 
@@ -375,6 +376,9 @@ export function OwnerServiceRequestsPage() {
   })
   const { data: teachers } = useQuery({ queryKey: ['active-teachers'], queryFn: listActiveTeachers })
   const { data: experts } = useQuery({ queryKey: ['expert-profiles'], queryFn: listExpertProfiles })
+  // null = migration 0079 pending (agreement not enforced yet).
+  const { data: signers } = useQuery({ queryKey: ['consultant-agreement-signers'], queryFn: listAgreementSigners })
+  const unsigned = (id: string) => !!signers && !signers.has(id)
   const { data: payouts } = useQuery({
     queryKey: ['request-payouts', ids],
     enabled: ids.length > 0,
@@ -596,15 +600,22 @@ export function OwnerServiceRequestsPage() {
                         onChange={(e) =>
                           void assignRequestTeacher(r.id, e.target.value || null)
                             .then(refresh)
-                            .catch(() => setError(tx('تعذّر إسناد الطلب — حاول مرة أخرى.', 'Could not assign — try again.')))
+                            .catch((err: unknown) =>
+                              setError(
+                                String((err as { message?: string })?.message ?? '').includes('consultant_agreement_missing')
+                                  ? tx('لا يمكن الإسناد: هذا المستشار لم يوافق على اتفاقية المستشار بعد. سيظهر له طلب الموافقة عند دخوله لوحته.', 'Cannot assign: this consultant has not accepted the Consultant Agreement yet. They will be asked to accept it on their next sign-in.')
+                                  : tx('تعذّر إسناد الطلب — حاول مرة أخرى.', 'Could not assign — try again.'),
+                              ),
+                            )
                         }
                         className="mt-1 block w-64 rounded-md border border-border bg-white px-2.5 py-1.5 text-[13px] text-navy"
                       >
                         <option value="">{t('adminRequests.unassigned')}</option>
                         {rankExperts(r.service_id).map(({ tt, match, active }) => (
-                          <option key={tt.id} value={tt.id}>
+                          <option key={tt.id} value={tt.id} disabled={unsigned(tt.id) && tt.id !== r.assigned_teacher_id}>
                             {match ? '⭐ ' : ''}
                             {tt.name} · {tx(`${active} نشط`, `${active} active`)}
+                            {unsigned(tt.id) ? tx(' · ⚠️ لم يوقّع الاتفاقية', ' · ⚠️ agreement not signed') : ''}
                           </option>
                         ))}
                       </select>

@@ -59,6 +59,7 @@ export type ConsentKind =
   | 'marketing_opt_out'
   | 'sensitive_data'
   | 'service_request_terms'
+  | 'consultant_agreement'
 
 /**
  * Append a consent to the consent_events ledger (migration 0074). The server

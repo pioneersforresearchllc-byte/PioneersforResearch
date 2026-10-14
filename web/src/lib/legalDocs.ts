@@ -17,9 +17,9 @@ export type Lang = 'ar' | 'en'
 
 export const EMAIL = 'support@pioneersresearch.com'
 
-const COMPANY_AR =
+export const COMPANY_AR =
   'شركة بايونيرز هيلث ريسيرتش كونسالتينج (ذات مسؤولية محدودة)، شركة سعودية مرخّصة من وزارة الاستثمار برقم 24926274626، الرقم الموحّد للمنشأة 7055175363، الرقم الضريبي 3150160068، ومقرها جدة — العنوان الوطني (الرمز المختصر) JHJA8230، وتقدّم خدماتها تحت الاسم التجاري «بايونيرز للأبحاث الصحية / Pioneers Health Research».'
-const COMPANY_EN =
+export const COMPANY_EN =
   'Pioneers Health Research Consulting (LLC), a Saudi company licensed by the Ministry of Investment (MISA) under No. 24926274626, Unified Establishment No. 7055175363, Tax No. 3150160068, based in Jeddah — National Address (short code) JHJA8230, trading as “Pioneers Health Research”.'
 
 // ── Terms & Conditions ────────────────────────────────────────────────────
