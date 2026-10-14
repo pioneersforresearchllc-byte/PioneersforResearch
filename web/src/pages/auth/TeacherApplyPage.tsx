@@ -231,6 +231,35 @@ export function TeacherApplyPage() {
     }
   }
 
+  // Already signed in with an account: one email = one account, so explain
+  // instead of showing a form that would try to create a second one.
+  if (session && profile) {
+    const msg =
+      profile.role === 'teacher'
+        ? profile.status === 'active'
+          ? ar ? 'حسابك كمدرّب مفعّل بالفعل.' : 'Your trainer account is already active.'
+          : profile.status === 'rejected'
+            ? t('login.teacherRejected')
+            : ar ? 'طلب انضمامك موجود وقيد المراجعة — سنفعّل حسابك بعد الموافقة.' : 'Your application is already under review.'
+        : ar
+          ? `أنت مسجّل دخول بحساب ${profile.role === 'student' ? 'طالب' : 'آخر'} (@${profile.username}). للتقديم كمدرّب سجّل خروجك وقدّم بإيميل مختلف، أو تواصل معنا لتحويل حسابك.`
+          : `You're signed in as @${profile.username}. To apply as a trainer, sign out and apply with another email, or contact us to convert your account.`
+    return (
+      <AuthCard width={480}>
+        <div className="text-center">
+          <div className="font-heading mb-3 text-xl font-bold text-navy">{t('teacherApply.title')}</div>
+          <p className="mb-5 text-[14px] leading-7 text-muted">{msg}</p>
+          <Link
+            to={profile.role === 'teacher' ? '/teacher-pending' : `/${profile.role === 'owner' ? 'owner' : profile.role}`}
+            className="inline-block rounded-md bg-navy px-6 py-2.5 text-[14px] text-white no-underline hover:bg-navy-hover"
+          >
+            {ar ? 'متابعة' : 'Continue'}
+          </Link>
+        </div>
+      </AuthCard>
+    )
+  }
+
   return (
     <AuthCard width={480}>
       <div className="mb-6 text-center">
