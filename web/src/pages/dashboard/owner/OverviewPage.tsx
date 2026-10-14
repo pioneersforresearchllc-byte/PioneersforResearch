@@ -31,9 +31,9 @@ function Delta({ cur, prev, t }: { cur: number; prev: number; t: TFn }) {
 
 const ATTENTION_LABELS: Record<string, { ar: string; en: string; icon: string }> = {
   toPrice: { ar: 'طلبات خدمات جديدة تنتظر التسعير', en: 'New service requests to price', icon: '🗂️' },
-  unassigned: { ar: 'طلبات مدفوعة بلا مدرّب مكلّف', en: 'Paid requests without an assignee', icon: '👤' },
+  unassigned: { ar: 'طلبات مدفوعة بلا مستشار مكلّف', en: 'Paid requests without an assignee', icon: '👤' },
   receipts: { ar: 'إيصالات دفع تنتظر التأكيد', en: 'Payment receipts to confirm', icon: '🧾' },
-  applications: { ar: 'طلبات انضمام مدرّبين', en: 'Teacher applications', icon: '🧑‍🏫' },
+  applications: { ar: 'طلبات انضمام مستشارين', en: 'Consultant applications', icon: '🧑‍🏫' },
   institutions: { ar: 'مؤسسات تنتظر التفعيل', en: 'Institutions awaiting approval', icon: '🏛️' },
   consultations: { ar: 'استشارات مؤسسات جديدة', en: 'New institution consultations', icon: '📋' },
   contact: { ar: 'رسائل تواصل غير مقروءة', en: 'Unread contact messages', icon: '✉️' },

@@ -59,8 +59,8 @@ export function OwnerTeachersPage() {
       </div>
       <div className="mb-5 text-[13px] text-muted">
         {ar
-          ? 'حدّد لكل خبير الخدمات التي يقدّمها ومجالاته ونسبته — تُستخدم لاقتراح الأنسب عند إسناد الطلبات وحساب مستحقاته.'
-          : 'Set what each expert delivers, their fields and share — used to suggest the best match when assigning and to compute payouts.'}
+          ? 'حدّد لكل مستشار الخدمات التي يقدّمها ومجالاته ونسبته — تُستخدم لاقتراح الأنسب عند إسناد الطلبات وحساب مستحقاته.'
+          : 'Set what each consultant delivers, their fields and share — used to suggest the best match when assigning and to compute payouts.'}
       </div>
 
       {isLoading && <LoadingState />}
@@ -220,7 +220,7 @@ function ExpertEditor({ teacher, initial, services, onSaved }: { teacher: Teache
           />
         </label>
         <label className="text-[11.5px] font-semibold text-muted">
-          {ar ? 'ملاحظات خاصة (لا يراها الخبير)' : 'Private notes'}
+          {ar ? 'ملاحظات خاصة (لا يراها المستشار)' : 'Private notes'}
           <input value={p.notes ?? ''} onChange={(e) => setP({ ...p, notes: e.target.value || null })} className={input} />
         </label>
       </div>

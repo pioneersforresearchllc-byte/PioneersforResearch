@@ -237,13 +237,13 @@ export function TeacherApplyPage() {
     const msg =
       profile.role === 'teacher'
         ? profile.status === 'active'
-          ? ar ? 'حسابك كمدرّب مفعّل بالفعل.' : 'Your trainer account is already active.'
+          ? ar ? 'حسابك كمستشار مفعّل بالفعل.' : 'Your consultant account is already active.'
           : profile.status === 'rejected'
             ? t('login.teacherRejected')
             : ar ? 'طلب انضمامك موجود وقيد المراجعة — سنفعّل حسابك بعد الموافقة.' : 'Your application is already under review.'
         : ar
-          ? `أنت مسجّل دخول بحساب ${profile.role === 'student' ? 'طالب' : 'آخر'} (@${profile.username}). للتقديم كمدرّب سجّل خروجك وقدّم بإيميل مختلف، أو تواصل معنا لتحويل حسابك.`
-          : `You're signed in as @${profile.username}. To apply as a trainer, sign out and apply with another email, or contact us to convert your account.`
+          ? `أنت مسجّل دخول بحساب ${profile.role === 'student' ? 'طالب' : 'آخر'} (@${profile.username}). للتقديم كمستشار سجّل خروجك وقدّم بإيميل مختلف، أو تواصل معنا لتحويل حسابك.`
+          : `You're signed in as @${profile.username}. To apply as a consultant, sign out and apply with another email, or contact us to convert your account.`
     return (
       <AuthCard width={480}>
         <div className="text-center">

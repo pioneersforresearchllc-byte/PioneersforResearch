@@ -25,7 +25,7 @@ type Period = 'month' | 'lastMonth' | 'year' | 'all' | 'custom'
 
 const CAT_LABEL: Record<ExpenseCategory, { ar: string; en: string }> = {
   salaries: { ar: 'رواتب', en: 'Salaries' },
-  teacher_fees: { ar: 'مستحقات المدرّبين', en: 'Teacher fees' },
+  teacher_fees: { ar: 'مستحقات المستشارين والمدرّبين', en: 'Consultant & trainer fees' },
   rent: { ar: 'إيجار', en: 'Rent' },
   marketing: { ar: 'تسويق وإعلانات', en: 'Marketing & ads' },
   software: { ar: 'اشتراكات وبرامج', en: 'Software & subscriptions' },

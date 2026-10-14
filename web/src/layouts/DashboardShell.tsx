@@ -136,7 +136,7 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
     profile?.role === 'owner'
       ? ar ? 'الإدارة' : 'Admin'
       : profile?.role === 'teacher'
-        ? ar ? 'مدرّب' : 'Instructor'
+        ? ar ? 'مستشار' : 'Consultant'
         : profile?.role === 'institution'
           ? ar ? 'مؤسسة' : 'Institution'
           : ar ? 'طالب' : 'Student'

@@ -106,7 +106,7 @@ const SOURCES: Record<string, Source> = {
     build: (r) =>
       r.assigned_teacher_id
         ? {
-            title: '✅ الخبير أنهى العمل — أصدر الفاتورة النهائية',
+            title: '✅ المستشار أنهى العمل — أصدر الفاتورة النهائية',
             body: `${r.full_name || ''} — ${r.subject || ''}`.trim(),
             path: '/owner/service-requests',
           }
@@ -201,7 +201,7 @@ Deno.serve(async (req) => {
   if (!fresh) return json({ skipped: 'not fresh' })
   if (body.source === 'contact_flag' && row.user_id) {
     const { data: sender } = await admin.from('profiles').select('name, role').eq('id', row.user_id).maybeSingle()
-    row._sender_name = sender ? `${sender.name} (${sender.role === 'teacher' ? 'خبير' : 'طالب'})` : ''
+    row._sender_name = sender ? `${sender.name} (${sender.role === 'teacher' ? 'مستشار' : 'طالب'})` : ''
   }
   const alert = src.build(row)
   if (!alert) return json({ skipped: 'not applicable' })

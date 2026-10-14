@@ -111,7 +111,7 @@ export function CompleteProfilePage() {
         to="/teacher-apply"
         className="mt-4 block rounded-xl border border-gold/60 bg-gold/[0.07] px-4 py-3 text-center text-[13.5px] font-semibold text-navy no-underline hover:bg-gold/15"
       >
-        {lang === 'ar' ? '🧑‍🏫 أنا مدرّب / خبير — قدّم طلب انضمام بنفس حساب Google' : '🧑‍🏫 I’m a trainer / expert — apply with this Google account'}
+        {lang === 'ar' ? '🧑‍🏫 أنا مستشار / مدرّب — قدّم طلب انضمام بنفس حساب Google' : '🧑‍🏫 I’m a consultant / trainer — apply with this Google account'}
       </Link>    </AuthCard>
   )
 }

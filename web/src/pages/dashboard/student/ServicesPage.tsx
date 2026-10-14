@@ -96,8 +96,8 @@ export function StudentServicesPage() {
                     <>
                       <div className="mb-3 rounded-lg bg-gold/[0.08] px-3.5 py-2.5 text-[12.5px] text-navy">
                         {lang === 'ar'
-                          ? 'طلبك قيد المراجعة — تواصل مع الإدارة هنا بخصوص التفاصيل والسعر، وبعد الدفع يُسند لك خبير وتُفتح مساحة العمل كاملة.'
-                          : 'Your request is being reviewed — talk to the admin here about details and price. After payment an expert is assigned and the full workspace opens.'}
+                          ? 'طلبك قيد المراجعة — تواصل مع الإدارة هنا بخصوص التفاصيل والسعر، وبعد الدفع يُسند لك مستشار وتُفتح مساحة العمل كاملة.'
+                          : 'Your request is being reviewed — talk to the admin here about details and price. After payment a consultant is assigned and the full workspace opens.'}
                       </div>
                       <ServiceChat requestId={s.id} />
                     </>
