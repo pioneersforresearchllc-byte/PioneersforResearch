@@ -2,13 +2,27 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/lib/i18n'
 
-/** "Continue with Google" — starts the Supabase OAuth redirect flow. */
-export function GoogleButton() {
+export const OAUTH_NEXT_KEY = 'pioneers.oauthNext'
+
+/**
+ * "Continue with Google" — starts the Supabase OAuth redirect flow.
+ * `next` sends a brand-new Google user (no profile yet) to that page instead
+ * of the student sign-up step — e.g. the teacher application.
+ */
+export function GoogleButton({ next, label }: { next?: string; label?: string } = {}) {
   const { t } = useLanguage()
   const [busy, setBusy] = useState(false)
 
   const signIn = async () => {
     setBusy(true)
+    // Kept in the browser rather than the redirect URL, so it can't trip
+    // Supabase's redirect allowlist (which matches the exact callback URL).
+    try {
+      if (next) sessionStorage.setItem(OAUTH_NEXT_KEY, next)
+      else sessionStorage.removeItem(OAUTH_NEXT_KEY)
+    } catch {
+      // storage blocked — falls back to the normal student flow
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       // Uses whatever origin the app is served from, so the same code works
@@ -42,7 +56,7 @@ export function GoogleButton() {
           d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.47.9 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58Z"
         />
       </svg>
-      {t('auth.continueWithGoogle')}
+      {label ?? t('auth.continueWithGoogle')}
     </button>
   )
 }

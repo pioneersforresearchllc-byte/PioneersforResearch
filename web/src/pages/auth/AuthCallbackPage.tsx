@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
+import { OAUTH_NEXT_KEY } from '@/components/GoogleButton'
 
 const dashboardPathFor = (role: string) =>
   role === 'student'
@@ -28,10 +29,20 @@ export function AuthCallbackPage() {
       navigate('/login', { replace: true })
       return
     }
+    let next: string | null = null
+    try {
+      next = sessionStorage.getItem(OAUTH_NEXT_KEY)
+      sessionStorage.removeItem(OAUTH_NEXT_KEY)
+    } catch {
+      // storage blocked
+    }
     if (profile) {
       navigate(dashboardPathFor(profile.role), { replace: true })
     } else {
-      navigate('/complete-profile', { replace: true })
+      // A new Google user who started from the teacher application goes back
+      // to it (allow-listed, never an arbitrary path); everyone else signs up
+      // as a student.
+      navigate(next === '/teacher-apply' ? '/teacher-apply' : '/complete-profile', { replace: true })
     }
   }, [session, profile, loading, navigate])
 

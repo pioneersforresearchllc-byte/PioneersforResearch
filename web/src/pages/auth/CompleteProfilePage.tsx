@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { AuthCard, FieldError, inputClass } from '@/components/AuthCard'
@@ -15,7 +15,7 @@ import { fnErrorBody, isUsernameConflict, isValidUsername } from '@/lib/authHelp
 export function CompleteProfilePage() {
   const navigate = useNavigate()
   const { session, profile, loading, refreshProfile } = useAuth()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
 
   const googleName =
     (session?.user.user_metadata?.full_name as string | undefined) ||
@@ -105,7 +105,13 @@ export function CompleteProfilePage() {
         </button>
       </form>
 
-      <div className="mt-4 text-center text-[12.5px] text-muted">{t('completeProfile.teacherNote')}</div>
-    </AuthCard>
+      {/* A trainer who pressed the plain Google button lands here — keep the
+          Google session and switch to the application instead of becoming a student. */}
+      <Link
+        to="/teacher-apply"
+        className="mt-4 block rounded-xl border border-gold/60 bg-gold/[0.07] px-4 py-3 text-center text-[13.5px] font-semibold text-navy no-underline hover:bg-gold/15"
+      >
+        {lang === 'ar' ? '🧑‍🏫 أنا مدرّب / خبير — قدّم طلب انضمام بنفس حساب Google' : '🧑‍🏫 I’m a trainer / expert — apply with this Google account'}
+      </Link>    </AuthCard>
   )
 }

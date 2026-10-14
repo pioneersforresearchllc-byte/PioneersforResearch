@@ -1,9 +1,19 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { AuthCard, FieldError, PasswordInput, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
-import { clearAbandonedSignup, isUsernameTaken, isValidUsername, reportSiteError, requestSignupOtp } from '@/lib/authHelpers'
+import {
+  clearAbandonedSignup,
+  fnErrorBody,
+  isUsernameConflict,
+  isUsernameTaken,
+  isValidUsername,
+  reportSiteError,
+  requestSignupOtp,
+} from '@/lib/authHelpers'
+import { useAuth } from '@/context/AuthContext'
+import { GoogleButton } from '@/components/GoogleButton'
 import { AgreeTerms } from '@/components/AgreeTerms'
 import { recordTermsAcceptance } from '@/lib/legal'
 
@@ -16,9 +26,25 @@ const ALLOWED_CV_TYPES = [
 
 export function TeacherApplyPage() {
   const navigate = useNavigate()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const ar = lang === 'ar'
+  const { session, profile, refreshProfile } = useAuth()
+  // Back from "Apply with Google": signed in, no profile yet, Google account.
+  const googleMode =
+    !!session &&
+    !profile &&
+    (session.user.identities ?? []).some((i) => i.provider === 'google')
+  const googleName =
+    (session?.user.user_metadata?.full_name as string | undefined) || (session?.user.user_metadata?.name as string | undefined) || ''
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+
+  // Prefill once the Google session is known.
+  useEffect(() => {
+    if (!googleMode) return
+    setEmail(session!.user.email ?? '')
+    setName((n) => n || googleName)
+  }, [googleMode, session, googleName])
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [specialty, setSpecialty] = useState('')
@@ -59,7 +85,7 @@ export function TeacherApplyPage() {
       !name.trim() ||
       !email.trim() ||
       !username.trim() ||
-      !password ||
+      (!googleMode && !password) ||
       !specialty.trim() ||
       !qualification.trim() ||
       !cv.trim()
@@ -67,7 +93,7 @@ export function TeacherApplyPage() {
       setError(t('teacherApply.requiredFields'))
       return
     }
-    if (password.length < 6) {
+    if (!googleMode && password.length < 6) {
       setError(t('teacherApply.passwordLength'))
       return
     }
@@ -87,39 +113,45 @@ export function TeacherApplyPage() {
         return
       }
 
-      let signUpData: Awaited<ReturnType<typeof supabase.auth.signUp>>['data']
-      let signUpErr: Awaited<ReturnType<typeof supabase.auth.signUp>>['error']
-      ;({ data: signUpData, error: signUpErr } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-      }))
-
-      if (signUpErr?.message === 'User already registered') {
-        // Real account, or an application abandoned before OTP (ghost auth
-        // user). Clear the abandoned one; only a real profile blocks reuse.
-        const reset = await clearAbandonedSignup(email.trim(), password)
-        if (reset === 'pending') {
-          setError(t('register.signupPending'))
-          return
-        }
-        if (reset === 'in_use') {
-          setError(t('teacherApply.emailInUse'))
-          setShowForgotLink(true)
-          return
-        }
+      let userId: string
+      if (googleMode) {
+        // Signed in with Google already: Google verified the email, so no
+        // password and no email code — the server checks the same thing.
+        userId = session!.user.id
+      } else {
+        let signUpData: Awaited<ReturnType<typeof supabase.auth.signUp>>['data']
+        let signUpErr: Awaited<ReturnType<typeof supabase.auth.signUp>>['error']
         ;({ data: signUpData, error: signUpErr } = await supabase.auth.signUp({
           email: email.trim(),
           password,
         }))
-      }
 
-      if (signUpErr || !signUpData.user) {
-        await reportSiteError('signup', `teacher: ${signUpErr?.message ?? 'no user'}`, email.trim())
-        setError(t('teacherApply.genericError'))
-        return
-      }
+        if (signUpErr?.message === 'User already registered') {
+          // Real account, or an application abandoned before OTP (ghost auth
+          // user). Clear the abandoned one; only a real profile blocks reuse.
+          const reset = await clearAbandonedSignup(email.trim(), password)
+          if (reset === 'pending') {
+            setError(t('register.signupPending'))
+            return
+          }
+          if (reset === 'in_use') {
+            setError(t('teacherApply.emailInUse'))
+            setShowForgotLink(true)
+            return
+          }
+          ;({ data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+            email: email.trim(),
+            password,
+          }))
+        }
 
-      const userId = signUpData.user.id
+        if (signUpErr || !signUpData.user) {
+          await reportSiteError('signup', `teacher: ${signUpErr?.message ?? 'no user'}`, email.trim())
+          setError(t('teacherApply.genericError'))
+          return
+        }
+        userId = signUpData.user.id
+      }
 
       // Private bucket — path is scoped to the applicant's own user id, and
       // only they or a verified owner can read it back (see storage RLS).
@@ -144,6 +176,26 @@ export function TeacherApplyPage() {
         years_experience: Number(years) || 0,
         cv_text: cv.trim(),
         cv_file_url: cvFileUrl,
+      }
+
+      if (googleMode) {
+        const { data: profileData, error: profileErr } = await supabase.functions.invoke('create-profile', {
+          body: profilePayload,
+        })
+        if (profileErr || (profileData as { error?: string } | null)?.error) {
+          const body = await fnErrorBody(profileErr)
+          if (isUsernameConflict(body)) {
+            setError(t('register.usernameTaken'))
+            return
+          }
+          await reportSiteError('signup_profile', `teacher google: ${String(body?.error ?? profileErr?.message)}`, email.trim(), userId)
+          setError(t('teacherApply.genericError'))
+          return
+        }
+        await recordTermsAcceptance(userId).catch(() => undefined)
+        await refreshProfile()
+        navigate('/teacher-pending')
+        return
       }
 
       const otpResult = await requestSignupOtp(email.trim(), userId)
@@ -186,6 +238,27 @@ export function TeacherApplyPage() {
         <div className="mt-1.5 text-sm text-muted">{t('teacherApply.subtitle')}</div>
       </div>
 
+      {googleMode ? (
+        <div className="mb-4 rounded-lg border border-success/30 bg-success-bg px-3.5 py-2.5 text-[13px] text-success">
+          {ar
+            ? `✓ تم ربط حساب Google (${session?.user.email ?? ''}) — أكمل بيانات طلب الانضمام، ولا تحتاج كلمة مرور.`
+            : `✓ Google account linked (${session?.user.email ?? ''}) — complete your application; no password needed.`}
+        </div>
+      ) : (
+        !session && (
+          <>
+            <div className="mb-4">
+              <GoogleButton next="/teacher-apply" label={ar ? 'التقديم بحساب Google' : 'Apply with Google'} />
+            </div>
+            <div className="mb-4 flex items-center gap-3 text-[12px] text-faint">
+              <div className="h-px flex-1 bg-border" />
+              {t('auth.or')}
+              <div className="h-px flex-1 bg-border" />
+            </div>
+          </>
+        )
+      )}
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
         <input
           type="text"
@@ -199,7 +272,8 @@ export function TeacherApplyPage() {
           placeholder={t('teacherApply.emailPh')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className={inputClass}
+          readOnly={googleMode}
+          className={`${inputClass} ${googleMode ? 'bg-bg-soft text-muted' : ''}`}
         />
         <input
           type="text"
@@ -208,12 +282,14 @@ export function TeacherApplyPage() {
           onChange={(e) => setUsername(e.target.value)}
           className={inputClass}
         />
-        <PasswordInput
-          autoComplete="new-password"
-          placeholder={t('teacherApply.passwordPh')}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        {!googleMode && (
+          <PasswordInput
+            autoComplete="new-password"
+            placeholder={t('teacherApply.passwordPh')}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        )}
         <input
           type="text"
           placeholder={t('teacherApply.specialtyPh')}
