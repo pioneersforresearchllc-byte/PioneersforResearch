@@ -62,6 +62,7 @@ const MAP: Record<string, ReactNode> = {
   'inst-team': users,
   'inst-trainees': chart,
   admins: shield,
+  consents: fileText,
   accounts: users,
   contact: mail,
   'home-content': layout,

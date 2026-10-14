@@ -543,6 +543,7 @@ export const translations = {
   'tab.accounts': { ar: 'الحسابات', en: 'Accounts' },
   'tab.contactMessages': { ar: 'رسائل التواصل', en: 'Contact Messages' },
   'tab.broadcast': { ar: 'إرسال جماعي', en: 'Broadcast' },
+  'tab.consents': { ar: 'سجل الموافقات', en: 'Consent records' },
   'tab.invoices': { ar: 'سجل المدفوعات', en: 'Payment History' },
   'tab.myServices': { ar: 'خدماتي', en: 'My Services' },
   'tab.workshops': { ar: 'الورش المباشرة', en: 'Live Workshops' },

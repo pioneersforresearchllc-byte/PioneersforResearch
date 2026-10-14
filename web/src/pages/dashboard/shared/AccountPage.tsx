@@ -6,6 +6,7 @@ import { disablePush, enablePush, getPushState, type PushState } from '@/lib/pus
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatPhone, getMyPhone, normalizePhone, savePhone } from '@/lib/phone'
 import { PhoneField } from '@/components/PhoneField'
+import { MarketingCard } from '@/components/Consent'
 
 function initials(name: string) {
   return name.trim().slice(0, 2) || '?'
@@ -388,6 +389,7 @@ export function AccountPage() {
       </div>
 
       <NotificationsCard userId={profile.id} />
+      {profile.role !== 'owner' && <MarketingCard userId={profile.id} />}
       </div>
     </div>
   )

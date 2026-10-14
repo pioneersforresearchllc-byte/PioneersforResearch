@@ -9,6 +9,7 @@ import { PageTransition } from '@/components/ui/motion'
 import { PushPrompt } from '@/components/PushPrompt'
 import { PhoneGate } from '@/components/PhoneGate'
 import { TermsGate } from '@/components/TermsGate'
+import { MarketingPrompt } from '@/components/Consent'
 
 export interface DashboardTab {
   key: string
@@ -40,7 +41,7 @@ const OWNER_GROUPS: Group[] = [
   { ar: 'الخدمات والعملاء', en: 'Services & clients', keys: ['services', 'service-requests', 'institutions', 'inst-consultations'] },
   { ar: 'المالية', en: 'Finance', keys: ['billing', 'invoices', 'profit', 'discounts'] },
   { ar: 'التواصل', en: 'Communication', keys: ['messages', 'contact', 'broadcast', 'reviews'] },
-  { ar: 'الموقع والإعدادات', en: 'Website & settings', keys: ['home-content', 'articles', 'admins', 'accounts', 'account'] },
+  { ar: 'الموقع والإعدادات', en: 'Website & settings', keys: ['home-content', 'articles', 'admins', 'accounts', 'consents', 'account'] },
 ]
 const STUDENT_GROUPS: Group[] = [
   { ar: 'عام', en: 'General', keys: ['overview'] },
@@ -251,6 +252,7 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
             <PushPrompt />
             <PhoneGate />
             <TermsGate />
+            <MarketingPrompt />
             <PageTransition>
               <Outlet />
             </PageTransition>

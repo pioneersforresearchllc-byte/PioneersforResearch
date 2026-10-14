@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { PaymentAck } from '@/components/Consent'
+import { recordConsent } from '@/lib/legal'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Price } from '@/components/Riyal'
 import { useAuth } from '@/context/AuthContext'
@@ -34,14 +36,17 @@ export function InstitutionConsultationsPage() {
   const { data: siteContent } = useQuery({ queryKey: ['site-content'], queryFn: fetchSiteContent })
   const [payingId, setPayingId] = useState<string | null>(null)
   const [payError, setPayError] = useState('')
+  const [payAck, setPayAck] = useState<Record<string, boolean>>({})
 
   const bankDetails = (lang === 'ar' ? siteContent?.['bank.details']?.ar : siteContent?.['bank.details']?.en) ?? ''
   const paymentSuccess = searchParams.get('payment') === 'success'
 
   const pay = async (id: string) => {
+    if (!payAck[id]) return
     setPayingId(id)
     setPayError('')
     try {
+      await recordConsent('payment_no_refund', { userId: profile?.id, ref: `consultation:${id}` })
       const url = await startConsultationCheckout(id)
       window.location.href = url
     } catch (e) {
@@ -161,9 +166,12 @@ export function InstitutionConsultationsPage() {
                     <Price cents={c.final_price_cents} locale={lang === 'ar' ? 'ar-SA' : 'en-US'} />
                   </span>
                 </div>
+                <div className="mb-2.5">
+                  <PaymentAck checked={!!payAck[c.id]} onChange={(v) => setPayAck((m) => ({ ...m, [c.id]: v }))} />
+                </div>
                 <button
                   onClick={() => void pay(c.id)}
-                  disabled={payingId === c.id}
+                  disabled={payingId === c.id || !payAck[c.id]}
                   className="rounded-md bg-navy px-5 py-2.25 text-[13.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-60"
                 >
                   {payingId === c.id ? t('instPay.redirecting') : t('instPay.payCard')}

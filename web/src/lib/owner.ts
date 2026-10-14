@@ -116,6 +116,7 @@ export async function sendBroadcast(input: {
   audience: BroadcastAudience
   subject: string
   message: string
+  kind?: 'notice' | 'marketing'
 }): Promise<{ sent: boolean; recipientCount: number }> {
   const { data, error } = await supabase.functions.invoke('admin-broadcast', { body: input })
   if (error) {

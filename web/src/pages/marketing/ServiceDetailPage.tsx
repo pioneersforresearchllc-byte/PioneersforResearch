@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from 'react'
+import { RequestConsent } from '@/components/Consent'
+import { recordConsent } from '@/lib/legal'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
@@ -84,6 +86,7 @@ export function ServiceDetailPage() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [consent, setConsent] = useState(false)
 
   if (isLoading) return <div className="px-4 py-12 text-center text-muted md:px-16 md:py-20">...</div>
   if (!service) {
@@ -126,6 +129,10 @@ export function ServiceDetailPage() {
     }
     if (!deliveryDate) {
       setError(t('service.errDate'))
+      return
+    }
+    if (!consent) {
+      setError(lang === 'ar' ? 'يرجى الموافقة على الشروط وإقرار البيانات قبل الإرسال.' : 'Please accept the terms and data confirmation before sending.')
       return
     }
 
@@ -212,6 +219,8 @@ export function ServiceDetailPage() {
         details: !hasCustom && software ? { software } : {},
         custom_answers: customAnswers,
       })
+      const who = { userId: session?.user.id ?? null, email: email.trim(), name: fullName.trim(), ref: `service:${service.slug}` }
+      await Promise.all([recordConsent('service_request_terms', who), recordConsent('sensitive_data', who)])
       setSubmitted(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : t('service.errSubmit'))
@@ -558,6 +567,9 @@ export function ServiceDetailPage() {
             />
           </div>
 
+          <div className="mb-3">
+            <RequestConsent checked={consent} onChange={setConsent} />
+          </div>
           {error && <div className="mb-3 text-[13.5px] text-error">{error}</div>}
 
           <button

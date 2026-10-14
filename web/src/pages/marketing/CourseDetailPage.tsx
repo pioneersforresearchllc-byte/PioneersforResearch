@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { PaymentAck } from '@/components/Consent'
+import { recordConsent } from '@/lib/legal'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
@@ -114,6 +116,7 @@ export function CourseDetailPage() {
   const [accessCode, setAccessCode] = useState('')
   const [redeeming, setRedeeming] = useState(false)
   const [accessMsg, setAccessMsg] = useState('')
+  const [payAck, setPayAck] = useState(false)
   const paymentStatus = searchParams.get('payment')
   const studentId = profile?.role === 'student' ? profile.id : undefined
 
@@ -173,9 +176,11 @@ export function CourseDetailPage() {
       return
     }
 
+    if (!payAck) return
     setEnrollBusy(true)
     setEnrollError('')
     try {
+      await recordConsent('payment_no_refund', { userId: profile.id, ref: `course:${course.id}` })
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: { courseId: course.id, code: promoCode.trim() || undefined },
       })
@@ -356,10 +361,15 @@ export function CourseDetailPage() {
                     {codeMsg && <div className="mt-2 text-[13px] text-error">{codeMsg}</div>}
                   </div>
                 )}
+                {!course.code_only && course.price_cents > 0 && !isFull && (
+                  <div className="mb-3">
+                    <PaymentAck checked={payAck} onChange={setPayAck} />
+                  </div>
+                )}
                 {!course.code_only && (
                   <button
                     onClick={() => void subscribe()}
-                    disabled={enrollBusy || isFull}
+                    disabled={enrollBusy || isFull || (course.price_cents > 0 && !payAck)}
                     className="btn-sheen w-full rounded-xl bg-navy py-4 text-[15px] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(11,31,58,0.6)] transition-all hover:bg-navy-hover active:scale-[0.98] disabled:opacity-50"
                   >
                     {isFull

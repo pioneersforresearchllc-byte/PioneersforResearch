@@ -13,6 +13,7 @@ export function OwnerBroadcastPage() {
   const { data, isLoading } = useQuery({ queryKey: ['admin-broadcasts'], queryFn: listBroadcasts })
 
   const [audience, setAudience] = useState<BroadcastAudience>('all')
+  const [kind, setKind] = useState<'notice' | 'marketing'>('notice')
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
@@ -31,7 +32,7 @@ export function OwnerBroadcastPage() {
     }
     setBusy(true)
     try {
-      const { sent, recipientCount } = await sendBroadcast({ audience, subject: subject.trim(), message: message.trim() })
+      const { sent, recipientCount } = await sendBroadcast({ audience, kind, subject: subject.trim(), message: message.trim() })
       setResult(
         sent
           ? t('oBroadcast.sentOk').replace('{n}', String(recipientCount))
@@ -73,6 +74,32 @@ export function OwnerBroadcastPage() {
               {audienceLabel(a)}
             </button>
           ))}
+        </div>
+
+        {/* Kind — marketing goes only to users who opted in */}
+        <div className="mb-2 text-[13px] font-semibold text-navy">{lang === 'ar' ? 'نوع الرسالة' : 'Message type'}</div>
+        <div className="mb-1.5 flex flex-wrap gap-2">
+          {(['notice', 'marketing'] as const).map((k) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setKind(k)}
+              className={`rounded-lg border px-4 py-2 text-[13px] font-medium transition ${
+                kind === k ? 'border-navy bg-navy text-white' : 'border-border bg-white text-muted-2 hover:border-navy'
+              }`}
+            >
+              {k === 'notice' ? (lang === 'ar' ? 'إشعار خدمة / تحديث قانوني' : 'Service / legal notice') : lang === 'ar' ? 'تسويقية (عروض وأخبار)' : 'Marketing (offers & news)'}
+            </button>
+          ))}
+        </div>
+        <div className="mb-5 text-[12px] leading-6 text-muted">
+          {kind === 'marketing'
+            ? lang === 'ar'
+              ? 'تُرسل فقط لمن وافق على الرسائل التسويقية، ويُضاف إليها تلقائيًا رابط الإيقاف.'
+              : 'Sent only to users who opted in to marketing; an opt-out note is added automatically.'
+            : lang === 'ar'
+              ? 'للإشعارات المتعلقة بالحساب والخدمات وتحديث الشروط فقط — لا تستخدمها للعروض.'
+              : 'Only for account, service and terms-update notices — not for offers.'}
         </div>
 
         {/* Subject */}

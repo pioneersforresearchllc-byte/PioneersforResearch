@@ -5,6 +5,8 @@ import { useAuth } from '@/context/AuthContext'
 import { fetchSiteContent } from '@/lib/content'
 import { listMyInvoices, submitReceipt, type StudentInvoice } from '@/lib/billing'
 import { InvoiceDocument } from '@/components/InvoiceDocument'
+import { PaymentAck } from '@/components/Consent'
+import { recordConsent } from '@/lib/legal'
 import { LoadingState } from '@/components/LoadingState'
 
 const STATUS_KEY = {
@@ -29,9 +31,13 @@ function InvoiceCard({ inv, studentName, bankDetails, onChanged }: { inv: Studen
   const { t } = useLanguage()
   const fileRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
+  const [ack, setAck] = useState(inv.status === 'submitted')
 
   const submit = useMutation({
-    mutationFn: () => submitReceipt(inv.id, file!),
+    mutationFn: async () => {
+      if (inv.status === 'unpaid') await recordConsent('payment_no_refund', { userId: inv.user_id, ref: `invoice:${inv.id}` })
+      await submitReceipt(inv.id, file!)
+    },
     onSuccess: () => {
       setFile(null)
       if (fileRef.current) fileRef.current.value = ''
@@ -79,6 +85,11 @@ function InvoiceCard({ inv, studentName, bankDetails, onChanged }: { inv: Studen
             </>
           )}
 
+          {inv.status === 'unpaid' && (
+            <div className="mb-3">
+              <PaymentAck checked={ack} onChange={setAck} />
+            </div>
+          )}
           <div className="text-[12.5px] font-semibold text-navy">{t('billing.uploadReceipt')}</div>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <input
@@ -89,7 +100,7 @@ function InvoiceCard({ inv, studentName, bankDetails, onChanged }: { inv: Studen
               className="text-[12px] text-muted file:me-2 file:rounded-md file:border-0 file:bg-navy file:px-3 file:py-1.5 file:text-[12px] file:font-semibold file:text-white"
             />
             <button
-              disabled={!file || submit.isPending}
+              disabled={!file || !ack || submit.isPending}
               onClick={() => submit.mutate()}
               className="rounded-md bg-success px-4 py-1.75 text-[12.5px] font-semibold text-white hover:opacity-90 disabled:opacity-50"
             >

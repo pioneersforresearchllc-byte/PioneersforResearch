@@ -64,6 +64,7 @@ import { OwnerOverviewPage } from '@/pages/dashboard/owner/OverviewPage'
 import { OwnerAdminsPage } from '@/pages/dashboard/owner/AdminsPage'
 import { OwnerAccountsPage } from '@/pages/dashboard/owner/AccountsPage'
 import { OwnerBroadcastPage } from '@/pages/dashboard/owner/BroadcastPage'
+import { OwnerConsentsPage } from '@/pages/dashboard/owner/ConsentsPage'
 import { OwnerInvoicesPage } from '@/pages/dashboard/owner/InvoicesPage'
 import { OwnerServicesPage } from '@/pages/dashboard/owner/ServicesPage'
 import { OwnerServiceRequestsPage } from '@/pages/dashboard/owner/ServiceRequestsPage'
@@ -133,6 +134,7 @@ const ownerTabs: DashboardTab[] = [
   { key: 'certificates', labelKey: 'tab.certificates', to: '/owner/certificates' },
   { key: 'admins', labelKey: 'tab.admins', to: '/owner/admins' },
   { key: 'accounts', labelKey: 'tab.accounts', to: '/owner/accounts' },
+  { key: 'consents', labelKey: 'tab.consents', to: '/owner/consents' },
   { key: 'broadcast', labelKey: 'tab.broadcast', to: '/owner/broadcast' },
   { key: 'messages', labelKey: 'tab.messages', to: '/owner/messages' },
   { key: 'contact', labelKey: 'tab.contactMessages', to: '/owner/contact' },
@@ -307,6 +309,7 @@ export default function App() {
             <Route path="/owner/admins" element={<OwnerAdminsPage />} />
             <Route path="/owner/accounts" element={<OwnerAccountsPage />} />
             <Route path="/owner/broadcast" element={<OwnerBroadcastPage />} />
+            <Route path="/owner/consents" element={<OwnerConsentsPage />} />
             <Route path="/owner/messages" element={<ChatPage />} />
             <Route path="/owner/contact" element={<OwnerContactPage />} />
             <Route path="/owner/home-content" element={<OwnerHomeContentPage />} />

@@ -34,7 +34,7 @@ export function TermsGate() {
     setBusy(true)
     setError('')
     try {
-      await recordTermsAcceptance(profile!.id)
+      await recordTermsAcceptance(profile!.id, 'gate')
       queryClient.setQueryData(['terms-accepted', profile!.id, TERMS_VERSION], true)
     } catch {
       setError(ar ? 'تعذّر حفظ الموافقة، حاول مجددًا.' : 'Could not save your acceptance, please try again.')
