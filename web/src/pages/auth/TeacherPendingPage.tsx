@@ -2,6 +2,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { AuthCard } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 import { useAuth } from '@/context/AuthContext'
+import { ConsultantAgreementGate } from '@/components/ConsultantAgreementGate'
 
 export function TeacherPendingPage() {
   const { t, lang } = useLanguage()
@@ -17,6 +18,8 @@ export function TeacherPendingPage() {
 
   return (
     <AuthCard width={440}>
+      {/* Applicants sign the Trainer Agreement while under review, so they can be assigned as soon as they're approved. */}
+      {!rejected && <ConsultantAgreementGate />}
       <div className="text-center">
         <div className="mb-4 text-4xl">{rejected ? '✖' : '⏳'}</div>
         <div className="font-heading mb-3 text-xl font-bold text-navy">{rejected ? t('login.teacherRejected') : t('teacherPending.title')}</div>

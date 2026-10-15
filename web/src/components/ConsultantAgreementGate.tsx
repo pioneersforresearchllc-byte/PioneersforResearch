@@ -23,7 +23,8 @@ export function ConsultantAgreementGate() {
   const { lang } = useLanguage()
   const ar = lang === 'ar'
   const queryClient = useQueryClient()
-  const applies = !!profile && profile.role === 'teacher'
+  // Active trainers and applicants under review (pending page); not rejected ones.
+  const applies = !!profile && profile.role === 'teacher' && profile.status !== 'rejected'
   const key = ['consultant-agreement', profile?.id, CONSULTANT_AGREEMENT_VERSION]
   const { data: accepted, isLoading } = useQuery({
     queryKey: key,
