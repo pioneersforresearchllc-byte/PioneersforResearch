@@ -139,14 +139,14 @@ function ManageUserModal({ account, onClose, onChanged }: { account: AccountRow;
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-3.5">
             <span className="text-[13.5px] font-medium text-navy">
               {lang === 'ar' ? 'نوع الحساب' : 'Account type'}:{' '}
-              <b>{account.role === 'teacher' ? (lang === 'ar' ? 'مستشار' : 'Consultant') : lang === 'ar' ? 'طالب' : 'Student'}</b>
+              <b>{account.role === 'teacher' ? (lang === 'ar' ? 'مدرّب' : 'Trainer') : lang === 'ar' ? 'طالب' : 'Student'}</b>
             </span>
             <button
               type="button"
               disabled={busy}
               onClick={() => {
                 const next = account.role === 'teacher' ? 'student' : 'teacher'
-                const label = next === 'teacher' ? (lang === 'ar' ? 'مستشار' : 'consultant') : lang === 'ar' ? 'طالب' : 'student'
+                const label = next === 'teacher' ? (lang === 'ar' ? 'مدرّب' : 'trainer') : lang === 'ar' ? 'طالب' : 'student'
                 if (!confirm(lang === 'ar' ? `تحويل ${account.name} إلى ${label}؟` : `Change ${account.name} to ${label}?`)) return
                 void run(async () => {
                   const { error } = await supabase.from('profiles').update({ role: next, status: 'active' }).eq('id', account.id)
@@ -161,8 +161,8 @@ function ManageUserModal({ account, onClose, onChanged }: { account: AccountRow;
                   ? 'تحويل إلى طالب'
                   : 'Change to student'
                 : lang === 'ar'
-                  ? 'ترقية إلى مستشار'
-                  : 'Upgrade to consultant'}
+                  ? 'ترقية إلى مدرّب'
+                  : 'Upgrade to trainer'}
             </button>
           </div>
         )}

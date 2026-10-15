@@ -75,8 +75,8 @@ export function ServiceChat({ requestId }: { requestId: string }) {
   const ar = lang === 'ar'
   const isStudent = profile?.role === 'student'
   const hint = isStudent
-    ? ar ? 'مع فريق Pioneers — مستشارك والإدارة' : 'With the Pioneers team — your consultant and the admin'
-    : ar ? 'بين العميل والمستشار والإدارة' : 'Client, consultant and admin'
+    ? ar ? 'مع فريق Pioneers — مدرّبك والإدارة' : 'With the Pioneers team — your trainer and the admin'
+    : ar ? 'بين العميل والمدرّب والإدارة' : 'Client, trainer and admin'
   const emptyText = isStudent
     ? ar ? 'اكتب سؤالك أو ملاحظتك هنا 👋' : 'Write your question or note here 👋'
     : ar ? 'ابدأ المحادثة مع العميل 👋' : 'Start the conversation with the client 👋'

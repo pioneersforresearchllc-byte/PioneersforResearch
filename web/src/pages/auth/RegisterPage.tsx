@@ -184,6 +184,15 @@ export function RegisterPage() {
         </div>
       </div>
 
+      <button
+        type="button"
+        onClick={() => navigate('/teacher-apply')}
+        className="mb-1.5 w-full rounded-lg border border-navy/30 bg-white py-2.5 text-[13.5px] font-semibold text-navy hover:bg-bg-soft"
+      >
+        🧑‍🏫 {t('register.asTrainer')}
+      </button>
+      <div className="mb-5 text-center text-[11.5px] text-muted">{t('register.trainerHint')}</div>
+
       <div className="mb-4">
         <GoogleButton />
       </div>

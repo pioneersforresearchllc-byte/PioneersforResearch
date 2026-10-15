@@ -295,7 +295,7 @@ function PayoutPanel({
 
   const pay = async () => {
     if (!payout) return
-    if (!confirm(tx(`تأكيد صرف ${payout.amount_cents / 100} ريال للمستشار؟ سيُسجَّل تلقائيًا كمصروف «مستحقات المستشارين والمدرّبين».`, `Confirm paying ${payout.amount_cents / 100} SAR? It will be recorded as a consultant & trainer fees expense.`)))
+    if (!confirm(tx(`تأكيد صرف ${payout.amount_cents / 100} ريال للمدرّب؟ سيُسجَّل تلقائيًا كمصروف «مستحقات المدرّبين».`, `Confirm paying ${payout.amount_cents / 100} SAR? It will be recorded as a trainer & trainer fees expense.`)))
       return
     setBusy(true)
     setMsg('')
@@ -312,7 +312,7 @@ function PayoutPanel({
   return (
     <div className="mb-3 rounded-lg border border-gold/40 bg-gold/[0.06] p-3">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <span className="text-[12.5px] font-bold text-navy">💼 {tx('مستحقات المستشار', 'Consultant payout')}</span>
+        <span className="text-[12.5px] font-bold text-navy">💼 {tx('مستحقات المدرّب', 'Trainer payout')}</span>
         {payout?.paid_at ? (
           <span className="rounded-full bg-success-bg px-2.5 py-0.5 text-[11.5px] font-semibold text-success">
             ✓ {tx('تم الصرف', 'Paid')} · {new Date(payout.paid_at).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}
@@ -357,7 +357,7 @@ function PayoutPanel({
           )}
         </div>
       )}
-      {stale && <div className="mt-1.5 text-[12px] text-error">{tx('تغيّر المستشار المسند — احفظ المبلغ من جديد ليُنسب للمستشار الحالي.', 'The consultant changed — save again to attribute it to the current consultant.')}</div>}
+      {stale && <div className="mt-1.5 text-[12px] text-error">{tx('تغيّر المدرّب المسند — احفظ المبلغ من جديد ليُنسب للمدرّب الحالي.', 'The trainer changed — save again to attribute it to the current trainer.')}</div>}
       {msg && <div className="mt-1.5 text-[12px] text-error">{msg}</div>}
     </div>
   )
@@ -603,7 +603,7 @@ export function OwnerServiceRequestsPage() {
                             .catch((err: unknown) =>
                               setError(
                                 String((err as { message?: string })?.message ?? '').includes('consultant_agreement_missing')
-                                  ? tx('لا يمكن الإسناد: هذا المستشار لم يوافق على اتفاقية المستشار بعد. سيظهر له طلب الموافقة عند دخوله لوحته.', 'Cannot assign: this consultant has not accepted the Consultant Agreement yet. They will be asked to accept it on their next sign-in.')
+                                  ? tx('لا يمكن الإسناد: هذا المدرّب لم يوافق على اتفاقية المدرّب بعد. سيظهر له طلب الموافقة عند دخوله لوحته.', 'Cannot assign: this trainer has not accepted the Trainer Agreement yet. They will be asked to accept it on their next sign-in.')
                                   : tx('تعذّر إسناد الطلب — حاول مرة أخرى.', 'Could not assign — try again.'),
                               ),
                             )
@@ -654,8 +654,8 @@ export function OwnerServiceRequestsPage() {
                     <div className="mb-1 text-[13.5px] font-bold text-navy">💬 {tx('المحادثة ومساحة العمل', 'Conversation & workspace')}</div>
                     <div className="mb-3 text-[12px] text-muted">
                       {r.assigned_teacher_id
-                        ? tx('ما تكتبه هنا يصل للعميل وللمستشار المسند.', 'What you write here reaches the client and the assigned consultant.')
-                        : tx('لا يوجد مستشار مسند بعد — المحادثة الآن بينك وبين العميل.', 'No consultant yet — this conversation is between you and the client.')}
+                        ? tx('ما تكتبه هنا يصل للعميل وللمدرّب المسند.', 'What you write here reaches the client and the assigned trainer.')
+                        : tx('لا يوجد مدرّب مسند بعد — المحادثة الآن بينك وبين العميل.', 'No trainer yet — this conversation is between you and the client.')}
                     </div>
                     <ServiceWorkspace requestId={r.id} manage isStudent={false} />
                   </div>
