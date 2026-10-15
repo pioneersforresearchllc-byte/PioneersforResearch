@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
-import { dismissTeacher, listAllTeachers, type TeacherRow } from '@/lib/teachers'
+import { dismissTeacher, listAllTeachers, signCvFile, type TeacherRow } from '@/lib/teachers'
 import { listAllServicesForOwner, type Service } from '@/lib/services'
 import { emptyExpert, expertWorkload, listExpertProfiles, saveExpertProfile, type ExpertProfile } from '@/lib/experts'
 import { AI_BOT_USERNAME } from '@/lib/chat'
@@ -25,6 +25,12 @@ export function OwnerTeachersPage() {
   const { data: services } = useQuery({ queryKey: ['owner-services'], queryFn: listAllServicesForOwner })
   const [q, setQ] = useState('')
   const [editing, setEditing] = useState<string | null>(null)
+  const [cvOpen, setCvOpen] = useState<string | null>(null)
+
+  const openCv = async (path: string) => {
+    const url = await signCvFile(path)
+    if (url) window.open(url, '_blank')
+  }
 
   const serviceTitle = (id: string) => services?.find((s) => s.id === id)?.title ?? ''
   // The AI assistant is a system account, not an expert you manage or dismiss.
@@ -128,12 +134,34 @@ export function OwnerTeachersPage() {
                 >
                   {editing === tc.id ? (ar ? 'إغلاق' : 'Close') : ar ? 'تعديل التخصصات والنسبة' : 'Edit specialties & share'}
                 </button>
+                {(tc.cv_text || tc.cv_file_url) && (
+                  <button
+                    onClick={() => setCvOpen(cvOpen === tc.id ? null : tc.id)}
+                    className="rounded-lg border border-navy/20 px-3.5 py-1.5 text-[12.5px] font-semibold text-navy hover:border-navy"
+                  >
+                    {cvOpen === tc.id ? (ar ? 'إخفاء السيرة الذاتية' : 'Hide CV') : ar ? 'السيرة الذاتية' : 'CV'}
+                  </button>
+                )}
                 {tc.status === 'active' && (
                   <button onClick={() => void dismiss(tc.id, tc.name)} className="text-[12px] text-muted underline-offset-2 hover:text-error hover:underline">
                     {t('oTeachers.remove')}
                   </button>
                 )}
               </div>
+
+              {cvOpen === tc.id && (
+                <div className="mt-3 rounded-lg bg-bg-soft p-3.5">
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <div className="text-[12.5px] font-semibold text-navy">{ar ? 'السيرة الذاتية (تظهر لك فقط)' : 'CV (visible only to you)'}</div>
+                    {tc.cv_file_url && (
+                      <button onClick={() => void openCv(tc.cv_file_url!)} className="text-[12.5px] font-semibold text-navy underline">
+                        {ar ? 'تحميل الملف المرفق' : 'Download attached file'}
+                      </button>
+                    )}
+                  </div>
+                  {tc.cv_text && <div className="whitespace-pre-wrap text-[13px] leading-7 text-muted-2">{tc.cv_text}</div>}
+                </div>
+              )}
 
               {editing === tc.id && (
                 <ExpertEditor
