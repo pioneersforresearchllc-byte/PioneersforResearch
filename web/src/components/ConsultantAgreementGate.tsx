@@ -60,7 +60,7 @@ export function ConsultantAgreementGate() {
       <div role="dialog" aria-modal="true" className="flex max-h-full w-full max-w-2xl flex-col rounded-2xl bg-white shadow-2xl">
         <div className="border-b border-border px-5 py-4 md:px-6">
           <div className="font-heading text-[18px] font-bold text-navy">
-            {ar ? 'اتفاقية المستشار والمدرّب' : 'Consultant & Trainer Agreement'}
+            {ar ? 'اتفاقية المدرّب' : 'Trainer Agreement'}
           </div>
           <p className="mt-1 text-[12.5px] leading-6 text-muted">
             {ar
@@ -83,8 +83,8 @@ export function ConsultantAgreementGate() {
             <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} className="mt-1 h-4 w-4 shrink-0" />
             <span>
               {ar
-                ? 'قرأت اتفاقية المستشار والمدرّب كاملة، وأوافق عليها وألتزم بها، بما فيها التواصل داخل المنصة فقط، وعدم الاستقطاب والتعويض الاتفاقي، والسرية وحماية البيانات.'
-                : 'I have read the full Consultant & Trainer Agreement and agree to be bound by it, including on-platform communication only, non-solicitation and liquidated damages, and confidentiality and data protection.'}
+                ? 'قرأت اتفاقية المدرّب كاملة، وأوافق عليها وألتزم بها، بما فيها التواصل داخل المنصة فقط، وعدم الاستقطاب والتعويض الاتفاقي، والسرية وحماية البيانات.'
+                : 'I have read the full Trainer Agreement and agree to be bound by it, including on-platform communication only, non-solicitation and liquidated damages, and confidentiality and data protection.'}
             </span>
           </label>
           {error && <div className="mt-2 rounded-lg bg-error-bg px-3 py-2 text-[12.5px] text-error">{error}</div>}

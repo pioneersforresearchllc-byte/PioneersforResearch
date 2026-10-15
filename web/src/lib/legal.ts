@@ -8,7 +8,7 @@ import { PRIVACY, REFUND, TERMS } from '@/lib/legalDocs'
  * (migrations 0073 + 0074) as evidence — who, which version, which exact text
  * (doc_hash), when and from which IP / browser (both set server-side).
  */
-export const TERMS_VERSION = '2026-10-14'
+export const TERMS_VERSION = '2026-10-15'
 
 let hashPromise: Promise<string> | null = null
 

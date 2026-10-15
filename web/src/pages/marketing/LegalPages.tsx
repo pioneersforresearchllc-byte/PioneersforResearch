@@ -7,8 +7,8 @@ import { legalDocsHash, TERMS_VERSION } from '@/lib/legal'
 import { CONSULTANT_AGREEMENT, CONSULTANT_AGREEMENT_VERSION, consultantAgreementHash } from '@/lib/consultantAgreement'
 
 const effective = (version: string) => ({
-  ar: `تاريخ السريان وآخر تحديث: 14 أكتوبر 2026 — الإصدار ${version}`,
-  en: `Effective & last updated: 14 October 2026 — version ${version}`,
+  ar: `تاريخ السريان وآخر تحديث: 15 أكتوبر 2026 — الإصدار ${version}`,
+  en: `Effective & last updated: 15 October 2026 — version ${version}`,
 })
 const EFFECTIVE = effective(TERMS_VERSION)
 
@@ -60,7 +60,7 @@ export function LegalDoc({
           <Link to="/terms" className="text-muted">{lang === 'ar' ? 'الشروط والأحكام' : 'Terms'}</Link>
           <Link to="/privacy" className="text-muted">{lang === 'ar' ? 'سياسة الخصوصية' : 'Privacy'}</Link>
           <Link to="/refund" className="text-muted">{lang === 'ar' ? 'سياسة الاسترجاع والإلغاء' : 'Refund & cancellation'}</Link>
-          <Link to="/consultant-agreement" className="text-muted">{lang === 'ar' ? 'اتفاقية المستشار والمدرّب' : 'Consultant agreement'}</Link>
+          <Link to="/consultant-agreement" className="text-muted">{lang === 'ar' ? 'اتفاقية المدرّب' : 'Trainer agreement'}</Link>
         </div>
       </div>
       <div className="flex flex-col gap-6">
