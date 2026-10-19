@@ -328,3 +328,54 @@ export function subscribeServiceMessages(requestId: string, onInsert: () => void
     void supabase.removeChannel(channel)
   }
 }
+
+// ── Service journey steps ("سير الخدمة") ───────────────────────────────────
+export type StepState = 'pending' | 'current' | 'done'
+export interface ServiceStep {
+  id: string
+  request_id: string
+  title: string
+  position: number
+  state: StepState
+  created_at: string
+}
+
+export async function listServiceSteps(requestId: string): Promise<ServiceStep[]> {
+  const { data, error } = await supabase
+    .from('service_steps')
+    .select('id, request_id, title, position, state, created_at')
+    .eq('request_id', requestId)
+    .order('position', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as ServiceStep[]
+}
+
+/** Seeds the default roadmap once (no-op if steps already exist). */
+export async function seedServiceSteps(requestId: string): Promise<void> {
+  const { error } = await supabase.rpc('seed_service_steps', { p_request: requestId })
+  if (error) throw error
+}
+
+export async function addServiceStep(requestId: string, title: string, position: number): Promise<void> {
+  const { error } = await supabase.from('service_steps').insert({ request_id: requestId, title, position })
+  if (error) throw error
+}
+
+export async function updateServiceStep(
+  id: string,
+  patch: Partial<Pick<ServiceStep, 'title' | 'state' | 'position'>>,
+): Promise<void> {
+  const { error } = await supabase.from('service_steps').update(patch).eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteServiceStep(id: string): Promise<void> {
+  const { error } = await supabase.from('service_steps').delete().eq('id', id)
+  if (error) throw error
+}
+
+/** Swaps the order of two steps (for move up/down). */
+export async function swapServiceSteps(a: ServiceStep, b: ServiceStep): Promise<void> {
+  await updateServiceStep(a.id, { position: b.position })
+  await updateServiceStep(b.id, { position: a.position })
+}

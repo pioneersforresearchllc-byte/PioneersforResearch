@@ -16,9 +16,17 @@ import {
   taskState,
   sessionPhase,
   sessionStartMs,
+  listServiceSteps,
+  seedServiceSteps,
+  addServiceStep,
+  updateServiceStep,
+  deleteServiceStep,
+  swapServiceSteps,
   type SessionPhase,
   type ServiceSession,
   type ServiceTask,
+  type ServiceStep,
+  type StepState,
 } from '@/lib/serviceWorkspace'
 import { triggerPush } from '@/lib/push'
 import { ServiceChat } from '@/components/ServiceChat'
@@ -152,6 +160,7 @@ export function ServiceWorkspace({
 
   return (
     <div className="flex flex-col gap-5">
+      <StepsPanel requestId={requestId} manage={manage} t={t} />
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <SessionsPanel
           sessions={sessionsQ.data ?? []}
@@ -179,6 +188,125 @@ export function ServiceWorkspace({
 }
 
 type TFn = ReturnType<typeof useLanguage>['t']
+
+function StepDot({ state, onClick }: { state: StepState; onClick?: () => void }) {
+  const base = 'flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold'
+  const cls =
+    state === 'done'
+      ? 'bg-success text-white'
+      : state === 'current'
+        ? 'bg-accent text-white'
+        : 'border border-border bg-white text-faint'
+  const glyph = state === 'done' ? '✓' : state === 'current' ? '●' : '○'
+  return onClick ? (
+    <button onClick={onClick} className={`${base} ${cls}`} title="تغيير الحالة" aria-label="state">
+      {glyph}
+    </button>
+  ) : (
+    <span className={`${base} ${cls}`}>{glyph}</span>
+  )
+}
+
+/** Per-request journey ("سير الخدمة"): seeded defaults the student sees, which
+ * the assigned trainer (manage) can add to, delete, reorder and mark. */
+function StepsPanel({ requestId, manage, t }: { requestId: string; manage: boolean; t: TFn }) {
+  const qc = useQueryClient()
+  const stepsQ = useQuery({ queryKey: ['svc-steps', requestId], queryFn: () => listServiceSteps(requestId) })
+  const steps = stepsQ.data ?? []
+  const refresh = () => qc.invalidateQueries({ queryKey: ['svc-steps', requestId] })
+  const [title, setTitle] = useState('')
+  const [adding, setAdding] = useState(false)
+  const seeded = useRef(false)
+
+  useEffect(() => {
+    if (!stepsQ.isLoading && steps.length === 0 && !seeded.current) {
+      seeded.current = true
+      seedServiceSteps(requestId)
+        .then(refresh)
+        .catch(() => {})
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepsQ.isLoading, steps.length, requestId])
+
+  const add = useMutation({
+    mutationFn: () => addServiceStep(requestId, title.trim(), (steps.at(-1)?.position ?? 0) + 1),
+    onSuccess: () => {
+      setTitle('')
+      setAdding(false)
+      refresh()
+    },
+  })
+  const cycle = (s: ServiceStep) => {
+    const next: StepState = s.state === 'pending' ? 'current' : s.state === 'current' ? 'done' : 'pending'
+    void updateServiceStep(s.id, { state: next }).then(refresh)
+  }
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir
+    if (j < 0 || j >= steps.length) return
+    void swapServiceSteps(steps[i], steps[j]).then(refresh)
+  }
+
+  return (
+    <div className="rounded-xl border border-border-2 bg-white p-4">
+      <div className="mb-2.5 text-[14px] font-bold text-navy">🧭 {t('workspace.steps')}</div>
+      {stepsQ.isLoading && steps.length === 0 && <div className="py-2 text-[13px] text-faint">…</div>}
+      <div className="flex flex-col">
+        {steps.map((s, i) => (
+          <div key={s.id} className="flex items-center gap-2.5 py-1.5">
+            <StepDot state={s.state} onClick={manage ? () => cycle(s) : undefined} />
+            <span
+              className={`flex-1 text-[13.5px] ${
+                s.state === 'done' ? 'text-muted line-through' : s.state === 'current' ? 'font-bold text-navy' : 'text-navy'
+              }`}
+            >
+              {s.title}
+            </span>
+            {manage && (
+              <div className="flex items-center gap-0.5 text-[13px] text-faint">
+                <button onClick={() => move(i, -1)} disabled={i === 0} className="rounded px-1 hover:text-navy disabled:opacity-30">
+                  ↑
+                </button>
+                <button onClick={() => move(i, 1)} disabled={i === steps.length - 1} className="rounded px-1 hover:text-navy disabled:opacity-30">
+                  ↓
+                </button>
+                <button onClick={() => void deleteServiceStep(s.id).then(refresh)} className="rounded px-1 hover:text-error" title={t('workspace.delete')}>
+                  ✕
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      {manage &&
+        (adding ? (
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('workspace.stepPh')} className={`${field} flex-1`} />
+            <button
+              disabled={!title.trim() || add.isPending}
+              onClick={() => add.mutate()}
+              className="rounded-md bg-navy px-3.5 py-1.75 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+            >
+              {t('workspace.save')}
+            </button>
+            <button
+              onClick={() => {
+                setAdding(false)
+                setTitle('')
+              }}
+              className="text-[12.5px] text-muted"
+            >
+              {t('workspace.cancel')}
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => setAdding(true)} className="mt-2 text-[12.5px] font-semibold text-accent">
+            + {t('workspace.addStep')}
+          </button>
+        ))}
+      {manage && <div className="mt-2 text-[11px] text-faint">{t('workspace.stepHint')}</div>}
+    </div>
+  )
+}
 
 /* ── Sessions ─────────────────────────────────────────────────────────── */
 function SessionsPanel({
