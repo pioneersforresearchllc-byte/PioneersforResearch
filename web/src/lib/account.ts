@@ -34,6 +34,7 @@ export async function updateProfileDetails(
     years_experience?: number | null
     certifications?: string | null
     certificate_name?: string | null
+    national_id?: string | null
   },
 ) {
   const { error } = await supabase.from('profiles').update(fields).eq('id', userId)

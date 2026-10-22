@@ -158,6 +158,74 @@ function MyPhoneCard({ userId }: { userId: string }) {
   )
 }
 
+/** Saudi national ID / Iqama — required to issue NELC-accredited course
+ *  certificates. Private: visible to the learner and the platform owner only. */
+function NationalIdCard() {
+  const { profile, refreshProfile } = useAuth()
+  const { lang } = useLanguage()
+  const ar = lang === 'ar'
+  const [value, setValue] = useState(profile?.national_id ?? '')
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+  if (!profile) return null
+  const saved = /^[0-9]{10}$/.test((profile.national_id ?? '').trim())
+  const valid = /^[0-9]{10}$/.test(value.trim())
+
+  const save = async () => {
+    if (!valid) {
+      setMsg(ar ? 'رقم الهوية يجب أن يكون 10 أرقام' : 'National ID must be exactly 10 digits')
+      return
+    }
+    setBusy(true)
+    setMsg('')
+    try {
+      await updateProfileDetails(profile.id, { national_id: value.trim() })
+      await refreshProfile()
+      setMsg(ar ? 'تم الحفظ ✓' : 'Saved ✓')
+    } catch {
+      setMsg(ar ? 'تعذّر الحفظ' : 'Could not save')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-white p-5 md:p-6">
+      <div className="mb-1 flex items-center gap-2 text-[14px] font-semibold text-navy">
+        {ar ? 'رقم الهوية / الإقامة' : 'National ID / Iqama'}
+        {saved && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-[11px] font-medium text-green-700">
+            ● {ar ? 'موثّق' : 'Verified'}
+          </span>
+        )}
+      </div>
+      <div className="mb-3 text-[12px] leading-6 text-muted">
+        {ar
+          ? 'للمواطنين رقم الهوية الوطنية، وللمقيمين رقم الإقامة (10 أرقام). مطلوب لإصدار الشهادات المعتمدة من المركز الوطني للتعليم الإلكتروني — اختياري، وبدونه تُصدر شهادة إتمام عادية. خاص: لا يظهر إلا لك وللإدارة.'
+          : 'Saudi national ID, or Iqama for residents (10 digits). Required for certificates accredited by the National eLearning Center — optional; without it a regular completion certificate is issued. Private: visible only to you and the admin.'}
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input
+          dir="ltr"
+          inputMode="numeric"
+          value={value}
+          onChange={(e) => setValue(e.target.value.replace(/\D/g, '').slice(0, 10))}
+          placeholder="10XXXXXXXX"
+          className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
+        />
+        <button
+          onClick={() => void save()}
+          disabled={busy || !valid || value.trim() === (profile.national_id ?? '').trim()}
+          className="rounded-md bg-navy px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+        >
+          {ar ? 'حفظ' : 'Save'}
+        </button>
+      </div>
+      {msg && <div className="mt-2 text-[12.5px] text-navy">{msg}</div>}
+    </div>
+  )
+}
+
 export function AccountPage() {
   const { profile, refreshProfile } = useAuth()
   const { t } = useLanguage()
@@ -366,6 +434,8 @@ export function AccountPage() {
       </div>
 
       {(profile.role === 'student' || profile.role === 'teacher') && <MyPhoneCard userId={profile.id} />}
+
+      {profile.role === 'student' && <NationalIdCard />}
 
       <div className="rounded-xl border border-border bg-white p-5 md:p-6">
         <div className="mb-4 text-[14px] font-semibold text-navy">{t('account.passwordSection')}</div>
