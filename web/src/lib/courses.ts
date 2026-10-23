@@ -80,6 +80,24 @@ export async function listCoursesWithMeta(): Promise<CourseWithMeta[]> {
   }))
 }
 
+export interface RosterRow {
+  student_id: string
+  name: string
+  username: string
+  email: string | null
+  phone: string | null
+  enrolled_at: string
+}
+
+// Owner-only roster of students enrolled in a course (name, email, phone,
+// enrolment date). Backed by the security-definer RPC course_roster (0084),
+// which refuses non-owners server-side.
+export async function getCourseRoster(courseId: string): Promise<RosterRow[]> {
+  const { data, error } = await supabase.rpc('course_roster', { p_course_id: courseId })
+  if (error) throw error
+  return (data ?? []) as RosterRow[]
+}
+
 export interface CourseFormValues {
   title: string
   description: string

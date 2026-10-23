@@ -8,6 +8,7 @@ import {
   deleteSession,
   getCourseAccessCode,
   getCourseContent,
+  getCourseRoster,
   listActiveTeachers,
   listCoursesWithMeta,
   setCourseAccessCode,
@@ -369,10 +370,116 @@ function CourseEditor({
   )
 }
 
+/** Owner-only roster of students enrolled in a course: name, email, phone,
+ *  enrolment date — searchable and exportable to CSV. */
+function RosterModal({ course, onClose }: { course: CourseWithMeta; onClose: () => void }) {
+  const { lang } = useLanguage()
+  const ar = lang === 'ar'
+  const [q, setQ] = useState('')
+  const rosterQuery = useQuery({ queryKey: ['course-roster', course.id], queryFn: () => getCourseRoster(course.id) })
+
+  const rows = (rosterQuery.data ?? []).filter((r) => {
+    const s = q.trim().toLowerCase()
+    if (!s) return true
+    return [r.name, r.username, r.email, r.phone].some((v) => (v ?? '').toLowerCase().includes(s))
+  })
+
+  const exportCsv = () => {
+    const head = ['الاسم', 'اسم المستخدم', 'البريد الإلكتروني', 'الجوال', 'تاريخ التسجيل']
+    const cell = (v: string) => `"${v.replace(/"/g, '""')}"`
+    const lines = [head.map(cell).join(',')]
+    for (const r of rows) {
+      lines.push(
+        [r.name, r.username, r.email ?? '', r.phone ?? '', new Date(r.enrolled_at).toLocaleString('en-GB')]
+          .map((v) => cell(String(v)))
+          .join(','),
+      )
+    }
+    const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `roster-${course.title}.csv`.replace(/\s+/g, '_')
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:p-8" onClick={onClose}>
+      <div className="w-full max-w-3xl rounded-xl bg-white p-5 md:p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <div>
+            <div className="text-[15px] font-semibold text-navy">{ar ? 'الطلاب المسجّلون' : 'Registered students'}</div>
+            <div className="text-[12.5px] text-muted">
+              {course.title} · {ar ? 'العدد' : 'Total'}: {rosterQuery.data?.length ?? 0}
+            </div>
+          </div>
+          <button onClick={onClose} className="rounded-md border border-border px-3 py-1.5 text-[12.5px] text-navy hover:border-navy">
+            {ar ? 'إغلاق' : 'Close'}
+          </button>
+        </div>
+
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={ar ? 'بحث بالاسم أو البريد أو الجوال…' : 'Search name, email or phone…'}
+            className="flex-1 rounded-md border border-border px-3 py-2 text-[13px]"
+          />
+          <button
+            onClick={exportCsv}
+            disabled={rows.length === 0}
+            className="rounded-md bg-navy px-4 py-2 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+          >
+            {ar ? 'تصدير CSV' : 'Export CSV'}
+          </button>
+        </div>
+
+        {rosterQuery.isLoading && <LoadingState />}
+        {rosterQuery.data && rows.length === 0 && (
+          <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-[13px] text-muted">
+            {ar ? 'لا يوجد طلاب مسجّلون بعد.' : 'No registered students yet.'}
+          </div>
+        )}
+        {rows.length > 0 && (
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-[12.5px]">
+              <thead>
+                <tr className="bg-bg-soft text-navy">
+                  <th className="p-2.5 text-start font-semibold">{ar ? 'الاسم' : 'Name'}</th>
+                  <th className="p-2.5 text-start font-semibold">{ar ? 'البريد' : 'Email'}</th>
+                  <th className="p-2.5 text-start font-semibold">{ar ? 'الجوال' : 'Phone'}</th>
+                  <th className="p-2.5 text-start font-semibold">{ar ? 'التسجيل' : 'Enrolled'}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.student_id} className="border-t border-border">
+                    <td className="p-2.5 text-navy">
+                      {r.name}
+                      <span className="block text-[11px] text-faint">@{r.username}</span>
+                    </td>
+                    <td className="p-2.5 text-muted" dir="ltr">{r.email ?? '—'}</td>
+                    <td className="p-2.5 text-muted" dir="ltr">{r.phone ?? '—'}</td>
+                    <td className="p-2.5 whitespace-nowrap text-muted" dir="ltr">
+                      {new Date(r.enrolled_at).toLocaleDateString('en-GB')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function OwnerCoursesPage() {
   const { t } = useLanguage()
   const queryClient = useQueryClient()
   const [editing, setEditing] = useState<CourseWithMeta | null | 'new'>(null)
+  const [roster, setRoster] = useState<CourseWithMeta | null>(null)
 
   const coursesQuery = useQuery({ queryKey: ['owner-courses'], queryFn: listCoursesWithMeta })
   const teachersQuery = useQuery({ queryKey: ['active-teachers'], queryFn: listActiveTeachers })
@@ -422,12 +529,15 @@ export function OwnerCoursesPage() {
             <div className="mb-3 text-[12px] text-faint">
               {c.teacherIds.map((id) => teacherNameById.get(id)).filter(Boolean).join('، ') || t('sCourses.noTeacher')}
             </div>
-            <div className="mb-3 text-[12px] text-faint">
+            <button
+              onClick={() => setRoster(c)}
+              className="mb-3 block text-start text-[12px] text-navy underline decoration-dotted underline-offset-4 hover:text-navy-hover"
+            >
               {t('oCourses.enrolledSessions', {
                 enrolled: `${c.enrolledCount}${c.capacity != null ? `/${c.capacity}` : ''}`,
                 sessions: String(c.sessions.length),
               })}
-            </div>
+            </button>
             <div className="flex gap-2">
               <button
                 onClick={() => setEditing(c)}
@@ -454,6 +564,8 @@ export function OwnerCoursesPage() {
           onSaved={refresh}
         />
       )}
+
+      {roster && <RosterModal course={roster} onClose={() => setRoster(null)} />}
     </div>
   )
 }
