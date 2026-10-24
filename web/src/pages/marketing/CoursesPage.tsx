@@ -9,7 +9,7 @@ export function MarketingCoursesPage() {
   const { data: courses } = useCourses()
   useDocumentMeta(
     'الدورات والبرامج | Pioneers Health Research',
-    'دورات وبرامج تدريبية معتمدة في منهجية البحث العلمي: من السؤال البحثي والتحليل حتى النشر.',
+    'دورات وبرامج تدريبية متخصصة في منهجية البحث العلمي: من السؤال البحثي والتحليل حتى النشر.',
   )
 
   const list = courses ?? []
@@ -25,6 +25,7 @@ export function MarketingCoursesPage() {
         empty={t('home.courses.empty')}
         ctaLabel={t('home.courses.subscribe')}
         items={onlyCourses}
+        asPage
       />
       {programs.length > 0 && (
         <OfferingSection

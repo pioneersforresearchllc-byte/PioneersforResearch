@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatPhone, getMyPhone, normalizePhone, savePhone } from '@/lib/phone'
 import { PhoneField } from '@/components/PhoneField'
 import { MarketingCard } from '@/components/Consent'
+import { NATIONAL_ID_ENABLED } from '@/lib/config'
 
 function initials(name: string) {
   return name.trim().slice(0, 2) || '?'
@@ -435,7 +436,7 @@ export function AccountPage() {
 
       {(profile.role === 'student' || profile.role === 'teacher') && <MyPhoneCard userId={profile.id} />}
 
-      {profile.role === 'student' && <NationalIdCard />}
+      {NATIONAL_ID_ENABLED && profile.role === 'student' && <NationalIdCard />}
 
       <div className="rounded-xl border border-border bg-white p-5 md:p-6">
         <div className="mb-4 text-[14px] font-semibold text-navy">{t('account.passwordSection')}</div>

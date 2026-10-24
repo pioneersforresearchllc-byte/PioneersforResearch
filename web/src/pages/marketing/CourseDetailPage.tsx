@@ -10,6 +10,7 @@ import { validateDiscount, type DiscountPreview } from '@/lib/discounts'
 import { useLanguage } from '@/lib/i18n'
 import { money } from '@/components/Riyal'
 import { GatedPrice } from '@/components/GatedPrice'
+import { canonicalUrl, SITE_URL, useDocumentMeta, useJsonLd } from '@/lib/useDocumentMeta'
 
 function formatSar(cents: number, t: ReturnType<typeof useLanguage>['t']) {
   if (cents === 0) return t('course.free')
@@ -119,6 +120,28 @@ export function CourseDetailPage() {
   const [payAck, setPayAck] = useState(false)
   const paymentStatus = searchParams.get('payment')
   const studentId = profile?.role === 'student' ? profile.id : undefined
+
+  // Per-course SEO + link preview, and Course structured data.
+  const metaTitle = course ? (lang === 'en' ? course.title_en || course.title : course.title) : 'الدورات التدريبية'
+  const metaDesc = course
+    ? (lang === 'en' ? course.description_en || course.description : course.description).replace(/\s+/g, ' ').trim().slice(0, 155)
+    : undefined
+  useDocumentMeta(`${metaTitle} | الرواد الاستشارية للبحوث الصحية`, metaDesc || undefined, { image: course?.image_url })
+  useJsonLd(
+    course && {
+      '@context': 'https://schema.org',
+      '@type': 'Course',
+      name: metaTitle,
+      description: metaDesc || metaTitle,
+      url: canonicalUrl(`/course/${course.id}`),
+      inLanguage: lang,
+      provider: { '@id': `${SITE_URL}/#organization` },
+      ...(course.image_url ? { image: course.image_url } : {}),
+      ...(!course.code_only
+        ? { offers: { '@type': 'Offer', price: (course.price_cents / 100).toFixed(2), priceCurrency: 'SAR', category: course.price_cents > 0 ? 'Paid' : 'Free' } }
+        : {}),
+    },
+  )
 
   // Stripe redirects back here right after checkout, but the actual
   // enrollment is created asynchronously by the webhook — poll briefly
@@ -264,10 +287,10 @@ export function CourseDetailPage() {
             alt=""
           />
         )}
-        <h2 className="font-heading mb-3.5 text-[26px] font-bold text-navy">
+        <h1 className="font-heading mb-3.5 text-[26px] font-bold text-navy">
           {lang === 'en' ? course.title_en || course.title : course.title}
-        </h2>
-        <div className="mb-4.5 flex items-center gap-2">
+        </h1>
+        {course.rating_count > 0 && <div className="mb-4.5 flex items-center gap-2">
           {[1, 2, 3, 4, 5].map((n) => (
             <span
               key={n}
@@ -279,7 +302,7 @@ export function CourseDetailPage() {
           <span className="text-[13px] text-muted">
             {course.avg_rating.toFixed(1)} ({t('course.ratingCount', { count: String(course.rating_count) })})
           </span>
-        </div>
+        </div>}
         <p className="mb-6 text-[15.5px] leading-[2] text-muted-2">
           {lang === 'en' ? course.description_en || course.description : course.description}
         </p>

@@ -1,5 +1,4 @@
 import { supabase } from '@/lib/supabase'
-import { PRIVACY, REFUND, TERMS } from '@/lib/legalDocs'
 
 /**
  * Version of the Terms / Privacy / Refund documents. Bump it whenever the legal
@@ -19,6 +18,9 @@ let hashPromise: Promise<string> | null = null
  */
 export function legalDocsHash(): Promise<string> {
   hashPromise ??= (async () => {
+    // Loaded on demand: the full legal texts are large, and most importers of
+    // this module only record a consent (no hash needed until they do).
+    const { PRIVACY, REFUND, TERMS } = await import('@/lib/legalDocs')
     const text = JSON.stringify({ version: TERMS_VERSION, terms: TERMS, privacy: PRIVACY, refund: REFUND })
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
     return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('')

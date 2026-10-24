@@ -91,6 +91,11 @@ export function SiteComments() {
 
   const comments = data ?? []
 
+  // An empty wall with "be the first" reads as an unused site to a visitor —
+  // show the section to guests only once there are comments (members still
+  // see it, so someone can post the first one).
+  if (!session && comments.length === 0) return null
+
   return (
     <div id="community" className="bg-bg-soft px-4 py-12 md:px-16 md:py-20">
       <div className="mx-auto max-w-6xl">

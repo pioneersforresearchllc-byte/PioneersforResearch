@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
+import { LogoLoader } from '@/components/LogoLoader'
 import { Link, Outlet } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
@@ -169,7 +170,10 @@ export function MarketingLayout() {
       </div>
 
       <PageTransition>
-        <Outlet />
+        {/* Pages are lazy chunks (App.tsx): keep header/footer up while one loads. */}
+        <Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center"><LogoLoader /></div>}>
+          <Outlet />
+        </Suspense>
       </PageTransition>
 
       <footer className="relative overflow-hidden bg-[#0a1c34] text-white">

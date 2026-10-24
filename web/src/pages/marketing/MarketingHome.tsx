@@ -27,6 +27,7 @@ import { AudienceSection } from '@/components/AudienceSection'
 import { buttonClasses } from '@/components/ui/Button'
 import { Magnetic } from '@/components/ui/motion'
 import { GatedPrice } from '@/components/GatedPrice'
+import { stripMarkdown } from '@/components/Markdown'
 
 type TeamEntry = { name: string; role: string; bio: string }
 
@@ -162,6 +163,7 @@ export function OfferingSection({
   ctaLabel,
   items,
   soft,
+  asPage,
 }: {
   id: string
   eyebrow?: string
@@ -170,13 +172,16 @@ export function OfferingSection({
   ctaLabel: string
   items: CourseCard[]
   soft?: boolean
+  /** The section is the page's main content (its title becomes the H1). */
+  asPage?: boolean
 }) {
   const { t, lang } = useLanguage()
+  const Heading = asPage ? 'h1' : 'h2'
   return (
     <div id={id} className={`px-4 py-12 md:px-16 md:py-20 ${soft ? 'bg-bg-soft' : ''}`}>
       <div className="mb-12.5 text-center">
         {eyebrow && <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-accent">{eyebrow}</div>}
-        <h2 className="font-heading text-2xl font-bold md:text-[30px]">{title}</h2>
+        <Heading className="font-heading text-2xl font-bold md:text-[30px]">{title}</Heading>
       </div>
       {items.length > 0 ? (
         <div className="grid grid-cols-1 gap-6.5 sm:grid-cols-2 lg:grid-cols-3">
@@ -197,12 +202,15 @@ export function OfferingSection({
               <p className="mb-4 text-[14.5px] leading-[1.9] text-muted">
                 {lang === 'en' ? c.description_en || c.description : c.description}
               </p>
-              <div className="mb-3 flex items-center gap-2">
-                <Stars avg={c.avg_rating} />
-                <span className="text-[12.5px] text-muted">
-                  {c.avg_rating.toFixed(1)} ({t('course.ratingCount', { count: String(c.rating_count) })})
-                </span>
-              </div>
+              {/* No ratings yet → no row (an empty "0.0 (0)" reads as a bad score). */}
+              {c.rating_count > 0 && (
+                <div className="mb-3 flex items-center gap-2">
+                  <Stars avg={c.avg_rating} />
+                  <span className="text-[12.5px] text-muted">
+                    {c.avg_rating.toFixed(1)} ({t('course.ratingCount', { count: String(c.rating_count) })})
+                  </span>
+                </div>
+              )}
               <div className="mb-4 flex items-center justify-between">
                 <div className="text-[13px] font-semibold text-accent">{c.duration_label}</div>
                 <div>
@@ -241,8 +249,9 @@ export function OfferingSection({
 // institution packages: numbered navy header, who-it's-for line, first scope
 // items, price box, and a "Details" window (owner-editable content, see
 // lib/serviceDetails) plus the request button to the service's own page.
-export function ServicesSection() {
+export function ServicesSection({ asPage }: { asPage?: boolean } = {}) {
   const { t, lang } = useLanguage()
+  const Heading = asPage ? 'h1' : 'h2'
   const ar = lang === 'ar'
   const tx = (a: string, e: string) => (ar ? a : e)
   const ct = useContentText()
@@ -291,7 +300,7 @@ export function ServicesSection() {
     <div id="services" className="px-4 py-12 md:px-16 md:py-20">
       <div className="mb-12.5 text-center">
         <div className="mb-3.5 text-[13px] font-semibold tracking-[2px] text-accent">{t('home.services.eyebrow')}</div>
-        <h2 className="font-heading text-2xl font-bold md:text-[30px]">{ct('home.services.title')}</h2>
+        <Heading className="font-heading text-2xl font-bold md:text-[30px]">{ct('home.services.title')}</Heading>
       </div>
       {list.length > 0 ? (
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -578,7 +587,9 @@ export function MarketingHome() {
           title={ct('home.courses.title')}
           empty={t('home.courses.empty')}
           ctaLabel={t('home.courses.subscribe')}
-          items={(courses ?? []).filter((c) => c.kind === 'course')}
+          // Code-only courses belong to a partner cohort (joined via a shared
+          // link + code); they stay listed on /courses but not on the homepage.
+          items={(courses ?? []).filter((c) => c.kind === 'course' && !c.code_only)}
         />
       )}
 
@@ -599,25 +610,32 @@ export function MarketingHome() {
                   <img src={a.image_url} className="mb-4 block aspect-[1.8] w-full rounded-lg object-cover" alt="" />
                 )}
                 <div className="mb-2.5 text-[12.5px] font-semibold text-accent">
-                  {t('home.byAuthor', { name: a.author_name })}
+                  {t('home.byAuthor', {
+                    name: a.author_name || (lang === 'en' ? 'Pioneers Health Research team' : 'فريق الرواد الاستشارية للبحوث الصحية'),
+                  })}
                 </div>
                 <h3 className="mb-2.5 text-[16.5px] leading-[1.6] text-navy">
                   {lang === 'en' ? a.title_en || a.title : a.title}
                 </h3>
                 <p className="mb-4 flex-1 text-[13.5px] leading-[1.8] text-muted">
-                  {(lang === 'en' ? a.content_en || a.content : a.content).slice(0, 140)}
+                  {stripMarkdown(lang === 'en' ? a.content_en || a.content : a.content).slice(0, 140)}…
                 </p>
                 <div className="flex items-center justify-between">
                   <Link to={`/article/${a.id}`} className={buttonClasses('outline', 'sm')}>
                     {t('home.resources.readArticle')}
                   </Link>
+                  {/* Counts only once there's something to count. */}
                   <div className="flex gap-2.5 text-xs text-muted">
-                    <span>
-                      {a.likes_count} {t('home.resources.likes')}
-                    </span>
-                    <span>
-                      {a.comments_count} {t('home.resources.comments')}
-                    </span>
+                    {a.likes_count > 0 && (
+                      <span>
+                        {a.likes_count} {t('home.resources.likes')}
+                      </span>
+                    )}
+                    {a.comments_count > 0 && (
+                      <span>
+                        {a.comments_count} {t('home.resources.comments')}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -659,6 +677,8 @@ export function MarketingHome() {
             <form onSubmit={submitContact} className="flex flex-col gap-3.5">
               <input
                 type="text"
+                aria-label={t('home.contact.namePh')}
+                autoComplete="name"
                 placeholder={t('home.contact.namePh')}
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
@@ -666,12 +686,15 @@ export function MarketingHome() {
               />
               <input
                 type="email"
+                aria-label={t('home.contact.emailPh')}
+                autoComplete="email"
                 placeholder={t('home.contact.emailPh')}
                 value={contactEmail}
                 onChange={(e) => setContactEmail(e.target.value)}
                 className="rounded-md border border-white/30 bg-white/5 px-4 py-3.25 text-[14.5px] text-white placeholder:text-white/60"
               />
               <textarea
+                aria-label={t('home.contact.messagePh')}
                 placeholder={t('home.contact.messagePh')}
                 value={contactMessage}
                 onChange={(e) => setContactMessage(e.target.value)}

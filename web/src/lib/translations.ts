@@ -61,7 +61,7 @@ export const translations = {
     ar: 'طلاب البكالوريوس والدراسات العليا والباحثون المستقلّون.',
     en: 'Undergraduate & graduate students and independent researchers.',
   },
-  'audience.individuals.b1': { ar: 'دورات وبرامج تدريبية معتمدة', en: 'Accredited training courses & programs' },
+  'audience.individuals.b1': { ar: 'دورات وبرامج تدريبية متخصصة', en: 'Specialised training courses & programs' },
   'audience.individuals.b2': { ar: 'إشراف فردي مباشر (1:1)', en: 'Direct one-to-one supervision' },
   'audience.individuals.b3': { ar: 'خدمات بحثية وشهادات موثّقة', en: 'Research services & verified certificates' },
   'audience.individuals.cta': { ar: 'أنشئ حسابك', en: 'Create your account' },

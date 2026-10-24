@@ -4,8 +4,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
-import { useDocumentMeta } from '@/lib/useDocumentMeta'
-import { Markdown } from '@/components/Markdown'
+import { canonicalUrl, SITE_URL, useDocumentMeta, useJsonLd } from '@/lib/useDocumentMeta'
+import { Markdown, stripMarkdown } from '@/components/Markdown'
 
 interface ArticleDetail {
   id: string
@@ -17,6 +17,7 @@ interface ArticleDetail {
   likes_count: number
   author_id: string
   author_name: string
+  created_at: string
 }
 
 interface CommentRow {
@@ -33,7 +34,7 @@ function useArticle(id: string | undefined) {
       const { data, error } = await supabase
         .from('articles')
         .select(
-          'id, title, content, title_en, content_en, image_url, likes_count, author_id, author:profiles!articles_author_id_fkey(name)',
+          'id, title, content, title_en, content_en, image_url, likes_count, author_id, created_at, author:profiles!articles_author_id_fkey(name)',
         )
         .eq('id', id!)
         .maybeSingle()
@@ -49,6 +50,7 @@ function useArticle(id: string | undefined) {
         likes_count: data.likes_count,
         author_id: data.author_id,
         author_name: (data.author as unknown as { name: string } | null)?.name ?? '',
+        created_at: data.created_at,
       }
     },
   })
@@ -120,13 +122,32 @@ export function ArticleDetailPage() {
   // snippet of the body becomes the meta description.
   const metaTitle = article ? (lang === 'en' ? article.title_en || article.title : article.title) : 'مقالات البحث العلمي'
   const metaDesc = article
-    ? (lang === 'en' ? article.content_en || article.content : article.content)
-        .replace(/[#*>_`]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .slice(0, 155)
+    ? stripMarkdown(lang === 'en' ? article.content_en || article.content : article.content).slice(0, 155)
     : undefined
-  useDocumentMeta(`${metaTitle} | الرواد الاستشارية للبحوث الصحية`, metaDesc)
+  useDocumentMeta(`${metaTitle} | الرواد الاستشارية للبحوث الصحية`, metaDesc, {
+    image: article?.image_url,
+    type: 'article',
+  })
+  // Anonymous visitors can't read author profiles, so the byline falls back to
+  // the team instead of showing an empty "By".
+  const teamName = lang === 'en' ? 'Pioneers Health Research team' : 'فريق الرواد الاستشارية للبحوث الصحية'
+  const authorName = article?.author_name || teamName
+  useJsonLd(
+    article && {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: metaTitle,
+      description: metaDesc,
+      image: article.image_url || `${SITE_URL}/og-image.png`,
+      datePublished: article.created_at,
+      inLanguage: lang,
+      mainEntityOfPage: canonicalUrl(`/article/${article.id}`),
+      author: article.author_name
+        ? { '@type': 'Person', name: article.author_name }
+        : { '@id': `${SITE_URL}/#organization` },
+      publisher: { '@id': `${SITE_URL}/#organization` },
+    },
+  )
 
   const canInteract = !!session
 
@@ -173,7 +194,7 @@ export function ArticleDetailPage() {
         )}
         <div className="p-5 md:p-7">
           <h1 className="font-heading mb-2 text-2xl">{lang === 'en' ? article.title_en || article.title : article.title}</h1>
-          <div className="mb-4.5 text-[13px] text-accent">{t('article.byAuthor', { name: article.author_name })}</div>
+          <div className="mb-4.5 text-[13px] text-accent">{t('article.byAuthor', { name: authorName })}</div>
           <Markdown
             source={lang === 'en' ? article.content_en || article.content : article.content}
             className="mb-5.5 text-[15px] text-muted-2"

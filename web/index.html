@@ -9,12 +9,7 @@
          never offer "Install app". A service worker is still registered for
          web-push notifications only. -->
     <meta name="theme-color" content="#0b1f3a" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Fonts are self-hosted (@fontsource, imported in src/main.tsx). -->
 
     <!-- SEO -->
     <title>الرواد الاستشارية للبحوث الصحية | Pioneers Health Research — تدريب وإشراف على البحث العلمي</title>
@@ -28,10 +23,10 @@
     />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="author" content="Pioneers Health Research" />
+    <!-- Homepage values; SeoSync / useDocumentMeta (src/lib/useDocumentMeta.ts)
+         rewrite canonical, og:url and the title/description per route. No
+         hreflang: Arabic and English share the same URLs. -->
     <link rel="canonical" href="https://pioneersresearch.com/" />
-    <link rel="alternate" hreflang="ar" href="https://pioneersresearch.com/" />
-    <link rel="alternate" hreflang="en" href="https://pioneersresearch.com/" />
-    <link rel="alternate" hreflang="x-default" href="https://pioneersresearch.com/" />
 
     <!-- Open Graph (Facebook / WhatsApp / LinkedIn) -->
     <meta property="og:type" content="website" />
@@ -125,60 +120,6 @@
             "alternateName": ["الرواد الاستشارية للبحوث الصحية", "الرواد الاستشارية للأبحاث", "Pioneers Research", "بيونيرز للأبحاث الصحية"],
             "inLanguage": "ar",
             "publisher": { "@id": "https://pioneersresearch.com/#organization" }
-          },
-          {
-            "@type": "FAQPage",
-            "@id": "https://pioneersresearch.com/#faq",
-            "mainEntity": [
-              {
-                "@type": "Question",
-                "name": "What is Pioneers Health Research?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Pioneers Health Research (بايونيرز للأبحاث الصحية) is a Saudi research training, mentorship and consulting platform that guides individuals and institutions through the full scientific research journey — from framing the research question and methodology to statistical analysis and publication — with training courses, research services and verified certificates."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "ما هي منصة بايونيرز للأبحاث الصحية؟",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "منصة سعودية متخصصة في التدريب والإشراف والاستشارات على البحث العلمي، ترافقك من صياغة السؤال البحثي والمنهجية والتحليل الإحصائي حتى النشر، مع دورات وبرامج تدريبية وخدمات بحثية وشهادات موثّقة."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "What services does Pioneers Health Research offer?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Training courses in research methodology, one-to-one research mentorship, research proposal development, SPSS statistical data analysis, and academic writing and publication support."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "Where is Pioneers Health Research located?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "It is based in Saudi Arabia and serves researchers and institutions across the Arab world, online."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "هل تقدمون خدمة التحليل الإحصائي SPSS؟",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "نعم، نقدم التحليل الإحصائي الكامل باستخدام SPSS لرسائل الماجستير والدكتوراه والأبحاث: إدخال البيانات، الاختبارات الوصفية والاستدلالية، حساب حجم العينة، اختبار الثبات (ألفا كرونباخ)، وتفسير النتائج وعرضها بجداول احترافية."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "هل تساعدون في رسالة الماجستير والدكتوراه؟",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "نعم، نرافق الباحث في رسالة الماجستير والدكتوراه خطوة بخطوة: كتابة خطة البحث (البروبوزال)، صياغة مشكلة البحث، المنهجية، الإطار النظري والدراسات السابقة، التحليل الإحصائي، والمراجعة والتدقيق حتى النشر في مجلة محكمة."
-                }
-              }
-            ]
           }
         ]
       }

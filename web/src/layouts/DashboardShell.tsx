@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
+import { LogoLoader } from '@/components/LogoLoader'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
@@ -256,7 +257,10 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
             <ConsultantAgreementGate />
             <MarketingPrompt />
             <PageTransition>
-              <Outlet />
+              {/* Pages are lazy chunks (App.tsx): keep the shell up while one loads. */}
+              <Suspense fallback={<div className="flex min-h-[50vh] items-center justify-center"><LogoLoader /></div>}>
+                <Outlet />
+              </Suspense>
             </PageTransition>
           </div>
         </main>

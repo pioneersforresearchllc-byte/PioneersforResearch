@@ -1,226 +1,125 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, type ComponentType } from 'react'
 import { Route, Routes } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import { MarketingLayout } from '@/layouts/MarketingLayout'
-import { DashboardShell, type DashboardTab } from '@/layouts/DashboardShell'
-import { countMyUnseenRequests } from '@/lib/services'
-import { countMyStudentUnseen, countMyTeacherUnseen } from '@/lib/assignments'
-import { countMyDueInvoices } from '@/lib/billing'
-import { VerifyCertificatePage } from '@/pages/marketing/VerifyCertificatePage'
 import { RequireRole } from '@/routes/RequireRole'
 import { Placeholder } from '@/components/Placeholder'
-import { useAuth } from '@/context/AuthContext'
-import { LoginPage } from '@/pages/auth/LoginPage'
-import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
-import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
-import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage'
-import { CompleteProfilePage } from '@/pages/auth/CompleteProfilePage'
-import { RegisterPage } from '@/pages/auth/RegisterPage'
-import { RegisterOtpPage } from '@/pages/auth/RegisterOtpPage'
-import { TeacherApplyPage } from '@/pages/auth/TeacherApplyPage'
-import { TeacherPendingPage } from '@/pages/auth/TeacherPendingPage'
-import { InstitutionApplyPage } from '@/pages/auth/InstitutionApplyPage'
-import { InstitutionPendingPage } from '@/pages/auth/InstitutionPendingPage'
-import { InstitutionOverviewPage } from '@/pages/dashboard/institution/OverviewPage'
-import { InstitutionConsultationsPage } from '@/pages/dashboard/institution/ConsultationsPage'
-import { InstitutionTeamPage } from '@/pages/dashboard/institution/TeamPage'
-import { InstitutionTraineesPage } from '@/pages/dashboard/institution/TraineesPage'
-import { OwnerInstitutionsPage } from '@/pages/dashboard/owner/InstitutionsPage'
-import { OwnerInstitutionConsultationsPage } from '@/pages/dashboard/owner/InstitutionConsultationsPage'
-import { OwnerLoginPage } from '@/pages/auth/OwnerLoginPage'
-import { OwnerOtpPage } from '@/pages/auth/OwnerOtpPage'
-// Lazy — pulls in the (large) Daily video SDK only when a call is opened.
-const CallPage = lazy(() => import('@/pages/call/CallPage').then((m) => ({ default: m.CallPage })))
-import { MarketingHome } from '@/pages/marketing/MarketingHome'
-import { TermsPage, PrivacyPage, RefundPage, ConsultantAgreementPage } from '@/pages/marketing/LegalPages'
-import { QuotePage } from '@/pages/marketing/QuotePage'
-import { VerifyLookupPage } from '@/pages/marketing/VerifyLookupPage'
-import { OwnerReviewsPage } from '@/pages/dashboard/owner/ReviewsPage'
-import { OwnerProfitPage } from '@/pages/dashboard/owner/ProfitPage'
 import { CookieConsent } from '@/components/CookieConsent'
-import { AboutPage } from '@/pages/marketing/AboutPage'
-import { MarketingCoursesPage } from '@/pages/marketing/CoursesPage'
-import { MarketingServicesPage } from '@/pages/marketing/ServicesPage'
-import { InstitutionsPage } from '@/pages/marketing/InstitutionsPage'
-import { MarketingContactPage } from '@/pages/marketing/ContactPage'
-import { CourseDetailPage } from '@/pages/marketing/CourseDetailPage'
-import { ServiceDetailPage } from '@/pages/marketing/ServiceDetailPage'
-import { ArticleDetailPage } from '@/pages/marketing/ArticleDetailPage'
-import { ChatPage } from '@/pages/dashboard/chat/ChatPage'
-import { OwnerCoursesPage } from '@/pages/dashboard/owner/CoursesPage'
-import { OwnerApplicationsPage } from '@/pages/dashboard/owner/ApplicationsPage'
-import { OwnerTeachersPage } from '@/pages/dashboard/owner/TeachersPage'
-import { StudentCoursesPage } from '@/pages/dashboard/student/CoursesPage'
-import { StudentCourseDetailPage } from '@/pages/dashboard/student/CourseDetailPage'
-import { TeacherCoursesPage } from '@/pages/dashboard/teacher/CoursesPage'
-import { TeacherCourseDetailPage } from '@/pages/dashboard/teacher/CourseDetailPage'
-import { TeacherReviewPage } from '@/pages/dashboard/teacher/ReviewPage'
-import { StudentAssignmentsPage } from '@/pages/dashboard/student/AssignmentsPage'
-import { OwnerCertificatesPage } from '@/pages/dashboard/owner/CertificatesPage'
-import { StudentCertificatesPage } from '@/pages/dashboard/student/CertificatesPage'
-import { TeacherArticlesPage } from '@/pages/dashboard/teacher/ArticlesPage'
-import { StudentArticlesPage } from '@/pages/dashboard/student/ArticlesPage'
-import { OwnerOverviewPage } from '@/pages/dashboard/owner/OverviewPage'
-import { OwnerAdminsPage } from '@/pages/dashboard/owner/AdminsPage'
-import { OwnerAccountsPage } from '@/pages/dashboard/owner/AccountsPage'
-import { OwnerBroadcastPage } from '@/pages/dashboard/owner/BroadcastPage'
-import { OwnerConsentsPage } from '@/pages/dashboard/owner/ConsentsPage'
-import { OwnerInvoicesPage } from '@/pages/dashboard/owner/InvoicesPage'
-import { OwnerServicesPage } from '@/pages/dashboard/owner/ServicesPage'
-import { OwnerServiceRequestsPage } from '@/pages/dashboard/owner/ServiceRequestsPage'
-import { OwnerHomeContentPage } from '@/pages/dashboard/owner/HomeContentPage'
-import { OwnerArticlesPage } from '@/pages/dashboard/owner/ArticlesPage'
-import { OwnerDiscountsPage } from '@/pages/dashboard/owner/DiscountsPage'
-import { OwnerContactPage } from '@/pages/dashboard/owner/ContactPage'
-import { StudentGradesPage } from '@/pages/dashboard/student/GradesPage'
-import { StudentInvoicesPage } from '@/pages/dashboard/student/InvoicesPage'
-import { StudentServicesPage } from '@/pages/dashboard/student/ServicesPage'
-import { StudentFeedbackPage } from '@/pages/dashboard/student/FeedbackPage'
-import { AccountPage } from '@/pages/dashboard/shared/AccountPage'
-import { MyRequestsPage, MyRequestsRedirect } from '@/pages/dashboard/shared/MyRequestsPage'
-import { StudentOverviewPage } from '@/pages/dashboard/student/OverviewPage'
-import { TeacherOverviewPage } from '@/pages/dashboard/teacher/OverviewPage'
-import { TeacherStudentsPage } from '@/pages/dashboard/teacher/StudentsPage'
-import { TeacherAssignedRequestsPage } from '@/pages/dashboard/teacher/AssignedRequestsPage'
-import { WorkshopsPage } from '@/pages/dashboard/shared/WorkshopsPage'
-import { OwnerWorkshopsPage } from '@/pages/dashboard/owner/WorkshopsPage'
-import { StudentBillingPage } from '@/pages/dashboard/student/BillingPage'
-import { OwnerBillingPage } from '@/pages/dashboard/owner/BillingPage'
+import { FullPageLoader } from '@/components/LogoLoader'
+import { SeoSync } from '@/lib/useDocumentMeta'
+import { MarketingHome } from '@/pages/marketing/MarketingHome'
 
-const studentTabs: DashboardTab[] = [
-  { key: 'overview', labelKey: 'tab.overview', to: '/student' },
-  { key: 'courses', labelKey: 'tab.myCourses', to: '/student/courses' },
-  { key: 'assignments', labelKey: 'tab.assignments', to: '/student/assignments' },
-  { key: 'grades', labelKey: 'tab.grades', to: '/student/grades' },
-  { key: 'certificates', labelKey: 'tab.certificates', to: '/student/certificates' },
-  { key: 'feedback', labelKey: 'tab.feedback', to: '/student/feedback' },
-  { key: 'articles', labelKey: 'tab.articles', to: '/student/articles' },
-  { key: 'my-services', labelKey: 'tab.myServices', to: '/student/services' },
-  { key: 'workshops', labelKey: 'tab.workshops', to: '/student/workshops' },
-  { key: 'requests', labelKey: 'tab.myRequests', to: '/student/requests' },
-  { key: 'billing', labelKey: 'tab.billing', to: '/student/billing' },
-  { key: 'invoices', labelKey: 'tab.invoices', to: '/student/invoices' },
-  { key: 'chat', labelKey: 'tab.messages', to: '/student/chat' },
-  { key: 'account', labelKey: 'tab.myAccount', to: '/student/account' },
-]
+// Code splitting: the homepage (where ads and search land) is the only page in
+// the main bundle. Every other page — and the whole dashboard layer — is its
+// own chunk, fetched on first visit. Suspense boundaries live in
+// MarketingLayout / DashboardShell (around <Outlet/>) and around <Routes> below.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const page = <M,>(load: () => Promise<M>, name: keyof M) =>
+  lazy(() => load().then((m) => ({ default: m[name] as ComponentType<any> })))
 
-const teacherTabs: DashboardTab[] = [
-  { key: 'overview', labelKey: 'tab.overview', to: '/teacher' },
-  { key: 'students', labelKey: 'tab.students', to: '/teacher/students' },
-  { key: 'courses', labelKey: 'tab.coursesPrograms', to: '/teacher/courses' },
-  { key: 'review', labelKey: 'tab.reviewAssignments', to: '/teacher/review' },
-  { key: 'articles', labelKey: 'tab.myArticles', to: '/teacher/articles' },
-  { key: 'workshops', labelKey: 'tab.workshops', to: '/teacher/workshops' },
-  { key: 'assigned', labelKey: 'tab.assignedRequests', to: '/teacher/assigned' },
-  { key: 'requests', labelKey: 'tab.myRequests', to: '/teacher/requests' },
-  { key: 'chat', labelKey: 'tab.messages', to: '/teacher/chat' },
-  { key: 'account', labelKey: 'tab.myAccount', to: '/teacher/account' },
-]
+// Dashboards (shell + tabs)
+const StudentDashboard = page(() => import('@/routes/dashboards'), 'StudentDashboard')
+const TeacherDashboard = page(() => import('@/routes/dashboards'), 'TeacherDashboard')
+const OwnerDashboard = page(() => import('@/routes/dashboards'), 'OwnerDashboard')
+const InstitutionDashboard = page(() => import('@/routes/dashboards'), 'InstitutionDashboard')
 
-const ownerTabs: DashboardTab[] = [
-  { key: 'overview', labelKey: 'tab.overview', to: '/owner' },
-  { key: 'applications', labelKey: 'tab.teacherApplications', to: '/owner/applications' },
-  { key: 'teachers', labelKey: 'tab.teachers', to: '/owner/teachers' },
-  { key: 'courses', labelKey: 'tab.coursesPrograms', to: '/owner/courses' },
-  { key: 'services', labelKey: 'tab.services', to: '/owner/services' },
-  { key: 'service-requests', labelKey: 'tab.serviceRequests', to: '/owner/service-requests' },
-  { key: 'workshops', labelKey: 'tab.workshops', to: '/owner/workshops' },
-  { key: 'billing', labelKey: 'tab.billingIssue', to: '/owner/billing' },
-  { key: 'invoices', labelKey: 'tab.finance', to: '/owner/invoices' },
-  { key: 'profit', labelKey: 'tab.profit', to: '/owner/profit' },
-  { key: 'discounts', labelKey: 'tab.discounts', to: '/owner/discounts' },
-  { key: 'institutions', labelKey: 'tab.institutions', to: '/owner/institutions' },
-  { key: 'inst-consultations', labelKey: 'tab.instConsultations', to: '/owner/institution-consultations' },
-  { key: 'certificates', labelKey: 'tab.certificates', to: '/owner/certificates' },
-  { key: 'admins', labelKey: 'tab.admins', to: '/owner/admins' },
-  { key: 'accounts', labelKey: 'tab.accounts', to: '/owner/accounts' },
-  { key: 'consents', labelKey: 'tab.consents', to: '/owner/consents' },
-  { key: 'broadcast', labelKey: 'tab.broadcast', to: '/owner/broadcast' },
-  { key: 'messages', labelKey: 'tab.messages', to: '/owner/messages' },
-  { key: 'contact', labelKey: 'tab.contactMessages', to: '/owner/contact' },
-  { key: 'home-content', labelKey: 'tab.homeContent', to: '/owner/home-content' },
-  { key: 'reviews', labelKey: 'tab.reviews', to: '/owner/reviews' },
-  { key: 'articles', labelKey: 'tab.manageArticles', to: '/owner/articles' },
-  { key: 'account', labelKey: 'tab.myAccount', to: '/owner/account' },
-]
+// Public pages
+const AboutPage = page(() => import('@/pages/marketing/AboutPage'), 'AboutPage')
+const MarketingCoursesPage = page(() => import('@/pages/marketing/CoursesPage'), 'MarketingCoursesPage')
+const MarketingServicesPage = page(() => import('@/pages/marketing/ServicesPage'), 'MarketingServicesPage')
+const InstitutionsPage = page(() => import('@/pages/marketing/InstitutionsPage'), 'InstitutionsPage')
+const MarketingContactPage = page(() => import('@/pages/marketing/ContactPage'), 'MarketingContactPage')
+const CourseDetailPage = page(() => import('@/pages/marketing/CourseDetailPage'), 'CourseDetailPage')
+const ServiceDetailPage = page(() => import('@/pages/marketing/ServiceDetailPage'), 'ServiceDetailPage')
+const ArticleDetailPage = page(() => import('@/pages/marketing/ArticleDetailPage'), 'ArticleDetailPage')
+const TermsPage = page(() => import('@/pages/marketing/LegalPages'), 'TermsPage')
+const PrivacyPage = page(() => import('@/pages/marketing/LegalPages'), 'PrivacyPage')
+const RefundPage = page(() => import('@/pages/marketing/LegalPages'), 'RefundPage')
+const ConsultantAgreementPage = page(() => import('@/pages/marketing/LegalPages'), 'ConsultantAgreementPage')
+const QuotePage = page(() => import('@/pages/marketing/QuotePage'), 'QuotePage')
+const VerifyLookupPage = page(() => import('@/pages/marketing/VerifyLookupPage'), 'VerifyLookupPage')
+const VerifyCertificatePage = page(() => import('@/pages/marketing/VerifyCertificatePage'), 'VerifyCertificatePage')
 
-/** Unseen-requests count for the "My Requests" tab badge, kept fresh so a new
- *  development (owner priced/updated a request) shows up without a reload. */
-function useRequestsBadge(userId: string | undefined): Record<string, number> {
-  const { data } = useQuery({
-    queryKey: ['my-requests-unseen', userId],
-    enabled: !!userId,
-    queryFn: () => countMyUnseenRequests(userId!),
-    refetchInterval: 60_000,
-  })
-  return { requests: data ?? 0 }
-}
+// Auth & onboarding
+const LoginPage = page(() => import('@/pages/auth/LoginPage'), 'LoginPage')
+const ForgotPasswordPage = page(() => import('@/pages/auth/ForgotPasswordPage'), 'ForgotPasswordPage')
+const ResetPasswordPage = page(() => import('@/pages/auth/ResetPasswordPage'), 'ResetPasswordPage')
+const AuthCallbackPage = page(() => import('@/pages/auth/AuthCallbackPage'), 'AuthCallbackPage')
+const CompleteProfilePage = page(() => import('@/pages/auth/CompleteProfilePage'), 'CompleteProfilePage')
+const RegisterPage = page(() => import('@/pages/auth/RegisterPage'), 'RegisterPage')
+const RegisterOtpPage = page(() => import('@/pages/auth/RegisterOtpPage'), 'RegisterOtpPage')
+const TeacherApplyPage = page(() => import('@/pages/auth/TeacherApplyPage'), 'TeacherApplyPage')
+const TeacherPendingPage = page(() => import('@/pages/auth/TeacherPendingPage'), 'TeacherPendingPage')
+const InstitutionApplyPage = page(() => import('@/pages/auth/InstitutionApplyPage'), 'InstitutionApplyPage')
+const InstitutionPendingPage = page(() => import('@/pages/auth/InstitutionPendingPage'), 'InstitutionPendingPage')
+const OwnerLoginPage = page(() => import('@/pages/auth/OwnerLoginPage'), 'OwnerLoginPage')
+const OwnerOtpPage = page(() => import('@/pages/auth/OwnerOtpPage'), 'OwnerOtpPage')
+// Pulls in the (large) Daily video SDK only when a call is opened.
+const CallPage = page(() => import('@/pages/call/CallPage'), 'CallPage')
 
-function StudentDashboard() {
-  const { profile } = useAuth()
-  const badges = useRequestsBadge(profile?.id)
-  const { data: unseenSubs } = useQuery({
-    queryKey: ['student-unseen-subs', profile?.id],
-    enabled: !!profile,
-    queryFn: countMyStudentUnseen,
-    refetchInterval: 60_000,
-  })
-  const { data: dueInvoices } = useQuery({
-    queryKey: ['student-due-invoices', profile?.id],
-    enabled: !!profile,
-    queryFn: countMyDueInvoices,
-    refetchInterval: 60_000,
-  })
-  return (
-    <DashboardShell
-      subtitleKey="shell.studentSubtitle"
-      userName={profile?.name ?? ''}
-      tabs={studentTabs}
-      badges={{ ...badges, assignments: unseenSubs ?? 0, billing: dueInvoices ?? 0 }}
-    />
-  )
-}
+// Shared dashboard pages
+const ChatPage = page(() => import('@/pages/dashboard/chat/ChatPage'), 'ChatPage')
+const AccountPage = page(() => import('@/pages/dashboard/shared/AccountPage'), 'AccountPage')
+const MyRequestsPage = page(() => import('@/pages/dashboard/shared/MyRequestsPage'), 'MyRequestsPage')
+const MyRequestsRedirect = page(() => import('@/pages/dashboard/shared/MyRequestsPage'), 'MyRequestsRedirect')
+const WorkshopsPage = page(() => import('@/pages/dashboard/shared/WorkshopsPage'), 'WorkshopsPage')
 
-function TeacherDashboard() {
-  const { profile } = useAuth()
-  const badges = useRequestsBadge(profile?.id)
-  const { data: unseenSubs } = useQuery({
-    queryKey: ['teacher-unseen-subs', profile?.id],
-    enabled: !!profile,
-    queryFn: countMyTeacherUnseen,
-    refetchInterval: 60_000,
-  })
-  return (
-    <DashboardShell
-      subtitleKey="shell.teacherSubtitle"
-      userName={profile?.name ?? ''}
-      tabs={teacherTabs}
-      badges={{ ...badges, review: unseenSubs ?? 0 }}
-    />
-  )
-}
+// Student
+const StudentOverviewPage = page(() => import('@/pages/dashboard/student/OverviewPage'), 'StudentOverviewPage')
+const StudentCoursesPage = page(() => import('@/pages/dashboard/student/CoursesPage'), 'StudentCoursesPage')
+const StudentCourseDetailPage = page(() => import('@/pages/dashboard/student/CourseDetailPage'), 'StudentCourseDetailPage')
+const StudentAssignmentsPage = page(() => import('@/pages/dashboard/student/AssignmentsPage'), 'StudentAssignmentsPage')
+const StudentGradesPage = page(() => import('@/pages/dashboard/student/GradesPage'), 'StudentGradesPage')
+const StudentInvoicesPage = page(() => import('@/pages/dashboard/student/InvoicesPage'), 'StudentInvoicesPage')
+const StudentServicesPage = page(() => import('@/pages/dashboard/student/ServicesPage'), 'StudentServicesPage')
+const StudentBillingPage = page(() => import('@/pages/dashboard/student/BillingPage'), 'StudentBillingPage')
+const StudentCertificatesPage = page(() => import('@/pages/dashboard/student/CertificatesPage'), 'StudentCertificatesPage')
+const StudentFeedbackPage = page(() => import('@/pages/dashboard/student/FeedbackPage'), 'StudentFeedbackPage')
+const StudentArticlesPage = page(() => import('@/pages/dashboard/student/ArticlesPage'), 'StudentArticlesPage')
 
-const institutionTabs: DashboardTab[] = [
-  { key: 'inst-home', labelKey: 'tab.instHome', to: '/institution' },
-  { key: 'inst-trainees', labelKey: 'tab.instTrainees', to: '/institution/trainees' },
-  { key: 'inst-consult', labelKey: 'tab.instConsult', to: '/institution/consultations' },
-  { key: 'inst-team', labelKey: 'tab.instTeam', to: '/institution/team' },
-  { key: 'account', labelKey: 'tab.myAccount', to: '/institution/account' },
-]
+// Teacher
+const TeacherOverviewPage = page(() => import('@/pages/dashboard/teacher/OverviewPage'), 'TeacherOverviewPage')
+const TeacherStudentsPage = page(() => import('@/pages/dashboard/teacher/StudentsPage'), 'TeacherStudentsPage')
+const TeacherCoursesPage = page(() => import('@/pages/dashboard/teacher/CoursesPage'), 'TeacherCoursesPage')
+const TeacherCourseDetailPage = page(() => import('@/pages/dashboard/teacher/CourseDetailPage'), 'TeacherCourseDetailPage')
+const TeacherReviewPage = page(() => import('@/pages/dashboard/teacher/ReviewPage'), 'TeacherReviewPage')
+const TeacherArticlesPage = page(() => import('@/pages/dashboard/teacher/ArticlesPage'), 'TeacherArticlesPage')
+const TeacherAssignedRequestsPage = page(() => import('@/pages/dashboard/teacher/AssignedRequestsPage'), 'TeacherAssignedRequestsPage')
 
-function OwnerDashboard() {
-  const { profile } = useAuth()
-  return <DashboardShell subtitleKey="shell.ownerSubtitle" userName={profile?.name ?? ''} tabs={ownerTabs} />
-}
+// Owner
+const OwnerOverviewPage = page(() => import('@/pages/dashboard/owner/OverviewPage'), 'OwnerOverviewPage')
+const OwnerApplicationsPage = page(() => import('@/pages/dashboard/owner/ApplicationsPage'), 'OwnerApplicationsPage')
+const OwnerTeachersPage = page(() => import('@/pages/dashboard/owner/TeachersPage'), 'OwnerTeachersPage')
+const OwnerCoursesPage = page(() => import('@/pages/dashboard/owner/CoursesPage'), 'OwnerCoursesPage')
+const OwnerServicesPage = page(() => import('@/pages/dashboard/owner/ServicesPage'), 'OwnerServicesPage')
+const OwnerServiceRequestsPage = page(() => import('@/pages/dashboard/owner/ServiceRequestsPage'), 'OwnerServiceRequestsPage')
+const OwnerWorkshopsPage = page(() => import('@/pages/dashboard/owner/WorkshopsPage'), 'OwnerWorkshopsPage')
+const OwnerBillingPage = page(() => import('@/pages/dashboard/owner/BillingPage'), 'OwnerBillingPage')
+const OwnerInvoicesPage = page(() => import('@/pages/dashboard/owner/InvoicesPage'), 'OwnerInvoicesPage')
+const OwnerCertificatesPage = page(() => import('@/pages/dashboard/owner/CertificatesPage'), 'OwnerCertificatesPage')
+const OwnerAdminsPage = page(() => import('@/pages/dashboard/owner/AdminsPage'), 'OwnerAdminsPage')
+const OwnerAccountsPage = page(() => import('@/pages/dashboard/owner/AccountsPage'), 'OwnerAccountsPage')
+const OwnerBroadcastPage = page(() => import('@/pages/dashboard/owner/BroadcastPage'), 'OwnerBroadcastPage')
+const OwnerConsentsPage = page(() => import('@/pages/dashboard/owner/ConsentsPage'), 'OwnerConsentsPage')
+const OwnerContactPage = page(() => import('@/pages/dashboard/owner/ContactPage'), 'OwnerContactPage')
+const OwnerHomeContentPage = page(() => import('@/pages/dashboard/owner/HomeContentPage'), 'OwnerHomeContentPage')
+const OwnerReviewsPage = page(() => import('@/pages/dashboard/owner/ReviewsPage'), 'OwnerReviewsPage')
+const OwnerProfitPage = page(() => import('@/pages/dashboard/owner/ProfitPage'), 'OwnerProfitPage')
+const OwnerArticlesPage = page(() => import('@/pages/dashboard/owner/ArticlesPage'), 'OwnerArticlesPage')
+const OwnerDiscountsPage = page(() => import('@/pages/dashboard/owner/DiscountsPage'), 'OwnerDiscountsPage')
+const OwnerInstitutionsPage = page(() => import('@/pages/dashboard/owner/InstitutionsPage'), 'OwnerInstitutionsPage')
+const OwnerInstitutionConsultationsPage = page(() => import('@/pages/dashboard/owner/InstitutionConsultationsPage'), 'OwnerInstitutionConsultationsPage')
 
-function InstitutionDashboard() {
-  const { profile } = useAuth()
-  return <DashboardShell subtitleKey="shell.instSubtitle" userName={profile?.name ?? ''} tabs={institutionTabs} />
-}
+// Institution
+const InstitutionOverviewPage = page(() => import('@/pages/dashboard/institution/OverviewPage'), 'InstitutionOverviewPage')
+const InstitutionTraineesPage = page(() => import('@/pages/dashboard/institution/TraineesPage'), 'InstitutionTraineesPage')
+const InstitutionConsultationsPage = page(() => import('@/pages/dashboard/institution/ConsultationsPage'), 'InstitutionConsultationsPage')
+const InstitutionTeamPage = page(() => import('@/pages/dashboard/institution/TeamPage'), 'InstitutionTeamPage')
 
 export default function App() {
   return (
     <>
+      <SeoSync />
+      <Suspense fallback={<FullPageLoader />}>
       <Routes>
         <Route element={<MarketingLayout />}>
           <Route path="/" element={<MarketingHome />} />
@@ -255,8 +154,8 @@ export default function App() {
         <Route path="/institution-pending" element={<InstitutionPendingPage />} />
         <Route path="/owner-login" element={<OwnerLoginPage />} />
         <Route path="/owner-otp" element={<OwnerOtpPage />} />
-        <Route path="/call/:sessionId" element={<Suspense fallback={null}><CallPage /></Suspense>} />
-        <Route path="/group-call/:sessionId" element={<Suspense fallback={null}><CallPage kind="group" /></Suspense>} />
+        <Route path="/call/:sessionId" element={<CallPage />} />
+        <Route path="/group-call/:sessionId" element={<CallPage kind="group" />} />
 
         <Route element={<RequireRole role="student" />}>
           <Route element={<StudentDashboard />}>
@@ -336,6 +235,7 @@ export default function App() {
 
         <Route path="*" element={<Placeholder />} />
       </Routes>
+      </Suspense>
       <CookieConsent />
     </>
   )

@@ -1,9 +1,13 @@
 import { Link } from 'react-router-dom'
 import { useLanguage } from '@/lib/i18n'
+import { useDocumentMeta } from '@/lib/useDocumentMeta'
 
 /** 404 page for any route that doesn't exist (e.g. a mistyped or old link). */
 export function Placeholder({ title }: { title?: string }) {
   const { t } = useLanguage()
+  // The SPA answers every URL with 200, so at least tell search engines not to
+  // index the "not found" page under the mistyped URL.
+  useDocumentMeta(`${title ?? t('placeholder.notFound')} | Pioneers Health Research`, undefined, { noindex: true })
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center gap-3 px-6 text-center">
       <img src="/logo.png" alt="" className="mb-2 h-14 w-14" />

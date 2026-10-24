@@ -9,8 +9,9 @@ function esc(s: string): string {
 
 function inline(s: string): string {
   let out = esc(s)
-  // [text](url) — only http(s) / mailto, rendered safe.
-  out = out.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|mailto:[^\s)]+|\/[^\s)]*)\)/g, (_m, text, url) => {
+  // [text](url) — only http(s) / mailto / site paths, rendered safe. A site path
+  // must not start with "//" (that is another host, protocol-relative).
+  out = out.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|mailto:[^\s)]+|\/(?!\/)[^\s)]*)\)/g, (_m, text, url) => {
     const internal = String(url).startsWith('/')
     const rel = internal ? '' : ' target="_blank" rel="noopener nofollow"'
     return `<a href="${url}" class="text-navy underline"${rel}>${text}</a>`
@@ -66,6 +67,17 @@ function toHtml(md: string): string {
   }
   flushPara(); closeList()
   return html.join('\n')
+}
+
+/** Plain-text version of a Markdown body, for card excerpts and meta
+ * descriptions: drops heading/list markers, emphasis and link URLs. */
+export function stripMarkdown(md: string): string {
+  return md
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/^\s*(#{1,6}|[-*]|\d+\.)\s+/gm, '')
+    .replace(/[*_`>#]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 export function Markdown({ source, className }: { source: string; className?: string }) {

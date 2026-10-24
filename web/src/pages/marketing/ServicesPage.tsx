@@ -9,7 +9,7 @@ export function MarketingServicesPage() {
 
   return (
     <div>
-      <ServicesSection />
+      <ServicesSection asPage />
     </div>
   )
 }
