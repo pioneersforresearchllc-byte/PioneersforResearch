@@ -4,6 +4,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
+import { useDocumentMeta } from '@/lib/useDocumentMeta'
+import { Markdown } from '@/components/Markdown'
 
 interface ArticleDetail {
   id: string
@@ -114,6 +116,18 @@ export function ArticleDetailPage() {
   const { data: likerNames } = useLikerNames(id, isAuthor)
   const [commentDraft, setCommentDraft] = useState('')
 
+  // Per-article SEO: the article title becomes the page <title>, and a trimmed
+  // snippet of the body becomes the meta description.
+  const metaTitle = article ? (lang === 'en' ? article.title_en || article.title : article.title) : 'مقالات البحث العلمي'
+  const metaDesc = article
+    ? (lang === 'en' ? article.content_en || article.content : article.content)
+        .replace(/[#*>_`]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 155)
+    : undefined
+  useDocumentMeta(`${metaTitle} | الرواد الاستشارية للبحوث الصحية`, metaDesc)
+
   const canInteract = !!session
 
   const toggleLike = async () => {
@@ -158,11 +172,12 @@ export function ArticleDetailPage() {
           <img src={article.image_url} className="block aspect-[1.8] w-full object-cover" alt="" />
         )}
         <div className="p-5 md:p-7">
-          <h2 className="font-heading mb-2 text-2xl">{lang === 'en' ? article.title_en || article.title : article.title}</h2>
+          <h1 className="font-heading mb-2 text-2xl">{lang === 'en' ? article.title_en || article.title : article.title}</h1>
           <div className="mb-4.5 text-[13px] text-accent">{t('article.byAuthor', { name: article.author_name })}</div>
-          <p className="mb-5.5 whitespace-pre-wrap text-[15px] leading-[2] text-muted-2">
-            {lang === 'en' ? article.content_en || article.content : article.content}
-          </p>
+          <Markdown
+            source={lang === 'en' ? article.content_en || article.content : article.content}
+            className="mb-5.5 text-[15px] text-muted-2"
+          />
 
           {canInteract ? (
             <div className="flex gap-2.5 border-t border-border-2 pt-4.5">
