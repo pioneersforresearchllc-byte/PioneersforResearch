@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
+import { useDocumentMeta } from '@/lib/useDocumentMeta'
 import {
   getServiceBySlug,
   submitServiceRequest,
@@ -64,6 +65,14 @@ export function ServiceDetailPage() {
     enabled: !!slug,
     queryFn: () => getServiceBySlug(slug!),
   })
+
+  // Per-service SEO: each service page ranks for its own keyword (e.g. التحليل
+  // الإحصائي SPSS, خطة البحث, النشر في مجلة محكمة).
+  const metaTitle = service ? (lang === 'en' ? service.title_en || service.title : service.title) : 'الخدمات البحثية'
+  useDocumentMeta(
+    `${metaTitle} | الرواد الاستشارية للبحوث الصحية`,
+    service ? (lang === 'en' ? service.description_en || service.description : service.description) || undefined : undefined,
+  )
 
   const [selected, setSelected] = useState<ServicePackage | null>(null)
   const [fullName, setFullName] = useState(profile?.name ?? '')
