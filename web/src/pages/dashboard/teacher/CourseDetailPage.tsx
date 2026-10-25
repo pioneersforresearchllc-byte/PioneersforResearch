@@ -7,6 +7,7 @@ import { getTaughtCourseDetail } from '@/lib/courses'
 import { createAssignment, listAssignmentsForCourse, uploadAssignmentFile } from '@/lib/assignments'
 import { LoadingState } from '@/components/LoadingState'
 import { AttendancePanel } from '@/components/institution/AttendancePanel'
+import { CourseSessions } from '@/components/CourseSessions'
 
 function NewAssignmentModal({
   courseId,
@@ -169,30 +170,7 @@ export function TeacherCourseDetailPage() {
       <p className="mb-6 max-w-160 text-[14.5px] leading-8 text-muted-2">{data.course.description}</p>
 
       <div className="mb-6">
-        <div className="mb-2.5 text-[15px] font-semibold text-navy">{t('cDetail.sessions')}</div>
-        {data.sessions.length === 0 && <div className="text-[13.5px] text-muted">{t('cDetail.noSessions')}</div>}
-        <div className="flex flex-col gap-2">
-          {data.sessions.map((s) => (
-            <div key={s.id} className="flex items-center justify-between rounded-lg border border-border bg-white p-4">
-              <div>
-                <div className="text-[14px] font-semibold text-navy">{s.title}</div>
-                <div className="text-[12.5px] text-muted">
-                  {s.session_date} · {s.session_time}
-                </div>
-              </div>
-              {s.link && (
-                <a
-                  href={s.link}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-md border border-navy px-4 py-1.75 text-[12.5px] text-navy no-underline hover:bg-bg-soft"
-                >
-                  {t('cDetail.sessionLink')}
-                </a>
-              )}
-            </div>
-          ))}
-        </div>
+        <CourseSessions sessions={data.sessions} hostMode />
       </div>
 
       <div className="mb-6">

@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { getCourseContent, getEnrolledCourseDetail } from '@/lib/courses'
 import { LoadingState } from '@/components/LoadingState'
-import { EmptyState } from '@/components/EmptyState'
+import { CourseSessions } from '@/components/CourseSessions'
 
 export function StudentCourseDetailPage() {
   const { id } = useParams()
@@ -78,39 +78,8 @@ export function StudentCourseDetailPage() {
         </div>
       )}
 
-      {/* Sessions */}
-      <div className="rounded-2xl border border-border bg-white p-5 md:p-6">
-        <div className="mb-3 text-[15px] font-semibold text-navy">{t('cDetail.sessions')}</div>
-        {data.sessions.length === 0 ? (
-          <EmptyState title={t('cDetail.noSessions')} />
-        ) : (
-          <div className="flex flex-col gap-2.5">
-            {data.sessions.map((s) => (
-              <div
-                key={s.id}
-                className="flex items-center justify-between rounded-xl border border-border bg-bg-soft/50 p-4 transition-colors hover:border-navy/40"
-              >
-                <div>
-                  <div className="text-[14px] font-semibold text-navy">{s.title}</div>
-                  <div className="mt-0.5 text-[12.5px] text-muted">
-                    {s.session_date} · {s.session_time}
-                  </div>
-                </div>
-                {s.link && (
-                  <a
-                    href={s.link}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="shrink-0 rounded-md bg-navy px-4 py-2 text-[12.5px] font-semibold text-white no-underline transition-colors hover:bg-navy-hover"
-                  >
-                    {t('cDetail.sessionLink')}
-                  </a>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Live lectures: next-lecture highlight + full schedule */}
+      <CourseSessions sessions={data.sessions} />
     </div>
   )
 }
