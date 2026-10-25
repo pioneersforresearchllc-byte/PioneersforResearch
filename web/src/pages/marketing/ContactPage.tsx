@@ -22,8 +22,8 @@ export function MarketingContactPage() {
         <ContactForm />
         <div className="mt-8 text-center text-[13.5px] text-white/70">
           {t('contactPage.orEmail')}{' '}
-          <a href="mailto:pioneersforresearchllc@gmail.com" className="font-semibold text-gold no-underline">
-            pioneersforresearchllc@gmail.com
+          <a href="mailto:support@pioneersresearch.com" className="font-semibold text-gold no-underline">
+            support@pioneersresearch.com
           </a>
         </div>
       </div>

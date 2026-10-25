@@ -1501,8 +1501,8 @@ export const translations = {
   'footer.licensed': { ar: 'شركة مرخّصة من وزارة الاستثمار', en: 'Licensed by the Ministry of Investment' },
   'footer.refund': { ar: 'سياسة الاسترجاع', en: 'Refund Policy' },
   'footer.legal': {
-    ar: 'شركة بايونيرز هيلث ريسيرتش كونسالتينج (ذات مسؤولية محدودة) — الرقم الموحّد 7055175363 — ترخيص وزارة الاستثمار 24926274626 — الرقم الضريبي 3150160068 — جدة، المملكة العربية السعودية (العنوان الوطني JHJA8230) — pioneersforresearchllc@gmail.com',
-    en: 'Pioneers Health Research Consulting (LLC) — Unified No. 7055175363 — MISA License 24926274626 — Tax No. 3150160068 — Jeddah, Saudi Arabia (National Address JHJA8230) — pioneersforresearchllc@gmail.com',
+    ar: 'شركة بايونيرز هيلث ريسيرتش كونسالتينج (ذات مسؤولية محدودة) — الرقم الموحّد 7055175363 — ترخيص وزارة الاستثمار 24926274626 — الرقم الضريبي 3150160068 — جدة، المملكة العربية السعودية (العنوان الوطني JHJA8230) — support@pioneersresearch.com',
+    en: 'Pioneers Health Research Consulting (LLC) — Unified No. 7055175363 — MISA License 24926274626 — Tax No. 3150160068 — Jeddah, Saudi Arabia (National Address JHJA8230) — support@pioneersresearch.com',
   },
   'tab.reviews': { ar: 'آراء العملاء والإحالات', en: 'Reviews & referrals' },
   'tab.profit': { ar: 'الأرباح والمصروفات', en: 'Profit & expenses' },

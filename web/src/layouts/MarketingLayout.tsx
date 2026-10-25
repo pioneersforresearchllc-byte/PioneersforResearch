@@ -237,8 +237,8 @@ export function MarketingLayout() {
             <div className="mb-4 text-[14px] font-bold text-gold">{t('nav.contact')}</div>
             <ul className="flex flex-col gap-3 text-[13.5px]">
               <li>
-                <a href="mailto:pioneersforresearchllc@gmail.com" className="flex items-center gap-2 text-white/75 no-underline hover:text-white">
-                  <span aria-hidden>✉️</span> pioneersforresearchllc@gmail.com
+                <a href="mailto:support@pioneersresearch.com" className="flex items-center gap-2 text-white/75 no-underline hover:text-white">
+                  <span aria-hidden>✉️</span> support@pioneersresearch.com
                 </a>
               </li>
               {whatsapp && (
