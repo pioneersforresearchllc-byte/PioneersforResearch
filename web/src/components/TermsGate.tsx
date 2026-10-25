@@ -1,19 +1,21 @@
 import { useState } from 'react'
-import { createPortal } from 'react-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { hasAcceptedTerms, recordTermsAcceptance, TERMS_VERSION } from '@/lib/legal'
+import { SoftNudge } from '@/components/SoftNudge'
 
 /**
- * Every non-owner account must accept the current legal documents version.
- * Covers accounts created before consent was recorded, Google / institution /
- * teacher signups, and everyone again after TERMS_VERSION is bumped.
- * Stays hidden while migration 0073 is pending (hasAcceptedTerms → undefined).
- * Sits above PhoneGate (z-70 vs z-60) so terms come first.
+ * Reminds non-owner accounts to accept the current legal documents version.
+ * New users already accept at sign-up (RegisterPage), so this mostly fires on a
+ * TERMS_VERSION bump or for legacy / Google / institution accounts. To avoid
+ * losing people it is a low-key, non-blocking nudge (not a wall and no forced
+ * sign-out): clicking "موافق" RECORDS the acceptance (legal evidence), while
+ * the copy makes clear that continued use already constitutes acceptance of the
+ * update — so the legal protection holds even if the nudge is dismissed.
  */
 export function TermsGate() {
-  const { profile, signOut } = useAuth()
+  const { profile } = useAuth()
   const { lang } = useLanguage()
   const ar = lang === 'ar'
   const queryClient = useQueryClient()
@@ -24,7 +26,6 @@ export function TermsGate() {
     queryFn: () => hasAcceptedTerms(profile!.id),
     staleTime: Infinity,
   })
-  const [checked, setChecked] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -49,44 +50,26 @@ export function TermsGate() {
     </a>
   )
 
-  return createPortal(
-    <div dir={ar ? 'rtl' : 'ltr'} className="fixed inset-0 z-[70] flex items-center justify-center bg-[#0a1c34]/65 p-4 backdrop-blur-[2px]">
-      <div role="dialog" aria-modal="true" className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
-        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-navy/5 text-[22px]">📄</div>
-        <div className="mb-1.5 font-heading text-[19px] font-bold text-navy">
-          {ar ? 'تحديث الشروط والسياسات' : 'Updated terms & policies'}
-        </div>
-        <p className="mb-4 text-[13.5px] leading-7 text-muted">
-          {ar
-            ? 'حدّثنا الشروط والأحكام وسياسة الخصوصية وسياسة الاسترجاع والإلغاء. يرجى الاطلاع عليها والموافقة للمتابعة في استخدام حسابك.'
-            : 'We have updated our Terms & Conditions, Privacy Policy and Refund & Cancellation Policy. Please review and accept them to continue using your account.'}
-        </p>
-        <div className="mb-4 flex flex-col gap-1.5 rounded-xl bg-bg-soft px-4 py-3 text-[13.5px]">
-          {link('/terms', ar ? '← الشروط والأحكام' : 'Terms & Conditions →')}
-          {link('/privacy', ar ? '← سياسة الخصوصية' : 'Privacy Policy →')}
-          {link('/refund', ar ? '← سياسة الاسترجاع والإلغاء' : 'Refund & Cancellation Policy →')}
-        </div>
-        <label className="flex items-start gap-2.5 text-[13px] leading-6 text-navy">
-          <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} className="mt-1 h-4 w-4 shrink-0" />
-          <span>
-            {ar
-              ? 'قرأت الشروط والأحكام وسياسة الخصوصية وسياسة الاسترجاع والإلغاء، وأوافق عليها.'
-              : 'I have read and agree to the Terms & Conditions, Privacy Policy and Refund & Cancellation Policy.'}
-          </span>
-        </label>
-        {error && <div className="mt-2 rounded-lg bg-error-bg px-3 py-2 text-[12.5px] text-error">{error}</div>}
-        <button
-          onClick={() => void accept()}
-          disabled={!checked || busy}
-          className="mt-4 w-full rounded-xl bg-navy py-3 text-[15px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
-        >
-          {busy ? '...' : ar ? 'أوافق وأتابع' : 'Accept & continue'}
-        </button>
-        <button onClick={() => void signOut()} className="mt-3 w-full text-center text-[12.5px] text-muted hover:text-navy">
-          {ar ? 'لا أوافق — تسجيل الخروج' : 'I do not agree — sign out'}
-        </button>
+  return (
+    <SoftNudge title={ar ? 'تحديث الشروط والسياسات' : 'Updated terms & policies'}>
+      <p className="mb-2 text-[12.5px] leading-6 text-muted">
+        {ar
+          ? 'حدّثنا الشروط والخصوصية وسياسة الاسترجاع. باستمرارك في استخدام حسابك فإنك توافق على التحديث.'
+          : 'We updated our Terms, Privacy and Refund policies. Continuing to use your account means you accept the update.'}
+      </p>
+      <div className="mb-3 flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
+        {link('/terms', ar ? 'الشروط' : 'Terms')}
+        {link('/privacy', ar ? 'الخصوصية' : 'Privacy')}
+        {link('/refund', ar ? 'الاسترجاع' : 'Refund')}
       </div>
-    </div>,
-    document.body,
+      {error && <div className="mb-2 rounded-lg bg-error-bg px-3 py-2 text-[12px] text-error">{error}</div>}
+      <button
+        onClick={() => void accept()}
+        disabled={busy}
+        className="w-full rounded-xl bg-success py-2.5 text-[14px] font-bold text-white hover:brightness-110 disabled:opacity-50"
+      >
+        {busy ? '...' : ar ? 'موافق' : 'Agree'}
+      </button>
+    </SoftNudge>
   )
 }
