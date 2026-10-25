@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { triggerPush } from '@/lib/push'
+import { serviceSlugCandidates } from '@/lib/serviceSlugs'
 
 export interface ServicePackage {
   id: string
@@ -93,8 +94,11 @@ export async function listServices(): Promise<Service[]> {
   }))
 }
 
+/** Looks the service up under its current slug or any old one (see
+ * serviceSlugs.ts); the returned service.slug is what's actually stored. */
 export async function getServiceBySlug(slug: string): Promise<Service | null> {
-  const { data: service, error } = await supabase.from('services').select('*').eq('slug', slug).maybeSingle()
+  const { data: rows, error } = await supabase.from('services').select('*').in('slug', serviceSlugCandidates(slug)).limit(1)
+  const service = rows?.[0]
   if (error || !service) return null
   const { data: packages } = await supabase
     .from('service_packages')

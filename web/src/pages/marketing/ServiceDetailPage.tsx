@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { RequestConsent } from '@/components/Consent'
 import { recordConsent } from '@/lib/legal'
-import { Link, useParams } from 'react-router-dom'
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
+import { canonicalServiceSlug } from '@/lib/serviceSlugs'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
@@ -33,8 +34,9 @@ interface FormLayout {
   softwareChoices?: string[]
 }
 
+// Keyed by canonical slug (serviceSlugs.ts).
 const LAYOUTS: Record<string, FormLayout> = {
-  presentation: {
+  'research-proposal': {
     quantityLabelKey: 'service.slides',
     showTargetAudience: true,
     showBrandColors: true,
@@ -58,6 +60,7 @@ const labelClass = 'mb-1.5 block text-[12.5px] font-semibold text-navy'
 
 export function ServiceDetailPage() {
   const { slug } = useParams()
+  const location = useLocation()
   const { session, profile } = useAuth()
   const { t, lang } = useLanguage()
   const { data: service, isLoading } = useQuery({
@@ -121,7 +124,10 @@ export function ServiceDetailPage() {
     )
   }
 
-  const layout = LAYOUTS[service.slug] ?? DEFAULT_LAYOUT
+  // An old or alternate URL: send the visitor to the service's current one.
+  if (service.slug !== slug) return <Navigate to={`/service/${service.slug}${location.search}`} replace />
+
+  const layout = LAYOUTS[canonicalServiceSlug(service.slug)] ?? DEFAULT_LAYOUT
   // Questions the owner turned off for this service (0051). Missing column → [].
   const hidden = new Set<string>(service.hidden_fields ?? [])
   const showField = (k: string) => !hidden.has(k)

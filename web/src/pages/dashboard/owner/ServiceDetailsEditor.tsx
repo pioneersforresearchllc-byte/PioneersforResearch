@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import { fetchSiteContent } from '@/lib/content'
+import { canonicalServiceSlug } from '@/lib/serviceSlugs'
 import {
   DEFAULT_SERVICE_DETAILS,
   EMPTY_SERVICE_DETAILS,
@@ -29,7 +30,8 @@ export function ServiceDetailsEditor({ service }: { service: { id: string; slug:
   const [msg, setMsg] = useState('')
 
   const saved = resolveSavedServiceDetails(content)[service.id]
-  const initial = saved ?? DEFAULT_SERVICE_DETAILS[service.slug] ?? EMPTY_SERVICE_DETAILS
+  const builtIn = DEFAULT_SERVICE_DETAILS[canonicalServiceSlug(service.slug)]
+  const initial = saved ?? builtIn ?? EMPTY_SERVICE_DETAILS
   const d = draft ?? initial
   const set = (k: Field, v: string) => {
     setDraft({ ...d, [k]: v })
@@ -87,8 +89,8 @@ export function ServiceDetailsEditor({ service }: { service: { id: string; slug:
       <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-start">
         <span className="text-[13px] font-bold text-navy">
           📄 {tx('تفاصيل الخدمة (النافذة في صفحة الخدمات)', 'Service details (window on the Services page)')}
-          {!saved && DEFAULT_SERVICE_DETAILS[service.slug] && <span className="ms-2 text-[11.5px] font-normal text-muted">{tx('— محتوى افتراضي', '— default content')}</span>}
-          {!saved && !DEFAULT_SERVICE_DETAILS[service.slug] && <span className="ms-2 text-[11.5px] font-normal text-muted">{tx('— غير مضافة (لا يظهر زر التفاصيل)', '— not set (no Details button)')}</span>}
+          {!saved && builtIn && <span className="ms-2 text-[11.5px] font-normal text-muted">{tx('— محتوى افتراضي', '— default content')}</span>}
+          {!saved && !builtIn && <span className="ms-2 text-[11.5px] font-normal text-muted">{tx('— غير مضافة (لا يظهر زر التفاصيل)', '— not set (no Details button)')}</span>}
         </span>
         <span className="text-muted">{open ? '▲' : '▼'}</span>
       </button>

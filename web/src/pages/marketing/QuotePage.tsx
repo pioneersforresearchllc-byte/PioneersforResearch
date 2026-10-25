@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { listServices, submitServiceRequest } from '@/lib/services'
+import { canonicalServiceSlug } from '@/lib/serviceSlugs'
 import { fetchSiteContent, resolveWhatsapp } from '@/lib/content'
 import { getLeadSource, leadSourceLine } from '@/lib/attribution'
 import { resolveOrgPackages } from '@/lib/orgPackages'
@@ -71,7 +72,7 @@ export function QuotePage() {
     if (isOrg) return
     const slug = params.get('service')
     if (!slug || service || !services) return
-    const match = services.find((s) => s.slug === slug)
+    const match = services.find((s) => canonicalServiceSlug(s.slug) === canonicalServiceSlug(slug))
     if (match) setService(match.id)
   }, [params, services, service])
   const [stage, setStage] = useState('')

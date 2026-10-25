@@ -1,4 +1,5 @@
 import { saveSiteContent, type ContentMap } from '@/lib/content'
+import { canonicalServiceSlug } from '@/lib/serviceSlugs'
 
 /**
  * Details window content for individual services (same structure as the
@@ -96,9 +97,9 @@ const TERMS_EN = [
   'We cannot guarantee acceptance by your institution, supervisor or committee — those are independent decisions',
 ]
 
-/** Built-in content for the current services, keyed by slug (prices are set by the owner). */
+/** Built-in content for the current services, keyed by canonical slug (serviceSlugs.ts) (prices are set by the owner). */
 const DEFAULTS_TEXT: Record<string, Omit<ServiceDetails, 'price_from'>> = {
-  presentation: {
+  'research-proposal': {
     overview_ar: '',
     overview_en: '',
     audience_ar: 'لطلاب الدراسات العليا والباحثين الذين لديهم فكرة أولية',
@@ -188,7 +189,7 @@ const DEFAULTS_TEXT: Record<string, Omit<ServiceDetails, 'price_from'>> = {
       'Extra analyses beyond the agreed research questions are quoted separately',
     ]),
   },
-  'idea-to-research-proposal-conversion-pac-548ho': {
+  'proposal-and-analysis': {
     overview_ar:
       'باقة متكاملة تجمع خدمتي «تحويل الفكرة إلى مقترح بحثي + تدريب» و«تحليل بيانات البحث»: نرافقك من صياغة الفكرة والمقترح، مرورًا بتصميم أداة جمع البيانات، حتى التحليل الإحصائي وتفسير النتائج، مع تدريب في كل مرحلة.',
     overview_en:
@@ -222,7 +223,7 @@ const DEFAULTS_TEXT: Record<string, Omit<ServiceDetails, 'price_from'>> = {
     terms_ar: j([...TERMS_AR, 'مرحلة التحليل تبدأ بعد استلام البيانات كاملة؛ وتأخر جمع البيانات لا يُعدّ تأخيرًا منا']),
     terms_en: j([...TERMS_EN, 'The analysis phase starts once complete data is received; delays in data collection are not delays on our side']),
   },
-  'complete-preparation-and-submission-of-c-z45nq': {
+  'clinicaltrials-registration': {
     overview_ar:
       'حل متكامل لإعداد سجلات التجارب السريرية وتسجيلها وتحديثها على ClinicalTrials.gov، وصياغة النتائج ونشرها، ومعالجة ملاحظات مراجعة نظام PRS حتى الاعتماد، بما يضمن الامتثال للمتطلبات الدولية وشروط المجلات العلمية (ICMJE) ولجان الأخلاقيات.',
     overview_en:
@@ -302,7 +303,7 @@ export function resolveSavedServiceDetails(content: ContentMap | undefined): Rec
 
 /** Details for one service: saved (by id) → built-in default (by slug) → null. */
 export function detailsFor(content: ContentMap | undefined, service: { id: string; slug: string }): ServiceDetails | null {
-  return resolveSavedServiceDetails(content)[service.id] ?? DEFAULT_SERVICE_DETAILS[service.slug] ?? null
+  return resolveSavedServiceDetails(content)[service.id] ?? DEFAULT_SERVICE_DETAILS[canonicalServiceSlug(service.slug)] ?? null
 }
 
 export async function saveServiceDetails(all: Record<string, ServiceDetails>) {
