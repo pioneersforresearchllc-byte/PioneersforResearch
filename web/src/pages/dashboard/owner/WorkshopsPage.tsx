@@ -7,12 +7,16 @@ import { LoadingState } from '@/components/LoadingState'
 import {
   createWorkshop,
   deleteWorkshop,
+  inviteToWorkshop,
   listAllWorkshops,
   listWorkshopSignups,
+  removeFromWorkshop,
   updateWorkshop,
   type GroupSession,
   type GroupSessionStatus,
+  type PersonOption,
 } from '@/lib/groupSessions'
+import { InvitePicker } from '@/components/InvitePicker'
 
 const field = 'w-full rounded-md border border-border px-3 py-2 text-[13.5px]'
 
@@ -21,8 +25,20 @@ const field = 'w-full rounded-md border border-border px-3 py-2 text-[13.5px]'
 function localToIso(local: string): string {
   return new Date(`${local}:00+03:00`).toISOString()
 }
+// Private workshops need migration 0088 (is_private column + invite RPC).
+function privateError(e: unknown, ar: boolean): string {
+  const msg = e instanceof Error ? e.message : String((e as { message?: string })?.message ?? '')
+  if (/is_private|invite_to_group_session|PGRST20[24]/i.test(msg + ((e as { code?: string })?.code ?? ''))) {
+    return ar
+      ? 'الورش الخاصة تحتاج تشغيل ملف الترحيل 0088_private_workshops.sql في Supabase أولًا.'
+      : 'Private workshops need migration 0088_private_workshops.sql run in Supabase first.'
+  }
+  return msg || (ar ? 'تعذّر الحفظ' : 'Save failed')
+}
+
 function CreateForm({ onCreated }: { onCreated: () => void }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const ar = lang === 'ar'
   const { data: teachers } = useQuery({ queryKey: ['active-teachers'], queryFn: listActiveTeachers })
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -30,17 +46,24 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
   const [duration, setDuration] = useState('60')
   const [capacity, setCapacity] = useState('15')
   const [hostId, setHostId] = useState('')
+  const [isPrivate, setIsPrivate] = useState(false)
+  const [invitees, setInvitees] = useState<PersonOption[]>([])
 
   const create = useMutation({
-    mutationFn: () =>
-      createWorkshop({
+    mutationFn: async () => {
+      const id = await createWorkshop({
         title: title.trim(),
         description: description.trim() || null,
         scheduled_at: localToIso(when),
         duration_min: Math.max(10, Number(duration) || 60),
-        capacity: Math.max(2, Number(capacity) || 15),
+        // Private: the invite RPC raises capacity to fit everyone invited.
+        capacity: isPrivate ? Math.max(2, invitees.length) : Math.max(2, Number(capacity) || 15),
         host_id: hostId || null,
-      }),
+        // Only sent when private, so public creation still works pre-0088.
+        ...(isPrivate ? { is_private: true } : {}),
+      })
+      if (isPrivate) await inviteToWorkshop(id, invitees.map((p) => p.id))
+    },
     onSuccess: () => {
       setTitle('')
       setDescription('')
@@ -48,11 +71,13 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
       setDuration('60')
       setCapacity('15')
       setHostId('')
+      setIsPrivate(false)
+      setInvitees([])
       onCreated()
     },
   })
 
-  const valid = title.trim() && when
+  const valid = title.trim() && when && (!isPrivate || invitees.length > 0)
 
   return (
     <div className="rounded-xl border border-border-2 bg-bg-soft p-4">
@@ -79,41 +104,163 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
           {t('ownerWorkshops.duration')}
           <input type="number" min={10} value={duration} onChange={(e) => setDuration(e.target.value)} className={`${field} mt-1`} />
         </label>
-        <label className="text-[12px] text-muted">
-          {t('ownerWorkshops.capacity')}
-          <input type="number" min={2} value={capacity} onChange={(e) => setCapacity(e.target.value)} className={`${field} mt-1`} />
-        </label>
+        {!isPrivate && (
+          <label className="text-[12px] text-muted">
+            {t('ownerWorkshops.capacity')}
+            <input type="number" min={2} value={capacity} onChange={(e) => setCapacity(e.target.value)} className={`${field} mt-1`} />
+          </label>
+        )}
       </div>
-      <div className="mt-3 flex justify-end">
+
+      {/* Who can see & join */}
+      <div className="mt-3.5">
+        <div className="mb-1.5 text-[12px] font-semibold text-navy">{ar ? 'من يرى الورشة ويدخلها؟' : 'Who can see and join?'}</div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {[
+            { v: false, title: ar ? 'عامة' : 'Public', hint: ar ? 'كل أصحاب الحسابات يرونها ويحجزون مقعدًا' : 'Every account sees it and can reserve a seat' },
+            { v: true, title: ar ? '🔒 خاصة' : '🔒 Private', hint: ar ? 'فقط من تختارهم يرونها ويدخلونها' : 'Only the people you pick see and join it' },
+          ].map((o) => (
+            <button
+              key={String(o.v)}
+              type="button"
+              onClick={() => setIsPrivate(o.v)}
+              className={`rounded-lg border p-3 text-start transition-colors ${
+                isPrivate === o.v ? 'border-navy bg-white ring-1 ring-navy' : 'border-border bg-white/60 hover:border-navy'
+              }`}
+            >
+              <div className="text-[13.5px] font-bold text-navy">{o.title}</div>
+              <div className="mt-0.5 text-[11.5px] text-muted">{o.hint}</div>
+            </button>
+          ))}
+        </div>
+        {isPrivate && (
+          <div className="mt-2.5 rounded-lg border border-border bg-white p-3">
+            <InvitePicker
+              selected={invitees}
+              onAdd={(people) => setInvitees((cur) => [...cur, ...people.filter((p) => !cur.some((c) => c.id === p.id))])}
+              onRemove={(id) => setInvitees((cur) => cur.filter((p) => p.id !== id))}
+            />
+            <div className="mt-2 text-[11.5px] text-muted">
+              {ar
+                ? 'يُسجَّل المدعوون تلقائيًا ويصلهم إشعار، ولا تظهر الورشة لغيرهم.'
+                : 'Invitees are registered automatically and notified; nobody else sees the workshop.'}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {create.error && <div className="mt-2 text-[12.5px] text-error">{privateError(create.error, ar)}</div>}
+      <div className="mt-3 flex items-center justify-end gap-3">
+        {isPrivate && invitees.length === 0 && (
+          <span className="text-[12px] text-muted">{ar ? 'أضف مدعوًا واحدًا على الأقل' : 'Add at least one invitee'}</span>
+        )}
         <button
           disabled={!valid || create.isPending}
           onClick={() => create.mutate()}
           className="rounded-md bg-navy px-5 py-2 text-[13px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
         >
-          {t('ownerWorkshops.createBtn')}
+          {create.isPending ? '…' : t('ownerWorkshops.createBtn')}
         </button>
       </div>
     </div>
   )
 }
 
-function Roster({ sessionId }: { sessionId: string }) {
-  const { t } = useLanguage()
+function Roster({ ws, onChanged }: { ws: GroupSession; onChanged: () => void }) {
+  const { t, lang } = useLanguage()
+  const ar = lang === 'ar'
+  const qc = useQueryClient()
+  const sessionId = ws.id
   const { data, isLoading } = useQuery({ queryKey: ['workshop-signups', sessionId], queryFn: () => listWorkshopSignups(sessionId) })
+  const [adding, setAdding] = useState(false)
+  const [pending, setPending] = useState<PersonOption[]>([])
+  const refresh = () => {
+    void qc.invalidateQueries({ queryKey: ['workshop-signups', sessionId] })
+    onChanged()
+  }
+  const invite = useMutation({
+    mutationFn: () => inviteToWorkshop(sessionId, pending.map((p) => p.id)),
+    onSuccess: () => {
+      setPending([])
+      setAdding(false)
+      refresh()
+    },
+  })
+  const remove = useMutation({ mutationFn: (userId: string) => removeFromWorkshop(sessionId, userId), onSuccess: refresh })
+
   if (isLoading) return <div className="px-1 py-2 text-[12px] text-muted">…</div>
   const rows = data ?? []
   const joined = rows.filter((r) => r.joined_at).length
   return (
     <div className="mt-2 rounded-lg bg-bg-soft p-3 text-[12.5px]">
-      <div className="mb-1 font-semibold text-navy">
-        {t('ownerWorkshops.rosterCount', { reserved: String(rows.length), joined: String(joined) })}
+      <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+        <div className="font-semibold text-navy">
+          {ws.is_private
+            ? ar
+              ? `المدعوون: ${rows.length} · دخل منهم: ${joined}`
+              : `Invited: ${rows.length} · joined: ${joined}`
+            : t('ownerWorkshops.rosterCount', { reserved: String(rows.length), joined: String(joined) })}
+        </div>
+        {ws.is_private && !adding && (
+          <button onClick={() => setAdding(true)} className="rounded-md bg-navy px-3 py-1 text-[11.5px] font-semibold text-white hover:bg-navy-hover">
+            {ar ? '+ إضافة مدعوين' : '+ Invite more'}
+          </button>
+        )}
       </div>
+
+      {adding && (
+        <div className="mb-3 rounded-lg border border-border bg-white p-3">
+          <InvitePicker
+            selected={pending}
+            exclude={new Set(rows.map((r) => r.user_id))}
+            onAdd={(people) => setPending((cur) => [...cur, ...people.filter((p) => !cur.some((c) => c.id === p.id))])}
+            onRemove={(id) => setPending((cur) => cur.filter((p) => p.id !== id))}
+          />
+          {invite.error && <div className="mt-2 text-error">{privateError(invite.error, ar)}</div>}
+          <div className="mt-2.5 flex gap-2">
+            <button
+              onClick={() => invite.mutate()}
+              disabled={pending.length === 0 || invite.isPending}
+              className="rounded-md bg-navy px-4 py-1.5 text-[12px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+            >
+              {invite.isPending ? '…' : ar ? `دعوة (${pending.length})` : `Invite (${pending.length})`}
+            </button>
+            <button
+              onClick={() => {
+                setAdding(false)
+                setPending([])
+              }}
+              className="rounded-md border border-border bg-white px-3 py-1.5 text-[12px] text-navy"
+            >
+              {ar ? 'إلغاء' : 'Cancel'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {rows.length === 0 && <div className="text-muted">{t('ownerWorkshops.noSignups')}</div>}
-      <div className="flex flex-col gap-0.5">
+      <div className="flex flex-col divide-y divide-border-2">
         {rows.map((r) => (
-          <div key={r.user_id} className="flex items-center justify-between gap-2 text-navy" dir="ltr">
-            <span className="truncate">{r.user_id}</span>
-            <span className={r.joined_at ? 'text-success' : 'text-muted'}>{r.joined_at ? '✓' : '—'}</span>
+          <div key={r.user_id} className="flex items-center justify-between gap-2 py-1.5 text-navy">
+            <span className="min-w-0">
+              <span className="block truncate font-semibold">{r.name || r.user_id}</span>
+              {r.username && (
+                <span className="block truncate text-[11px] text-muted" dir="ltr">
+                  @{r.username}
+                </span>
+              )}
+            </span>
+            <span className="flex shrink-0 items-center gap-2">
+              <span className={`text-[11.5px] ${r.joined_at ? 'text-success' : 'text-muted'}`}>
+                {r.joined_at ? (ar ? '✓ دخل' : '✓ joined') : ar ? 'لم يدخل' : 'not joined'}
+              </span>
+              <button
+                onClick={() => confirm(ar ? `إزالة ${r.name || ''} من الورشة؟` : `Remove ${r.name || ''} from this workshop?`) && remove.mutate(r.user_id)}
+                className="rounded px-1.5 text-[11.5px] text-error/80 hover:bg-error-bg hover:text-error"
+              >
+                {ar ? 'إزالة' : 'Remove'}
+              </button>
+            </span>
           </div>
         ))}
       </div>
@@ -122,7 +269,7 @@ function Roster({ sessionId }: { sessionId: string }) {
 }
 
 function WorkshopRow({ ws, onChanged }: { ws: GroupSession; onChanged: () => void }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const setStatus = useMutation({
@@ -136,7 +283,12 @@ function WorkshopRow({ ws, onChanged }: { ws: GroupSession; onChanged: () => voi
     <div className="rounded-lg border border-border-2 bg-white p-3.5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <div className="text-[14px] font-bold text-navy">{ws.title}</div>
+          <div className="flex items-center gap-2 text-[14px] font-bold text-navy">
+            {ws.title}
+            {ws.is_private && (
+              <span className="rounded-full bg-navy/[0.08] px-2 py-0.5 text-[10.5px] font-bold text-navy">🔒 {lang === 'ar' ? 'خاصة' : 'Private'}</span>
+            )}
+          </div>
           <div className="text-[12px] text-muted" dir="ltr">
             {fmt} · {ws.duration_min}m · {ws.seats_taken}/{ws.capacity} · {ws.status}
           </div>
@@ -161,7 +313,7 @@ function WorkshopRow({ ws, onChanged }: { ws: GroupSession; onChanged: () => voi
             </button>
           )}
           <button onClick={() => setOpen((v) => !v)} className="rounded-md border border-border px-2.5 py-1 text-[11.5px] text-navy hover:bg-bg-soft">
-            {t('ownerWorkshops.roster')}
+            {ws.is_private ? (lang === 'ar' ? 'المدعوون' : 'Invitees') : t('ownerWorkshops.roster')}
           </button>
           <button
             onClick={() => confirm(t('ownerWorkshops.confirmDelete')) && remove.mutate()}
@@ -171,7 +323,7 @@ function WorkshopRow({ ws, onChanged }: { ws: GroupSession; onChanged: () => voi
           </button>
         </div>
       </div>
-      {open && <Roster sessionId={ws.id} />}
+      {open && <Roster ws={ws} onChanged={onChanged} />}
     </div>
   )
 }

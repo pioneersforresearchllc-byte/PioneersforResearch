@@ -13,6 +13,8 @@ export interface GroupSession {
   host_id: string | null
   status: GroupSessionStatus
   created_at: string
+  /** Invite-only (migration 0088). Absent before that migration runs. */
+  is_private?: boolean
 }
 
 export interface GroupSignupRow {
@@ -20,37 +22,42 @@ export interface GroupSignupRow {
   user_id: string
   registered_at: string
   joined_at: string | null
+  name?: string
+  username?: string
+  role?: string
 }
 
-/** Upcoming + live workshops any logged-in account holder can see. */
+const BASE_COLS = 'id, title, description, scheduled_at, duration_min, capacity, seats_taken, host_id, status, created_at'
+
+// Reads ask for is_private too, but fall back to the original columns if
+// migration 0088 hasn't been applied yet (42703 = undefined column), so the
+// workshops pages keep working either way.
+async function selectSessions(
+  run: (cols: string) => PromiseLike<{ data: unknown; error: { code?: string } | null }>,
+): Promise<unknown> {
+  let res = await run(`${BASE_COLS}, is_private`)
+  if (res.error?.code === '42703') res = await run(BASE_COLS)
+  if (res.error) throw res.error
+  return res.data
+}
+
+/** Upcoming + live workshops the caller may see (RLS hides others' private ones). */
 export async function listOpenWorkshops(): Promise<GroupSession[]> {
-  const { data, error } = await supabase
-    .from('group_sessions')
-    .select('id, title, description, scheduled_at, duration_min, capacity, seats_taken, host_id, status, created_at')
-    .in('status', ['scheduled', 'live'])
-    .order('scheduled_at', { ascending: true })
-  if (error) throw error
+  const data = await selectSessions((cols) =>
+    supabase.from('group_sessions').select(cols).in('status', ['scheduled', 'live']).order('scheduled_at', { ascending: true }),
+  )
   return (data ?? []) as GroupSession[]
 }
 
 /** All workshops (admin view), newest first. */
 export async function listAllWorkshops(): Promise<GroupSession[]> {
-  const { data, error } = await supabase
-    .from('group_sessions')
-    .select('id, title, description, scheduled_at, duration_min, capacity, seats_taken, host_id, status, created_at')
-    .order('scheduled_at', { ascending: false })
-  if (error) throw error
+  const data = await selectSessions((cols) => supabase.from('group_sessions').select(cols).order('scheduled_at', { ascending: false }))
   return (data ?? []) as GroupSession[]
 }
 
 export async function getWorkshop(id: string): Promise<GroupSession | null> {
-  const { data, error } = await supabase
-    .from('group_sessions')
-    .select('id, title, description, scheduled_at, duration_min, capacity, seats_taken, host_id, status, created_at')
-    .eq('id', id)
-    .maybeSingle()
-  if (error) throw error
-  return (data as GroupSession) ?? null
+  const data = await selectSessions((cols) => supabase.from('group_sessions').select(cols).eq('id', id).maybeSingle())
+  return (data as GroupSession | null) ?? null
 }
 
 /** The workshop ids the current user has reserved a seat in. */
@@ -81,12 +88,19 @@ export interface WorkshopInput {
   duration_min: number
   capacity: number
   host_id: string | null
+  is_private?: boolean
 }
 
-export async function createWorkshop(input: WorkshopInput): Promise<void> {
+/** Creates a workshop and returns its id. */
+export async function createWorkshop(input: WorkshopInput): Promise<string> {
   const { data: auth } = await supabase.auth.getUser()
-  const { error } = await supabase.from('group_sessions').insert({ ...input, created_by: auth.user?.id ?? null })
+  const { data, error } = await supabase
+    .from('group_sessions')
+    .insert({ ...input, created_by: auth.user?.id ?? null })
+    .select('id')
+    .single()
   if (error) throw error
+  return data.id as string
 }
 
 export async function updateWorkshop(id: string, patch: Partial<WorkshopInput & { status: GroupSessionStatus }>): Promise<void> {
@@ -99,14 +113,77 @@ export async function deleteWorkshop(id: string): Promise<void> {
   if (error) throw error
 }
 
-/** Roster for a workshop (owner-only via RLS). */
+/** Roster for a workshop (owner-only via RLS), with names. */
 export async function listWorkshopSignups(sessionId: string): Promise<GroupSignupRow[]> {
   const { data, error } = await supabase
     .from('group_session_signups')
-    .select('session_id, user_id, registered_at, joined_at')
+    .select('session_id, user_id, registered_at, joined_at, profile:profiles(name, username, role)')
     .eq('session_id', sessionId)
+    .order('registered_at')
   if (error) throw error
-  return (data ?? []) as GroupSignupRow[]
+  return (data ?? []).map((r) => {
+    const row = r as Record<string, unknown>
+    const prof = row.profile as { name: string; username: string; role: string } | null
+    return { ...(row as unknown as GroupSignupRow), name: prof?.name ?? '', username: prof?.username ?? '', role: prof?.role ?? '' }
+  })
+}
+
+// ── Private workshops (migration 0088) ───────────────────────────────────────
+/** Owner: register people in a workshop (they're notified). Returns how many
+ * were newly added. */
+export async function inviteToWorkshop(sessionId: string, userIds: string[]): Promise<number> {
+  if (userIds.length === 0) return 0
+  const { data, error } = await supabase.rpc('invite_to_group_session', { p_session: sessionId, p_users: userIds })
+  if (error) throw error
+  return (data as number) ?? 0
+}
+
+/** Owner: remove one person from a workshop's roster. */
+export async function removeFromWorkshop(sessionId: string, userId: string): Promise<void> {
+  const { error } = await supabase.from('group_session_signups').delete().eq('session_id', sessionId).eq('user_id', userId)
+  if (error) throw error
+}
+
+export interface PersonOption {
+  id: string
+  name: string
+  username: string
+  role: string
+}
+
+/** Owner: accounts (not owners) whose name or username matches. */
+export async function searchPeople(q: string): Promise<PersonOption[]> {
+  const term = q.trim().replace(/[%,()*]/g, ' ')
+  if (term.length < 2) return []
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, name, username, role')
+    .or(`name.ilike.*${term}*,username.ilike.*${term}*`)
+    .neq('role', 'owner')
+    .order('name')
+    .limit(20)
+  if (error) throw error
+  return (data ?? []) as PersonOption[]
+}
+
+/** Owner: courses with their enrolment counts, for "invite a course's students". */
+export async function listCourseOptions(): Promise<{ id: string; title: string; enrolled: number }[]> {
+  const [{ data: courses, error }, { data: enr }] = await Promise.all([
+    supabase.from('courses').select('id, title').order('created_at', { ascending: false }),
+    supabase.from('enrollments').select('course_id'),
+  ])
+  if (error) throw error
+  return (courses ?? []).map((c) => ({ ...c, enrolled: (enr ?? []).filter((e) => e.course_id === c.id).length }))
+}
+
+/** Owner: every student enrolled in a course. */
+export async function listCourseStudents(courseId: string): Promise<PersonOption[]> {
+  const { data, error } = await supabase
+    .from('enrollments')
+    .select('student:profiles(id, name, username, role)')
+    .eq('course_id', courseId)
+  if (error) throw error
+  return (data ?? []).map((r) => r.student as unknown as PersonOption | null).filter((p): p is PersonOption => !!p)
 }
 
 /** Daily room + per-user token for a workshop (access verified server-side). */
