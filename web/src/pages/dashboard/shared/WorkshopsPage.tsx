@@ -33,7 +33,7 @@ function WorkshopCard({
   registered: boolean
   onChanged: () => void
 }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const navigate = useNavigate()
   const fmt = useDateFmt()
   const seatsLeft = Math.max(0, ws.capacity - ws.seats_taken)
@@ -72,9 +72,13 @@ function WorkshopCard({
       <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] text-navy">
         <span>🗓️ {fmt(ws.scheduled_at)}</span>
         <span>⏱️ {t('workshops.minutes', { n: String(ws.duration_min) })}</span>
-        <span className={full && !registered ? 'text-error' : 'text-success'}>
-          👥 {t('workshops.seatsLeft', { n: String(seatsLeft), cap: String(ws.capacity) })}
-        </span>
+        {ws.is_private ? (
+          <span className="font-semibold text-accent">🔒 {lang === 'ar' ? 'ورشة خاصة — أنت مدعو' : 'Private workshop — you’re invited'}</span>
+        ) : (
+          <span className={full && !registered ? 'text-error' : 'text-success'}>
+            👥 {t('workshops.seatsLeft', { n: String(seatsLeft), cap: String(ws.capacity) })}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -90,13 +94,15 @@ function WorkshopCard({
             {!joinable && (
               <span className="text-[11.5px] text-muted">{t('workshops.opensBefore', { n: String(JOIN_WINDOW_MIN) })}</span>
             )}
-            <button
-              disabled={cancel.isPending}
-              onClick={() => cancel.mutate()}
-              className="text-[12px] text-muted underline-offset-2 hover:text-error hover:underline disabled:opacity-50"
-            >
-              {t('workshops.cancelSeat')}
-            </button>
+            {!ws.is_private && (
+              <button
+                disabled={cancel.isPending}
+                onClick={() => cancel.mutate()}
+                className="text-[12px] text-muted underline-offset-2 hover:text-error hover:underline disabled:opacity-50"
+              >
+                {t('workshops.cancelSeat')}
+              </button>
+            )}
           </>
         ) : full ? (
           <span className="rounded-lg bg-bg-soft px-3.5 py-2 text-[12.5px] font-semibold text-muted">{t('workshops.full')}</span>
