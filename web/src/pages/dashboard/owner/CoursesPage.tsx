@@ -144,9 +144,9 @@ function CourseEditor({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:p-8" onClick={onClose}>
       <div
-        className="flex max-h-[85vh] w-full max-w-[520px] flex-col overflow-y-auto rounded-xl bg-white p-6"
+        className="my-auto flex w-full max-w-[520px] flex-col rounded-xl bg-white p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 font-heading text-lg font-bold text-navy">
@@ -196,11 +196,11 @@ function CourseEditor({
               <div className="flex gap-3">
                 <input
                   type="number"
-                  value={form.price_cents / 100}
-                  disabled={form.price_cents === 0 && form.original_price_cents === null}
-                  onChange={(e) => set('price_cents', Math.round(Number(e.target.value) * 100))}
+                  min={0}
+                  value={form.price_cents ? form.price_cents / 100 : ''}
+                  onChange={(e) => set('price_cents', e.target.value ? Math.round(Number(e.target.value) * 100) : 0)}
                   placeholder={t('oCourses.pricePh')}
-                  className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px] disabled:bg-bg-soft"
+                  className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
                 />
                 <input
                   type="number"
