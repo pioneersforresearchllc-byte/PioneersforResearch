@@ -8,6 +8,11 @@ import { createAssignment, listAssignmentsForCourse, uploadAssignmentFile } from
 import { LoadingState } from '@/components/LoadingState'
 import { AttendancePanel } from '@/components/institution/AttendancePanel'
 import { CourseSessions } from '@/components/CourseSessions'
+import { CourseMaterials } from '@/components/course/CourseMaterials'
+import { CourseAnnouncements } from '@/components/course/CourseAnnouncements'
+import { CourseDiscussion } from '@/components/course/CourseDiscussion'
+import { CourseTabs, useCourseTab } from '@/components/course/CourseTabs'
+import { getCompletionsByStudent, getCourseSpace, listPosts } from '@/lib/courseMaterials'
 
 function NewAssignmentModal({
   courseId,
@@ -134,9 +139,11 @@ function NewAssignmentModal({
 export function TeacherCourseDetailPage() {
   const { id } = useParams()
   const { profile } = useAuth()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const ar = lang === 'ar'
   const queryClient = useQueryClient()
   const [showNewAssignment, setShowNewAssignment] = useState(false)
+  const [tab, setTab] = useCourseTab('content')
 
   const { data, isLoading } = useQuery({
     queryKey: ['taught-course-detail', id, profile?.id],
@@ -148,6 +155,13 @@ export function TeacherCourseDetailPage() {
     enabled: !!id,
     queryFn: () => listAssignmentsForCourse(id!),
   })
+  const spaceQuery = useQuery({ queryKey: ['course-space', id], enabled: !!id && !!data, queryFn: () => getCourseSpace(id!), retry: false })
+  const byStudentQuery = useQuery({
+    queryKey: ['course-completions-by-student', id],
+    enabled: !!id && !!data,
+    queryFn: () => getCompletionsByStudent(id!),
+  })
+  const postsQuery = useQuery({ queryKey: ['course-posts', id], enabled: !!id && !!data, queryFn: () => listPosts(id!), retry: false })
 
   if (isLoading) return <LoadingState />
   if (!data) {
@@ -161,23 +175,56 @@ export function TeacherCourseDetailPage() {
     )
   }
 
+  const publishedCount = (spaceQuery.data?.materials ?? []).filter((m) => m.published).length
+  const posts = postsQuery.data ?? []
+  const unanswered = posts.filter(
+    (q) =>
+      !q.parent_id &&
+      !q.resolved &&
+      !posts.some((r) => r.parent_id === q.id && (r.authorRole === 'teacher' || r.authorRole === 'owner')),
+  ).length
+  const toGrade = (assignmentsQuery.data ?? []).reduce((n, a) => n + Math.max(0, a.submittedCount - a.gradedCount), 0)
+
+  const tabs = [
+    { key: 'content', label: ar ? 'محتوى الدورة' : 'Content' },
+    { key: 'lectures', label: ar ? 'المحاضرات والحضور' : 'Lectures & attendance' },
+    { key: 'assignments', label: t('tCourseDetail.assignments'), badge: toGrade || undefined },
+    { key: 'students', label: ar ? `الطلاب (${data.students.length})` : `Students (${data.students.length})` },
+    { key: 'announcements', label: ar ? 'الإعلانات' : 'Announcements' },
+    { key: 'qa', label: ar ? 'الأسئلة والنقاش' : 'Q&A', badge: unanswered || undefined },
+  ]
+  const active = tabs.some((x) => x.key === tab) ? tab : 'content'
+
   return (
     <div>
       <Link to="/teacher/courses" className="mb-4 inline-block text-[13px] text-muted no-underline">
         {t('cDetail.backToTeaching')}
       </Link>
       <div className="mb-1.5 font-heading text-xl font-bold text-navy">{data.course.title}</div>
-      <p className="mb-6 max-w-160 text-[14.5px] leading-8 text-muted-2">{data.course.description}</p>
+      <p className="mb-4 max-w-160 text-[14.5px] leading-8 text-muted-2">{data.course.description}</p>
 
-      <div className="mb-6">
-        <CourseSessions sessions={data.sessions} hostMode />
+      <div className="mb-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        <StatCard label={ar ? 'الطلاب' : 'Students'} value={data.students.length} />
+        <StatCard label={ar ? 'عناصر منشورة' : 'Published items'} value={publishedCount} />
+        <StatCard label={ar ? 'بانتظار التصحيح' : 'To grade'} value={toGrade} highlight={toGrade > 0} />
+        <StatCard label={ar ? 'أسئلة بلا رد' : 'Unanswered'} value={unanswered} highlight={unanswered > 0} />
       </div>
 
-      <div className="mb-6">
-        <AttendancePanel courseId={id!} students={data.students} />
-      </div>
+      <CourseTabs tabs={tabs} active={active} onChange={setTab} />
 
-      <div className="mb-6">
+      {active === 'content' && <CourseMaterials courseId={id!} mode="manage" studentCount={data.students.length} />}
+
+      {active === 'lectures' && (
+        <>
+          <div className="mb-6">
+            <CourseSessions sessions={data.sessions} hostMode />
+          </div>
+          <AttendancePanel courseId={id!} students={data.students} />
+        </>
+      )}
+
+      {active === 'assignments' && (
+      <div>
         <div className="mb-2.5 flex items-center justify-between">
           <div className="text-[15px] font-semibold text-navy">{t('tCourseDetail.assignments')}</div>
           <button
@@ -208,24 +255,48 @@ export function TeacherCourseDetailPage() {
           ))}
         </div>
       </div>
+      )}
 
-      <div>
-        <div className="mb-2.5 text-[15px] font-semibold text-navy">
-          {t('tCourseDetail.enrolledStudents', { n: String(data.students.length) })}
+      {active === 'students' && (
+        <div>
+          <div className="mb-2.5 text-[15px] font-semibold text-navy">
+            {t('tCourseDetail.enrolledStudents', { n: String(data.students.length) })}
+          </div>
+          {data.students.length === 0 && <div className="text-[13.5px] text-muted">{t('tCourseDetail.noStudents')}</div>}
+          <div className="flex flex-col gap-2">
+            {data.students.map((s) => {
+              const doneN = byStudentQuery.data?.get(s.id) ?? 0
+              const pct = publishedCount ? Math.min(100, Math.round((doneN / publishedCount) * 100)) : 0
+              return (
+                <div key={s.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-white p-3.5">
+                  <div className="min-w-0">
+                    <div className="text-[13.5px] font-semibold text-navy">{s.name}</div>
+                    <div className="text-[12px] text-muted">@{s.username}</div>
+                  </div>
+                  {publishedCount > 0 ? (
+                    <div className="w-36 shrink-0 sm:w-44">
+                      <div className="mb-1 flex justify-between text-[11.5px] text-muted">
+                        <span>{ar ? 'إنجاز المحتوى' : 'Content'}</span>
+                        <span>
+                          {doneN}/{publishedCount}
+                        </span>
+                      </div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-bg-soft">
+                        <div className="h-full bg-gold" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-[12.5px] text-faint">{t('tCourseDetail.progress', { n: String(s.progress) })}</div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
-        {data.students.length === 0 && <div className="text-[13.5px] text-muted">{t('tCourseDetail.noStudents')}</div>}
-        <div className="flex flex-col gap-2">
-          {data.students.map((s) => (
-            <div key={s.id} className="flex items-center justify-between rounded-lg border border-border bg-white p-3.5">
-              <div>
-                <div className="text-[13.5px] font-semibold text-navy">{s.name}</div>
-                <div className="text-[12px] text-muted">@{s.username}</div>
-              </div>
-              <div className="text-[12.5px] text-faint">{t('tCourseDetail.progress', { n: String(s.progress) })}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
+
+      {active === 'announcements' && <CourseAnnouncements courseId={id!} manage />}
+      {active === 'qa' && <CourseDiscussion courseId={id!} staff />}
 
       {showNewAssignment && profile && (
         <NewAssignmentModal
@@ -236,6 +307,15 @@ export function TeacherCourseDetailPage() {
           onCreated={() => void queryClient.invalidateQueries({ queryKey: ['course-assignments', id] })}
         />
       )}
+    </div>
+  )
+}
+
+function StatCard({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+  return (
+    <div className={`rounded-xl border bg-white px-4 py-3 ${highlight ? 'border-gold/60' : 'border-border'}`}>
+      <div className={`text-[20px] font-bold ${highlight ? 'text-accent' : 'text-navy'}`}>{value}</div>
+      <div className="text-[12px] text-muted">{label}</div>
     </div>
   )
 }

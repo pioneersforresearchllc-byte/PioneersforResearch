@@ -3,16 +3,22 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { listMyEnrolledCourses } from '@/lib/courses'
+import { getContentProgress } from '@/lib/courseMaterials'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
 
 export function StudentCoursesPage() {
   const { profile } = useAuth()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const { data, isLoading } = useQuery({
     queryKey: ['my-enrolled-courses', profile?.id],
     enabled: !!profile,
     queryFn: () => listMyEnrolledCourses(profile!.id),
+  })
+  const { data: contentPct } = useQuery({
+    queryKey: ['course-content-progress', 'all', profile?.id, (data ?? []).map((c) => c.id).join(',')],
+    enabled: !!profile && !!data?.length,
+    queryFn: () => getContentProgress(profile!.id, data!.map((c) => c.id)),
   })
 
   return (
@@ -47,6 +53,16 @@ export function StudentCoursesPage() {
               <div className="h-full bg-gold" style={{ width: `${c.progress}%` }} />
             </div>
             <div className="text-[12px] text-faint">{t('dash.percentComplete', { n: String(c.progress) })}</div>
+            {contentPct?.has(c.id) && (
+              <>
+                <div className="mt-3 mb-1.5 h-1.5 overflow-hidden rounded-full bg-bg-soft">
+                  <div className="h-full bg-navy" style={{ width: `${contentPct.get(c.id)}%` }} />
+                </div>
+                <div className="text-[12px] text-faint">
+                  {lang === 'ar' ? `أنجزت ${contentPct.get(c.id)}% من محتوى الدورة` : `${contentPct.get(c.id)}% of course content done`}
+                </div>
+              </>
+            )}
           </Link>
         ))}
       </div>

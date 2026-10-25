@@ -90,6 +90,7 @@ const OwnerOverviewPage = page(() => import('@/pages/dashboard/owner/OverviewPag
 const OwnerApplicationsPage = page(() => import('@/pages/dashboard/owner/ApplicationsPage'), 'OwnerApplicationsPage')
 const OwnerTeachersPage = page(() => import('@/pages/dashboard/owner/TeachersPage'), 'OwnerTeachersPage')
 const OwnerCoursesPage = page(() => import('@/pages/dashboard/owner/CoursesPage'), 'OwnerCoursesPage')
+const OwnerCourseSpacePage = page(() => import('@/pages/dashboard/owner/CourseSpacePage'), 'OwnerCourseSpacePage')
 const OwnerServicesPage = page(() => import('@/pages/dashboard/owner/ServicesPage'), 'OwnerServicesPage')
 const OwnerServiceRequestsPage = page(() => import('@/pages/dashboard/owner/ServiceRequestsPage'), 'OwnerServiceRequestsPage')
 const OwnerWorkshopsPage = page(() => import('@/pages/dashboard/owner/WorkshopsPage'), 'OwnerWorkshopsPage')
@@ -200,6 +201,7 @@ export default function App() {
             <Route path="/owner/applications" element={<OwnerApplicationsPage />} />
             <Route path="/owner/teachers" element={<OwnerTeachersPage />} />
             <Route path="/owner/courses" element={<OwnerCoursesPage />} />
+            <Route path="/owner/courses/:id" element={<OwnerCourseSpacePage />} />
             <Route path="/owner/services" element={<OwnerServicesPage />} />
             <Route path="/owner/service-requests" element={<OwnerServiceRequestsPage />} />
             <Route path="/owner/workshops" element={<OwnerWorkshopsPage />} />

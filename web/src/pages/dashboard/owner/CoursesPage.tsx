@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import {
@@ -477,7 +478,7 @@ function RosterModal({ course, onClose }: { course: CourseWithMeta; onClose: () 
 }
 
 export function OwnerCoursesPage() {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const queryClient = useQueryClient()
   const [editing, setEditing] = useState<CourseWithMeta | null | 'new'>(null)
   const [roster, setRoster] = useState<CourseWithMeta | null>(null)
@@ -539,6 +540,12 @@ export function OwnerCoursesPage() {
                 sessions: String(c.sessions.length),
               })}
             </button>
+            <Link
+              to={`/owner/courses/${c.id}`}
+              className="mb-2 flex items-center justify-center gap-1.5 rounded-md bg-navy py-2 text-[12.5px] font-semibold text-white no-underline hover:bg-navy-hover"
+            >
+              {lang === 'ar' ? 'ملفات ومحتوى الدورة' : 'Course files & content'}
+            </Link>
             <div className="flex gap-2">
               <button
                 onClick={() => setEditing(c)}
