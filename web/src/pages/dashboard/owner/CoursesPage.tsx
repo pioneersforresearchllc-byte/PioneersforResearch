@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import {
@@ -143,7 +144,7 @@ function CourseEditor({
     onSaved()
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:p-8" onClick={onClose}>
       <div
         className="my-auto flex w-full max-w-[520px] flex-col rounded-xl bg-white p-6"
@@ -367,7 +368,7 @@ function CourseEditor({
         </div>
       </div>
     </div>
-  )
+  , document.body)
 }
 
 /** Owner-only roster of students enrolled in a course: name, email, phone,
@@ -404,7 +405,7 @@ function RosterModal({ course, onClose }: { course: CourseWithMeta; onClose: () 
     URL.revokeObjectURL(url)
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:p-8" onClick={onClose}>
       <div className="w-full max-w-3xl rounded-xl bg-white p-5 md:p-6" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-start justify-between gap-3">
@@ -472,7 +473,7 @@ function RosterModal({ course, onClose }: { course: CourseWithMeta; onClose: () 
         )}
       </div>
     </div>
-  )
+  , document.body)
 }
 
 export function OwnerCoursesPage() {
