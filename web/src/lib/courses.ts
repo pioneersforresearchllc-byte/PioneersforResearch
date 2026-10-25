@@ -242,14 +242,20 @@ export async function addSession(courseId: string, values: Omit<CourseSession, '
   if (error) throw error
 }
 
+// RLS doesn't error on a refused UPDATE / DELETE — it just matches no rows —
+// so ask for the affected ids and treat "none" as a permission error.
+const RLS_REFUSED = { code: '42501', message: 'row-level security: not allowed' }
+
 export async function updateSession(id: string, values: Omit<CourseSession, 'id' | 'course_id'>) {
-  const { error } = await supabase.from('course_sessions').update(values).eq('id', id)
+  const { data, error } = await supabase.from('course_sessions').update(values).eq('id', id).select('id')
   if (error) throw error
+  if (!data?.length) throw RLS_REFUSED
 }
 
 export async function deleteSession(id: string) {
-  const { error } = await supabase.from('course_sessions').delete().eq('id', id)
+  const { data, error } = await supabase.from('course_sessions').delete().eq('id', id).select('id')
   if (error) throw error
+  if (!data?.length) throw RLS_REFUSED
 }
 
 export interface EnrolledCourse extends Course {

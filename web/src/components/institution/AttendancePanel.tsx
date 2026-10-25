@@ -65,7 +65,7 @@ export function AttendancePanel({ courseId, students }: { courseId: string; stud
       <div className="mb-2.5 text-[15px] font-semibold text-navy">{tx('الحضور', 'Attendance')}</div>
       {error && <div className="mb-2 rounded-lg bg-error-bg px-3 py-2 text-[12.5px] text-error">{error}</div>}
       {(sessions ?? []).length === 0 && (
-        <div className="text-[13px] text-muted">{tx('لا توجد جلسات مجدولة لهذه الدورة. أضف الجلسات من إدارة الدورات أولًا.', 'No sessions scheduled for this course yet. Add sessions from course management first.')}</div>
+        <div className="text-[13px] text-muted">{tx('لا توجد جلسات مجدولة لهذه الدورة. أضف المحاضرات أولًا لتسجيل الحضور.', 'No sessions scheduled for this course yet. Add lectures first to record attendance.')}</div>
       )}
       <div className="flex flex-col gap-2">
         {(sessions ?? []).map((s) => {

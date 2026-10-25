@@ -7,7 +7,7 @@ import { getTaughtCourseDetail } from '@/lib/courses'
 import { createAssignment, listAssignmentsForCourse, uploadAssignmentFile } from '@/lib/assignments'
 import { LoadingState } from '@/components/LoadingState'
 import { AttendancePanel } from '@/components/institution/AttendancePanel'
-import { CourseSessions } from '@/components/CourseSessions'
+import { SessionsManager } from '@/components/course/SessionsManager'
 import { CourseMaterials } from '@/components/course/CourseMaterials'
 import { CourseAnnouncements } from '@/components/course/CourseAnnouncements'
 import { CourseDiscussion } from '@/components/course/CourseDiscussion'
@@ -217,7 +217,7 @@ export function TeacherCourseDetailPage() {
       {active === 'lectures' && (
         <>
           <div className="mb-6">
-            <CourseSessions sessions={data.sessions} hostMode />
+            <SessionsManager courseId={id!} sessions={data.sessions} />
           </div>
           <AttendancePanel courseId={id!} students={data.students} />
         </>

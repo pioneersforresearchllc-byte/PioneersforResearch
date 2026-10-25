@@ -2,6 +2,7 @@
 // prominent "next lecture" card with a relative time and a join button, then
 // the full schedule with per-lecture status (ended / live / today / upcoming).
 // Used by both the student and the trainer course pages.
+import type { ReactNode } from 'react'
 import { useLanguage } from '@/lib/i18n'
 import type { CourseSession } from '@/lib/courses'
 
@@ -54,7 +55,19 @@ const BADGE: Record<Status, string> = {
   past: 'bg-bg-soft text-faint',
 }
 
-export function CourseSessions({ sessions, hostMode = false }: { sessions: CourseSession[]; hostMode?: boolean }) {
+export function CourseSessions({
+  sessions,
+  hostMode = false,
+  headerAction,
+  rowActions,
+}: {
+  sessions: CourseSession[]
+  hostMode?: boolean
+  /** Extra control beside the schedule title (e.g. a trainer's "add lecture"). */
+  headerAction?: ReactNode
+  /** Extra controls at the end of each schedule row (e.g. edit / delete). */
+  rowActions?: (s: CourseSession) => ReactNode
+}) {
   const { lang } = useLanguage()
   const ar = lang === 'ar'
   const now = new Date()
@@ -72,7 +85,10 @@ export function CourseSessions({ sessions, hostMode = false }: { sessions: Cours
   if (rows.length === 0) {
     return (
       <div className="rounded-2xl border border-border bg-white p-5 md:p-6">
-        <div className="mb-1 text-[15px] font-semibold text-navy">{ar ? 'المحاضرات' : 'Lectures'}</div>
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <div className="text-[15px] font-semibold text-navy">{ar ? 'المحاضرات' : 'Lectures'}</div>
+          {headerAction}
+        </div>
         <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center text-[13px] text-muted">
           {ar ? 'لم تُجدوَل محاضرات بعد.' : 'No lectures scheduled yet.'}
         </div>
@@ -124,16 +140,19 @@ export function CourseSessions({ sessions, hostMode = false }: { sessions: Cours
 
       {/* Full schedule */}
       <div className="rounded-2xl border border-border bg-white p-5 md:p-6">
-        <div className="mb-3 text-[15px] font-semibold text-navy">{ar ? 'جدول المحاضرات' : 'Lecture schedule'}</div>
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div className="text-[15px] font-semibold text-navy">{ar ? 'جدول المحاضرات' : 'Lecture schedule'}</div>
+          {headerAction}
+        </div>
         <div className="flex flex-col gap-2.5">
           {rows.map((r) => (
             <div
               key={r.s.id}
-              className={`flex items-center justify-between gap-3 rounded-xl border p-4 transition-colors ${
+              className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl border p-4 transition-colors ${
                 r.status === 'live' ? 'border-success/40 bg-green-50/40' : 'border-border bg-bg-soft/40'
               } ${r.status === 'past' ? 'opacity-60' : ''}`}
             >
-              <div className="flex min-w-0 items-center gap-3">
+              <div className="flex min-w-[12rem] flex-1 items-center gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy/5 text-[13px] font-bold text-navy">
                   {r.num}
                 </div>
@@ -144,7 +163,7 @@ export function CourseSessions({ sessions, hostMode = false }: { sessions: Cours
                   </div>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-2.5">
+              <div className="ms-auto flex shrink-0 items-center gap-2.5">
                 <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${BADGE[r.status]}`}>
                   {badgeText(r.status)}
                 </span>
@@ -162,6 +181,7 @@ export function CourseSessions({ sessions, hostMode = false }: { sessions: Cours
                     {hostMode ? (ar ? 'بدء' : 'Start') : ar ? 'دخول' : 'Join'}
                   </a>
                 )}
+                {rowActions?.(r.s)}
               </div>
             </div>
           ))}
