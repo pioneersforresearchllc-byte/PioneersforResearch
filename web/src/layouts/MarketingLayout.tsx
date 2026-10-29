@@ -73,6 +73,9 @@ export function MarketingLayout() {
           <Link to="/courses" className="nav-underline text-navy no-underline" onClick={() => setMenuOpen(false)}>
             {t('nav.courses')}
           </Link>
+          <Link to="/cpd" className="nav-underline text-navy no-underline" onClick={() => setMenuOpen(false)}>
+            {t('nav.cpd')}
+          </Link>
           <Link to="/services" className="nav-underline text-navy no-underline" onClick={() => setMenuOpen(false)}>
             {t('nav.services')}
           </Link>
@@ -216,6 +219,7 @@ export function MarketingLayout() {
             <ul className="flex flex-col gap-2.5 text-[13.5px]">
               <li><Link to="/services" className="text-white/70 no-underline hover:text-white">{t('nav.services')}</Link></li>
               <li><Link to="/courses" className="text-white/70 no-underline hover:text-white">{t('nav.courses')}</Link></li>
+              <li><Link to="/cpd" className="text-white/70 no-underline hover:text-white">{t('footer.cpd')}</Link></li>
               <li><Link to="/institutions" className="text-white/70 no-underline hover:text-white">{t('nav.institutions')}</Link></li>
               <li><Link to="/quote" className="text-white/70 no-underline hover:text-white">{t('quote.cta')}</Link></li>
               <li><Link to="/about" className="text-white/70 no-underline hover:text-white">{t('nav.about')}</Link></li>
@@ -229,6 +233,7 @@ export function MarketingLayout() {
               <li><Link to="/terms" className="text-white/70 no-underline hover:text-white">{t('footer.terms')}</Link></li>
               <li><Link to="/privacy" className="text-white/70 no-underline hover:text-white">{t('footer.privacy')}</Link></li>
               <li><Link to="/refund" className="text-white/70 no-underline hover:text-white">{t('footer.refund')}</Link></li>
+              <li><Link to="/disclosure-policy" className="text-white/70 no-underline hover:text-white">{t('footer.disclosure')}</Link></li>
               <li><Link to="/verify" className="text-white/70 no-underline hover:text-white">{t('footer.verifyCert')}</Link></li>
             </ul>
           </div>

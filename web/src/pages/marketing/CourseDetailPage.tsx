@@ -11,6 +11,99 @@ import { useLanguage } from '@/lib/i18n'
 import { money } from '@/components/Riyal'
 import { GatedPrice } from '@/components/GatedPrice'
 import { canonicalUrl, SITE_URL, useDocumentMeta, useJsonLd } from '@/lib/useDocumentMeta'
+import { hasCpd, lines, parseCpd } from '@/lib/cpd'
+
+/** SCFHS-required activity details: audience, objectives, outcomes, methods,
+ *  assessment, sponsorship and speaker disclosures (shown before enrolment). */
+function CpdDetails({ raw, ar }: { raw: unknown; ar: boolean }) {
+  const cpd = parseCpd(raw)
+  if (!hasCpd(cpd)) return null
+  const h = 'mb-1.5 text-[15px] font-bold text-navy'
+  const p = 'text-[14px] leading-7 text-muted-2 whitespace-pre-line'
+  const list = (text: string) => (
+    <ul className="list-disc ps-5 text-[14px] leading-7 text-muted-2">
+      {lines(text).map((l, i) => (
+        <li key={i}>{l}</li>
+      ))}
+    </ul>
+  )
+  return (
+    <div className="mb-6 flex flex-col gap-4 rounded-lg border border-border-2 bg-bg-soft p-4 md:p-5">
+      {(cpd.hours || cpd.accreditationNo) && (
+        <div className="rounded-md bg-white px-3.5 py-2.5 text-[13.5px] font-semibold text-navy">
+          {cpd.hours && <span>{ar ? 'ساعات التعليم المستمر' : 'CPD hours'}: {cpd.hours}</span>}
+          {cpd.hours && cpd.accreditationNo && <span className="mx-2 text-faint">·</span>}
+          {cpd.accreditationNo && (
+            <span>
+              {ar ? 'رقم الاعتماد' : 'Accreditation no.'}: <span dir="ltr">{cpd.accreditationNo}</span>
+            </span>
+          )}
+        </div>
+      )}
+      {cpd.audience && (
+        <section>
+          <h2 className={h}>{ar ? 'الفئة المستهدفة' : 'Target audience'}</h2>
+          <p className={p}>{cpd.audience}</p>
+        </section>
+      )}
+      {cpd.objectives && (
+        <section>
+          <h2 className={h}>{ar ? 'الأهداف التعليمية' : 'Learning objectives'}</h2>
+          <p className="mb-1 text-[13px] text-muted">{ar ? 'في نهاية النشاط سيكون المشارك قادرًا على:' : 'By the end of the activity, participants will be able to:'}</p>
+          {list(cpd.objectives)}
+        </section>
+      )}
+      {cpd.outcomes && (
+        <section>
+          <h2 className={h}>{ar ? 'مخرجات التعلم' : 'Learning outcomes'}</h2>
+          {list(cpd.outcomes)}
+        </section>
+      )}
+      {cpd.methods && (
+        <section>
+          <h2 className={h}>{ar ? 'أساليب التعلم' : 'Learning methods'}</h2>
+          <p className={p}>{cpd.methods}</p>
+        </section>
+      )}
+      {cpd.assessment && (
+        <section>
+          <h2 className={h}>{ar ? 'التقييم ومتطلبات الشهادة' : 'Assessment & certificate requirements'}</h2>
+          <p className={p}>{cpd.assessment}</p>
+        </section>
+      )}
+      {cpd.speakers.length > 0 && (
+        <section>
+          <h2 className={h}>{ar ? 'المتحدثون وإفصاحاتهم' : 'Speakers & disclosures'}</h2>
+          <div className="flex flex-col gap-2">
+            {cpd.speakers.map((s, i) => (
+              <div key={i} className="rounded-md bg-white px-3.5 py-2.5">
+                <div className="text-[14px] font-semibold text-navy">{s.name}</div>
+                {s.credentials && <div className="text-[12.5px] text-muted">{s.credentials}</div>}
+                <div className="mt-1 text-[12.5px] leading-6 text-muted-2">
+                  <span className="font-semibold">{ar ? 'الإفصاح: ' : 'Disclosure: '}</span>
+                  {s.disclosure || '—'}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+      <section>
+        <h2 className={h}>{ar ? 'الرعاية التجارية' : 'Commercial support'}</h2>
+        <p className={p}>
+          {cpd.sponsorship
+            ? `${cpd.sponsorship}\n${ar ? 'لا يؤثر الراعي في المحتوى أو أساليب التعلم أو اختيار المتحدثين، ولا يُسمح له بالإعلان خلال النشاط.' : 'The sponsor has no influence on content, methods or speakers and may not advertise during the activity.'}`
+            : ar
+              ? 'لا توجد رعاية تجارية لهذا النشاط، وقد طُوّر باستقلال تام عن أي جهة تجارية.'
+              : 'This activity has no commercial sponsorship and was developed independently of any commercial interest.'}
+        </p>
+        <Link to="/disclosure-policy" className="mt-1 inline-block text-[12.5px] text-navy underline underline-offset-4">
+          {ar ? 'سياسة الإفصاح وتضارب المصالح' : 'Disclosure & conflict-of-interest policy'}
+        </Link>
+      </section>
+    </div>
+  )
+}
 
 function formatSar(cents: number, t: ReturnType<typeof useLanguage>['t']) {
   if (cents === 0) return t('course.free')
@@ -30,6 +123,7 @@ interface CourseDetail {
   capacity: number | null
   kind: 'course' | 'program'
   code_only: boolean
+  cpd?: unknown
   avg_rating: number
   rating_count: number
   enrolledCount: number
@@ -306,6 +400,7 @@ export function CourseDetailPage() {
         <p className="mb-6 text-[15.5px] leading-[2] text-muted-2">
           {lang === 'en' ? course.description_en || course.description : course.description}
         </p>
+        <CpdDetails raw={course.cpd} ar={lang === 'ar'} />
         <div className="mb-5.5 flex flex-wrap items-center justify-between gap-2 border-y border-border-2 py-4.5">
           <div className="text-sm font-semibold text-accent">{course.duration_label}</div>
           <div className="flex flex-wrap items-center gap-3">

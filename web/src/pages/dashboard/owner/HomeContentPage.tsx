@@ -26,6 +26,7 @@ import {
 } from '@/lib/team'
 import { LoadingState } from '@/components/LoadingState'
 import { uploadServiceImage } from '@/lib/services'
+import { parseCpdTeam, saveCpdTeam, type CpdTeam } from '@/lib/cpd'
 
 const SOCIAL_LABELS: Record<SocialKey, string> = {
   'social.instagram': 'Instagram',
@@ -485,6 +486,102 @@ function AnnouncementEditor({ content, onSaved }: { content: ContentMap | undefi
   )
 }
 
+/** Names shown on the public /cpd page: CPD manager, coordinator and the
+ *  scientific committee (SCFHS requires at least two members). */
+function CpdTeamEditor({ content, onSaved }: { content: ContentMap | undefined; onSaved: () => void }) {
+  const { lang } = useLanguage()
+  const ar = lang === 'ar'
+  const [team, setTeam] = useState<CpdTeam>(() => parseCpdTeam(content))
+  const [busy, setBusy] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
+
+  const filledMembers = team.committee.filter((m) => m.name.trim()).length
+  const setMember = (i: number, key: 'name' | 'title' | 'role', value: string) =>
+    setTeam((tm) => ({ ...tm, committee: tm.committee.map((m, j) => (j === i ? { ...m, [key]: value } : m)) }))
+
+  const save = async () => {
+    setBusy(true)
+    setSaved(false)
+    setError('')
+    try {
+      await saveCpdTeam(team)
+      setSaved(true)
+      onSaved()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : ar ? 'تعذّر الحفظ' : 'Could not save')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const field = 'w-full rounded-md border border-border px-3 py-2 text-[13.5px]'
+  return (
+    <div>
+      <div className="mb-1 text-[14px] font-bold text-navy">{ar ? 'فريق التعليم المستمر (صفحة /cpd)' : 'CPD team (the /cpd page)'}</div>
+      <div className="mb-2.5 text-[12.5px] text-muted">
+        {ar
+          ? 'تظهر هذه الأسماء في صفحة التعليم المستمر والهيكل التنظيمي. الهيئة تشترط أن يكون مدير التعليم المستمر ممارسًا صحيًا مسجّلًا لديها، وألا يقل أعضاء اللجنة العلمية عن عضوين.'
+          : 'Shown on the CPD page and structure chart. SCFHS requires the CPD manager to be an SCFHS-registered practitioner and at least two scientific committee members.'}
+      </div>
+      <div className="flex flex-col gap-3 rounded-lg border border-border-2 bg-bg-soft p-3.5">
+        <div className="text-[12.5px] font-semibold text-navy">{ar ? 'مدير التعليم المستمر' : 'CPD manager'}</div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <input value={team.manager.name} onChange={(e) => setTeam((tm) => ({ ...tm, manager: { ...tm.manager, name: e.target.value } }))} placeholder={ar ? 'الاسم' : 'Name'} className={field} />
+          <input value={team.manager.title} onChange={(e) => setTeam((tm) => ({ ...tm, manager: { ...tm.manager, title: e.target.value } }))} placeholder={ar ? 'المسمى والتخصص' : 'Title & specialty'} className={field} />
+          <input dir="ltr" value={team.manager.scfhs} onChange={(e) => setTeam((tm) => ({ ...tm, manager: { ...tm.manager, scfhs: e.target.value } }))} placeholder={ar ? 'رقم التسجيل في الهيئة' : 'SCFHS registration no.'} className={field} />
+        </div>
+
+        <div className="text-[12.5px] font-semibold text-navy">{ar ? 'منسق الأنشطة (اختياري)' : 'Activities coordinator (optional)'}</div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <input value={team.coordinator.name} onChange={(e) => setTeam((tm) => ({ ...tm, coordinator: { ...tm.coordinator, name: e.target.value } }))} placeholder={ar ? 'الاسم' : 'Name'} className={field} />
+          <input value={team.coordinator.title} onChange={(e) => setTeam((tm) => ({ ...tm, coordinator: { ...tm.coordinator, title: e.target.value } }))} placeholder={ar ? 'المسمى' : 'Title'} className={field} />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="text-[12.5px] font-semibold text-navy">
+            {ar ? 'أعضاء اللجنة العلمية' : 'Scientific committee members'}
+            {filledMembers < 2 && <span className="ms-2 font-normal text-error">{ar ? '(عضوان على الأقل)' : '(at least two)'}</span>}
+          </div>
+          <button
+            type="button"
+            onClick={() => setTeam((tm) => ({ ...tm, committee: [...tm.committee, { name: '', title: '', role: '' }] }))}
+            className="rounded-md border border-navy px-3 py-1 text-[12px] text-navy"
+          >
+            {ar ? '+ إضافة عضو' : '+ Add member'}
+          </button>
+        </div>
+        {team.committee.map((m, i) => (
+          <div key={i} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_1.4fr_auto]">
+            <input value={m.name} onChange={(e) => setMember(i, 'name', e.target.value)} placeholder={ar ? 'الاسم' : 'Name'} className={field} />
+            <input value={m.role} onChange={(e) => setMember(i, 'role', e.target.value)} placeholder={ar ? 'الدور (رئيس اللجنة، عضو…)' : 'Role (chair, member…)'} className={field} />
+            <input value={m.title} onChange={(e) => setMember(i, 'title', e.target.value)} placeholder={ar ? 'المؤهل والتخصص والجهة' : 'Qualification, specialty, affiliation'} className={field} />
+            <button
+              type="button"
+              onClick={() => setTeam((tm) => ({ ...tm, committee: tm.committee.filter((_, j) => j !== i) }))}
+              className="rounded-md border border-border px-3 py-2 text-[12px] text-error"
+            >
+              {ar ? 'حذف' : 'Remove'}
+            </button>
+          </div>
+        ))}
+
+        <div className="flex items-center justify-end gap-2">
+          {error && <span className="text-[12px] text-error">{error}</span>}
+          {saved && <span className="text-[12px] text-success">{ar ? 'تم الحفظ ✓' : 'Saved ✓'}</span>}
+          <button
+            onClick={() => void save()}
+            disabled={busy}
+            className="rounded-md bg-navy px-4 py-1.75 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+          >
+            {ar ? 'حفظ' : 'Save'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function OwnerHomeContentPage() {
   const { t } = useLanguage()
   const queryClient = useQueryClient()
@@ -522,6 +619,7 @@ export function OwnerHomeContentPage() {
         <PricingGateEditor key={content ? 'pg-loaded' : 'pg-loading'} content={content} onSaved={refresh} />
         <AnnouncementEditor key={content ? 'loaded' : 'loading'} content={content} onSaved={refresh} />
         <BankDetailsEditor key={content ? 'bank-loaded' : 'bank-loading'} content={content} onSaved={refresh} />
+        <CpdTeamEditor key={content ? 'cpd-loaded' : 'cpd-loading'} content={content} onSaved={refresh} />
         <TeamEditor />
       </div>
     </div>

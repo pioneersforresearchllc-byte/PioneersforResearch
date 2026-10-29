@@ -24,6 +24,76 @@ import {
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
 import { Price } from '@/components/Riyal'
+import { NO_RELATIONSHIP_AR, parseCpd, setCourseCpd, type CourseCpd, type CpdSpeaker } from '@/lib/cpd'
+
+/** SCFHS CPD details for a course: shown on its public page (migration 0090). */
+function CpdFields({ cpd, onChange }: { cpd: CourseCpd; onChange: (c: CourseCpd) => void }) {
+  const { lang } = useLanguage()
+  const ar = lang === 'ar'
+  const [open, setOpen] = useState(false)
+  const set = <K extends keyof CourseCpd>(key: K, value: CourseCpd[K]) => onChange({ ...cpd, [key]: value })
+  const setSpeaker = (i: number, key: keyof CpdSpeaker, value: string) =>
+    set('speakers', cpd.speakers.map((s, j) => (j === i ? { ...s, [key]: value } : s)))
+  const field = 'w-full rounded-md border border-border px-3 py-2 text-[13px]'
+  const area = `${field} resize-y leading-6`
+
+  return (
+    <div className="rounded-lg border border-border-2 bg-bg-soft p-3">
+      <button type="button" onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between text-[13px] font-semibold text-navy">
+        <span>{ar ? 'بيانات التعليم المستمر (CPD) — متطلبات الهيئة' : 'CPD details — SCFHS requirements'}</span>
+        <span aria-hidden>{open ? '−' : '+'}</span>
+      </button>
+      {open && (
+        <div className="mt-3 flex flex-col gap-2.5">
+          <textarea value={cpd.audience} onChange={(e) => set('audience', e.target.value)} rows={2} placeholder={ar ? 'الفئة المستهدفة ومستواها (مثال: أطباء وممرضون وصيادلة — مستوى متوسط)' : 'Target audience and level'} className={area} />
+          <textarea value={cpd.objectives} onChange={(e) => set('objectives', e.target.value)} rows={4} placeholder={ar ? 'الأهداف التعليمية SMART — هدف في كل سطر، تبدأ بفعل قابل للقياس (يشرح، يطبّق، يحسب…)' : 'SMART learning objectives — one per line'} className={area} />
+          <textarea value={cpd.outcomes} onChange={(e) => set('outcomes', e.target.value)} rows={3} placeholder={ar ? 'مخرجات التعلم المتوقعة — مخرج في كل سطر' : 'Expected learning outcomes — one per line'} className={area} />
+          <textarea value={cpd.methods} onChange={(e) => set('methods', e.target.value)} rows={2} placeholder={ar ? 'أساليب التعلم (محاضرات تفاعلية، دراسات حالة، تمارين، نقاش وأسئلة…)' : 'Learning methods'} className={area} />
+          <textarea value={cpd.assessment} onChange={(e) => set('assessment', e.target.value)} rows={2} placeholder={ar ? 'التقييم ونسبة النجاح (مثال: اختبار قبلي وبعدي، نسبة النجاح 70%، وإكمال استبانة التقييم وحضور 90% من الجلسات)' : 'Assessment and pass mark'} className={area} />
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <input value={cpd.hours} onChange={(e) => set('hours', e.target.value)} placeholder={ar ? 'ساعات التعليم المستمر (بعد الاعتماد فقط)' : 'CPD hours (only once accredited)'} className={field} />
+            <input dir="ltr" value={cpd.accreditationNo} onChange={(e) => set('accreditationNo', e.target.value)} placeholder={ar ? 'رقم اعتماد الهيئة (بعد الاعتماد فقط)' : 'SCFHS accreditation no.'} className={field} />
+          </div>
+          <textarea value={cpd.sponsorship} onChange={(e) => set('sponsorship', e.target.value)} rows={2} placeholder={ar ? 'الرعاة التجاريون — اتركه فارغًا إذا لا يوجد رعاة (سيظهر: لا توجد رعاية تجارية)' : 'Commercial sponsors — leave empty if none'} className={area} />
+
+          <div className="mt-1 flex items-center justify-between">
+            <span className="text-[12.5px] font-semibold text-navy">{ar ? 'المتحدثون وإفصاحاتهم' : 'Speakers & disclosures'}</span>
+            <button
+              type="button"
+              onClick={() => set('speakers', [...cpd.speakers, { name: '', credentials: '', disclosure: NO_RELATIONSHIP_AR }])}
+              className="rounded-md border border-navy px-3 py-1 text-[12px] text-navy"
+            >
+              {ar ? '+ متحدث' : '+ Speaker'}
+            </button>
+          </div>
+          {cpd.speakers.map((s, i) => (
+            <div key={i} className="flex flex-col gap-2 rounded-md border border-border bg-white p-2.5">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <input value={s.name} onChange={(e) => setSpeaker(i, 'name', e.target.value)} placeholder={ar ? 'اسم المتحدث' : 'Speaker name'} className={field} />
+                <input value={s.credentials} onChange={(e) => setSpeaker(i, 'credentials', e.target.value)} placeholder={ar ? 'المؤهل والتخصص والجهة' : 'Credentials & affiliation'} className={field} />
+              </div>
+              <textarea
+                value={s.disclosure}
+                onChange={(e) => setSpeaker(i, 'disclosure', e.target.value)}
+                rows={2}
+                placeholder={ar ? 'الإفصاح: اسم الجهة التجارية وطبيعة العلاقة، أو لا توجد علاقة' : 'Disclosure: company and nature of relationship, or none'}
+                className={area}
+              />
+              <button type="button" onClick={() => set('speakers', cpd.speakers.filter((_, j) => j !== i))} className="self-end text-[12px] text-error hover:underline">
+                {ar ? 'حذف المتحدث' : 'Remove speaker'}
+              </button>
+            </div>
+          ))}
+          <div className="text-[11.5px] leading-5 text-muted">
+            {ar
+              ? 'تأكد من إفصاح كل متحدث كتابيًا قبل النشر. لا تكتب الساعات أو رقم الاعتماد قبل صدور اعتماد الهيئة.'
+              : 'Get each speaker’s written disclosure before publishing. Don’t enter hours or an accreditation number before SCFHS approval.'}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 function formatSar(cents: number, t: ReturnType<typeof useLanguage>['t']) {
   if (cents === 0) return t('course.free')
@@ -74,6 +144,7 @@ function CourseEditor({
   const [selectedTeachers, setSelectedTeachers] = useState<string[]>(course?.teacherIds ?? [])
   const [accessCode, setAccessCode] = useState('')
   const [contentHtml, setContentHtml] = useState('')
+  const [cpd, setCpd] = useState<CourseCpd>(() => parseCpd(course?.cpd))
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -121,6 +192,7 @@ function CourseEditor({
       const courseId = course ? (await updateCourse(course.id, form, selectedTeachers), course.id) : await createCourse(form, selectedTeachers)
       await setCourseAccessCode(courseId, accessCode)
       await setCourseContent(courseId, contentHtml)
+      await setCourseCpd(courseId, cpd, course?.cpd)
       onSaved()
       onClose()
     } catch (e) {
@@ -278,6 +350,8 @@ function CourseEditor({
             )}
           </div>
 
+          <CpdFields cpd={cpd} onChange={setCpd} />
+
           <div>
             <div className="mb-1.5 text-[13px] font-semibold text-navy">{t('oCourses.assignedTeachers')}</div>
             <div className="flex flex-wrap gap-1.5">
@@ -387,12 +461,12 @@ function RosterModal({ course, onClose }: { course: CourseWithMeta; onClose: () 
   })
 
   const exportCsv = () => {
-    const head = ['الاسم', 'اسم المستخدم', 'البريد الإلكتروني', 'الجوال', 'تاريخ التسجيل']
+    const head = ['الاسم', 'اسم المستخدم', 'البريد الإلكتروني', 'الجوال', 'رقم التصنيف المهني', 'المهنة', 'تاريخ التسجيل']
     const cell = (v: string) => `"${v.replace(/"/g, '""')}"`
     const lines = [head.map(cell).join(',')]
     for (const r of rows) {
       lines.push(
-        [r.name, r.username, r.email ?? '', r.phone ?? '', new Date(r.enrolled_at).toLocaleString('en-GB')]
+        [r.name, r.username, r.email ?? '', r.phone ?? '', r.scfhs_number ?? '', r.profession ?? '', new Date(r.enrolled_at).toLocaleString('en-GB')]
           .map((v) => cell(String(v)))
           .join(','),
       )
@@ -451,6 +525,7 @@ function RosterModal({ course, onClose }: { course: CourseWithMeta; onClose: () 
                   <th className="p-2.5 text-start font-semibold">{ar ? 'الاسم' : 'Name'}</th>
                   <th className="p-2.5 text-start font-semibold">{ar ? 'البريد' : 'Email'}</th>
                   <th className="p-2.5 text-start font-semibold">{ar ? 'الجوال' : 'Phone'}</th>
+                  <th className="p-2.5 text-start font-semibold">{ar ? 'التصنيف المهني' : 'SCFHS no.'}</th>
                   <th className="p-2.5 text-start font-semibold">{ar ? 'التسجيل' : 'Enrolled'}</th>
                 </tr>
               </thead>
@@ -463,6 +538,10 @@ function RosterModal({ course, onClose }: { course: CourseWithMeta; onClose: () 
                     </td>
                     <td className="p-2.5 text-muted" dir="ltr">{r.email ?? '—'}</td>
                     <td className="p-2.5 text-muted" dir="ltr">{r.phone ?? '—'}</td>
+                    <td className="p-2.5 text-muted">
+                      <span dir="ltr">{r.scfhs_number ?? '—'}</span>
+                      {r.profession && <span className="block text-[11px] text-faint">{r.profession}</span>}
+                    </td>
                     <td className="p-2.5 whitespace-nowrap text-muted" dir="ltr">
                       {new Date(r.enrolled_at).toLocaleDateString('en-GB')}
                     </td>

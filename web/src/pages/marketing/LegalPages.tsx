@@ -5,6 +5,7 @@ import { fetchSiteContent, resolveWhatsapp } from '@/lib/content'
 import { EMAIL, PRIVACY, REFUND, TERMS, type Doc, type Lang } from '@/lib/legalDocs'
 import { legalDocsHash, TERMS_VERSION } from '@/lib/legal'
 import { CONSULTANT_AGREEMENT, CONSULTANT_AGREEMENT_VERSION, consultantAgreementHash } from '@/lib/consultantAgreement'
+import { CPD_POLICY, CPD_POLICY_VERSION } from '@/lib/cpdPolicy'
 
 const effective = (version: string) => ({
   ar: `تاريخ السريان وآخر تحديث: 15 أكتوبر 2026 — الإصدار ${version}`,
@@ -61,6 +62,7 @@ export function LegalDoc({
           <Link to="/privacy" className="text-muted">{lang === 'ar' ? 'سياسة الخصوصية' : 'Privacy'}</Link>
           <Link to="/refund" className="text-muted">{lang === 'ar' ? 'سياسة الاسترجاع والإلغاء' : 'Refund & cancellation'}</Link>
           <Link to="/consultant-agreement" className="text-muted">{lang === 'ar' ? 'اتفاقية المدرّب' : 'Trainer agreement'}</Link>
+          <Link to="/disclosure-policy" className="text-muted">{lang === 'ar' ? 'سياسة الإفصاح وتضارب المصالح' : 'Disclosure & COI policy'}</Link>
         </div>
       </div>
       <div className="flex flex-col gap-6">
@@ -99,6 +101,28 @@ export function PrivacyPage() {
 export function RefundPage() {
   const { lang } = useLanguage()
   return <LegalDoc doc={REFUND[lang]} lang={lang} />
+}
+
+async function cpdPolicyHash(): Promise<string> {
+  const text = JSON.stringify({ version: CPD_POLICY_VERSION, policy: CPD_POLICY })
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
+  return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+export function CpdPolicyPage() {
+  const { lang } = useLanguage()
+  return (
+    <LegalDoc
+      doc={CPD_POLICY[lang]}
+      lang={lang}
+      version={{
+        ar: `تاريخ السريان وآخر تحديث: 29 أكتوبر 2026 — الإصدار ${CPD_POLICY_VERSION}`,
+        en: `Effective & last updated: 29 October 2026 — version ${CPD_POLICY_VERSION}`,
+      }}
+      hashKey={['cpd-policy-hash', CPD_POLICY_VERSION]}
+      hashFn={cpdPolicyHash}
+    />
+  )
 }
 
 export function ConsultantAgreementPage() {

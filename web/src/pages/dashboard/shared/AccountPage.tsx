@@ -8,6 +8,7 @@ import { formatPhone, getMyPhone, normalizePhone, savePhone } from '@/lib/phone'
 import { PhoneField } from '@/components/PhoneField'
 import { MarketingCard } from '@/components/Consent'
 import { NATIONAL_ID_ENABLED } from '@/lib/config'
+import { getMyPractitionerInfo, savePractitionerInfo } from '@/lib/cpd'
 
 function initials(name: string) {
   return name.trim().slice(0, 2) || '?'
@@ -227,6 +228,83 @@ function NationalIdCard() {
   )
 }
 
+/** SCFHS registration (classification) no. + profession, needed to report
+ *  CPD hours. Optional; private to the learner and the owner (0090). */
+function PractitionerCard({ userId }: { userId: string }) {
+  const { lang } = useLanguage()
+  const ar = lang === 'ar'
+  const [scfhs, setScfhs] = useState('')
+  const [profession, setProfession] = useState('')
+  const [loaded, setLoaded] = useState<{ scfhs: string; profession: string }>({ scfhs: '', profession: '' })
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+
+  useEffect(() => {
+    void getMyPractitionerInfo(userId).then((info) => {
+      const v = { scfhs: info?.scfhs_number ?? '', profession: info?.profession ?? '' }
+      setScfhs(v.scfhs)
+      setProfession(v.profession)
+      setLoaded(v)
+    })
+  }, [userId])
+
+  const valid = !scfhs.trim() || /^[0-9A-Za-z-]{4,20}$/.test(scfhs.trim())
+  const changed = scfhs.trim() !== loaded.scfhs || profession.trim() !== loaded.profession
+
+  const save = async () => {
+    if (!valid) {
+      setMsg(ar ? 'رقم التصنيف غير صحيح' : 'Invalid registration number')
+      return
+    }
+    setBusy(true)
+    setMsg('')
+    try {
+      const v = { scfhs: scfhs.trim(), profession: profession.trim() }
+      await savePractitionerInfo(userId, { scfhs_number: v.scfhs || null, profession: v.profession || null })
+      setLoaded(v)
+      setMsg(ar ? 'تم الحفظ ✓' : 'Saved ✓')
+    } catch {
+      setMsg(ar ? 'تعذّر الحفظ' : 'Could not save')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-white p-5 md:p-6">
+      <div className="mb-1 text-[14px] font-semibold text-navy">{ar ? 'بيانات الممارس الصحي' : 'Health practitioner details'}</div>
+      <div className="mb-3 text-[12px] leading-6 text-muted">
+        {ar
+          ? 'للممارسين الصحيين: رقم التسجيل (التصنيف المهني) في الهيئة السعودية للتخصصات الصحية، لاحتساب ساعات التعليم المستمر في الأنشطة المعتمدة. اختياري، وخاص: لا يظهر إلا لك وللإدارة.'
+          : 'For healthcare practitioners: your SCFHS registration (classification) number, used to record CPD hours for accredited activities. Optional and private: visible only to you and the admin.'}
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input
+          dir="ltr"
+          value={scfhs}
+          onChange={(e) => setScfhs(e.target.value.replace(/[^0-9A-Za-z-]/g, '').slice(0, 20))}
+          placeholder={ar ? 'رقم التصنيف المهني' : 'SCFHS registration no.'}
+          className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
+        />
+        <input
+          value={profession}
+          onChange={(e) => setProfession(e.target.value.slice(0, 120))}
+          placeholder={ar ? 'المهنة والتخصص (مثال: صيدلي إكلينيكي)' : 'Profession & specialty'}
+          className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
+        />
+        <button
+          onClick={() => void save()}
+          disabled={busy || !changed || !valid}
+          className="rounded-md bg-navy px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+        >
+          {ar ? 'حفظ' : 'Save'}
+        </button>
+      </div>
+      {msg && <div className="mt-2 text-[12.5px] text-navy">{msg}</div>}
+    </div>
+  )
+}
+
 export function AccountPage() {
   const { profile, refreshProfile } = useAuth()
   const { t } = useLanguage()
@@ -435,6 +513,8 @@ export function AccountPage() {
       </div>
 
       {(profile.role === 'student' || profile.role === 'teacher') && <MyPhoneCard userId={profile.id} />}
+
+      {profile.role === 'student' && <PractitionerCard userId={profile.id} />}
 
       {NATIONAL_ID_ENABLED && profile.role === 'student' && <NationalIdCard />}
 

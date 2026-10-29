@@ -8,6 +8,7 @@ export const translations = {
   'nav.home': { ar: 'الرئيسية', en: 'Home' },
   'nav.about': { ar: 'من نحن', en: 'About' },
   'nav.courses': { ar: 'الدورات', en: 'Courses' },
+  'nav.cpd': { ar: 'التعليم المستمر', en: 'CPD' },
   'nav.browseCourses': { ar: 'استعرض الدورات', en: 'Browse Courses' },
   'nav.programs': { ar: 'البرامج', en: 'Programs' },
   'nav.resources': { ar: 'الموارد', en: 'Resources' },
@@ -1500,6 +1501,8 @@ export const translations = {
   'footer.city': { ar: 'جدة، المملكة العربية السعودية', en: 'Jeddah, Saudi Arabia' },
   'footer.licensed': { ar: 'شركة مرخّصة من وزارة الاستثمار', en: 'Licensed by the Ministry of Investment' },
   'footer.refund': { ar: 'سياسة الاسترجاع', en: 'Refund Policy' },
+  'footer.disclosure': { ar: 'سياسة الإفصاح وتضارب المصالح', en: 'Disclosure & COI Policy' },
+  'footer.cpd': { ar: 'التعليم الطبي المستمر (CPD)', en: 'Continuing Education (CPD)' },
   'footer.legal': {
     ar: 'شركة بايونيرز هيلث ريسيرتش كونسالتينج (ذات مسؤولية محدودة) — الرقم الموحّد 7055175363 — ترخيص وزارة الاستثمار 24926274626 — الرقم الضريبي 3150160068 — جدة، المملكة العربية السعودية (العنوان الوطني JHJA8230) — support@pioneersresearch.com',
     en: 'Pioneers Health Research Consulting (LLC) — Unified No. 7055175363 — MISA License 24926274626 — Tax No. 3150160068 — Jeddah, Saudi Arabia (National Address JHJA8230) — support@pioneersresearch.com',

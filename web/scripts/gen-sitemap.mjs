@@ -15,11 +15,13 @@ const STATIC = [
   ['/courses', '0.9', 'weekly'],
   ['/services', '0.9', 'weekly'],
   ['/institutions', '0.8', 'monthly'],
+  ['/cpd', '0.8', 'monthly'],
   ['/contact', '0.6', 'monthly'],
   ['/register', '0.6', 'monthly'],
   ['/login', '0.4', 'monthly'],
   ['/terms', '0.3', 'yearly'],
   ['/privacy', '0.3', 'yearly'],
+  ['/disclosure-policy', '0.3', 'yearly'],
 ]
 
 const escLoc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')

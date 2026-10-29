@@ -17,6 +17,8 @@ export interface Course {
   capacity: number | null
   kind: CourseKind
   code_only: boolean
+  /** CPD details (jsonb, migration 0090) — read with parseCpd(). */
+  cpd?: unknown
   created_at: string
 }
 
@@ -86,6 +88,9 @@ export interface RosterRow {
   username: string
   email: string | null
   phone: string | null
+  /** Added by migration 0090; absent until it runs. */
+  scfhs_number?: string | null
+  profession?: string | null
   enrolled_at: string
 }
 
