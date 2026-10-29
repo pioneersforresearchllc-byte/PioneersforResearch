@@ -124,13 +124,13 @@ export function ArticleDetailPage() {
   const metaDesc = article
     ? stripMarkdown(lang === 'en' ? article.content_en || article.content : article.content).slice(0, 155)
     : undefined
-  useDocumentMeta(`${metaTitle} | الرواد الاستشارية للبحوث الصحية`, metaDesc, {
+  useDocumentMeta(`${metaTitle} | الرواد الاستشارية للتدريب والأبحاث`, metaDesc, {
     image: article?.image_url,
     type: 'article',
   })
   // Anonymous visitors can't read author profiles, so the byline falls back to
   // the team instead of showing an empty "By".
-  const teamName = lang === 'en' ? 'Pioneers Health Research team' : 'فريق الرواد الاستشارية للبحوث الصحية'
+  const teamName = lang === 'en' ? 'Pioneers Health Research team' : 'فريق الرواد الاستشارية للتدريب والأبحاث'
   const authorName = article?.author_name || teamName
   useJsonLd(
     article && {

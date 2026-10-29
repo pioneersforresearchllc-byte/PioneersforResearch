@@ -126,7 +126,7 @@ export function CourseDetailPage() {
   const metaDesc = course
     ? (lang === 'en' ? course.description_en || course.description : course.description).replace(/\s+/g, ' ').trim().slice(0, 155)
     : undefined
-  useDocumentMeta(`${metaTitle} | الرواد الاستشارية للبحوث الصحية`, metaDesc || undefined, { image: course?.image_url })
+  useDocumentMeta(`${metaTitle} | الرواد الاستشارية للتدريب والأبحاث`, metaDesc || undefined, { image: course?.image_url })
   useJsonLd(
     course && {
       '@context': 'https://schema.org',

@@ -75,7 +75,7 @@ export function ServiceDetailPage() {
   const metaDesc = service
     ? (lang === 'en' ? service.description_en || service.description : service.description) || undefined
     : undefined
-  useDocumentMeta(`${metaTitle} | الرواد الاستشارية للبحوث الصحية`, metaDesc)
+  useDocumentMeta(`${metaTitle} | الرواد الاستشارية للتدريب والأبحاث`, metaDesc)
   useJsonLd(
     service && {
       '@context': 'https://schema.org',

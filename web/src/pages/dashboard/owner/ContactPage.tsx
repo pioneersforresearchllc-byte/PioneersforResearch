@@ -98,7 +98,7 @@ export function OwnerContactPage() {
               <p className="mb-3 whitespace-pre-line text-[13.5px] leading-7 text-muted-2">{m.message}</p>
               <div className="flex flex-wrap gap-2">
                 <a
-                  href={`mailto:${m.email}?subject=${encodeURIComponent(ar ? 'رد: رسالتك إلى الرواد للبحوث الصحية' : 'Re: your message to Pioneers Health Research')}`}
+                  href={`mailto:${m.email}?subject=${encodeURIComponent(ar ? 'رد: رسالتك إلى الرواد الاستشارية للتدريب والأبحاث' : 'Re: your message to Pioneers Health Research')}`}
                   className="rounded-lg bg-navy px-3.5 py-1.5 text-[12.5px] font-semibold text-white no-underline"
                 >
                   {ar ? 'رد بالبريد' : 'Reply by email'}

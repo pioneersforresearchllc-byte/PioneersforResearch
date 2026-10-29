@@ -43,7 +43,7 @@ export function AuthCard({ width = 420, dark = false, children }: AuthCardProps)
             <img src="/logo.png" alt="" className="h-12 w-12" />
             <span className="flex flex-col leading-tight">
               <span className="font-heading text-[19px] font-bold text-white">Pioneers Health Research</span>
-              <span className="text-[12.5px] text-white/65">الرواد الاستشارية للبحوث الصحية</span>
+              <span className="text-[12.5px] text-white/65">الرواد الاستشارية للتدريب والأبحاث</span>
             </span>
           </Link>
           <div className="relative">

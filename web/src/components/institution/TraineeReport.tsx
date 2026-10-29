@@ -99,7 +99,7 @@ function printReport(rows: TraineeRow[], tx: Tx, ar: boolean, locale: string, co
   .note { color: #5b6b80; font-size: 10.5px; margin-top: 8px; }
 </style></head><body>
 <div class="top">
-  <div class="brand"><img src="${location.origin}/logo.png" alt=""><div><b>Pioneers Health Research</b><span>الرواد الاستشارية للبحوث الصحية</span></div></div>
+  <div class="brand"><img src="${location.origin}/logo.png" alt=""><div><b>Pioneers Health Research</b><span>الرواد الاستشارية للتدريب والأبحاث</span></div></div>
   <div class="meta">${esc(tx('تاريخ التقرير', 'Report date'))}: ${esc(new Date().toLocaleDateString(locale))}<br>${esc(tx('الجهة', 'Organization'))}: ${esc(institutionName || '—')}</div>
 </div>
 <h1>${esc(tx('تقرير متابعة المتدربين', 'Trainee progress report'))}</h1>

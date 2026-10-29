@@ -611,7 +611,7 @@ export function MarketingHome() {
                 )}
                 <div className="mb-2.5 text-[12.5px] font-semibold text-accent">
                   {t('home.byAuthor', {
-                    name: a.author_name || (lang === 'en' ? 'Pioneers Health Research team' : 'فريق الرواد الاستشارية للبحوث الصحية'),
+                    name: a.author_name || (lang === 'en' ? 'Pioneers Health Research team' : 'فريق الرواد الاستشارية للتدريب والأبحاث'),
                   })}
                 </div>
                 <h3 className="mb-2.5 text-[16.5px] leading-[1.6] text-navy">
