@@ -338,6 +338,39 @@ export async function signDeliverable(path: string): Promise<string | null> {
   return data?.signedUrl ?? null
 }
 
+/**
+ * Secure, watermarked PREVIEW of a deliverable (PDF). Returns the watermarked
+ * bytes as a Blob — the clean original stays on the server. Available before
+ * payment so a client can read the work without being able to download it.
+ */
+export async function previewDeliverable(deliverableId: string): Promise<Blob> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session) throw new Error('not signed in')
+  const base = import.meta.env.VITE_SUPABASE_URL
+  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+  const res = await fetch(`${base}/functions/v1/preview-deliverable`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: key,
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ deliverableId }),
+  })
+  if (!res.ok) {
+    let msg = 'preview failed'
+    try {
+      msg = (await res.json()).error || msg
+    } catch {
+      // non-JSON error body — keep the default message
+    }
+    throw new Error(msg)
+  }
+  return await res.blob()
+}
+
 const REQUEST_SELECT =
   '*, service:services(title), package:service_packages(title, price_cents, is_custom), assignee:profiles!service_requests_assigned_teacher_id_fkey(name)'
 

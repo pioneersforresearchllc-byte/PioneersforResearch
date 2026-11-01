@@ -1,7 +1,16 @@
-import { useRef, useState } from 'react'
+import { lazy, Suspense, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
-import { deleteDeliverable, listDeliverables, signDeliverable, uploadDeliverable, type Deliverable } from '@/lib/services'
+import {
+  deleteDeliverable,
+  listDeliverables,
+  previewDeliverable,
+  signDeliverable,
+  uploadDeliverable,
+  type Deliverable,
+} from '@/lib/services'
+
+const DeliverablePreview = lazy(() => import('./DeliverablePreview'))
 
 /**
  * Final deliverables of a service request. Staff upload/delete; the student
@@ -15,6 +24,8 @@ export function DeliverablesBox({ requestId, manage, locked }: { requestId: stri
   const fileRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
+  const [preview, setPreview] = useState<{ blob: Blob; name: string } | null>(null)
+  const [previewingId, setPreviewingId] = useState<string | null>(null)
   const key = ['deliverables', requestId]
   const { data: files } = useQuery({ queryKey: key, queryFn: () => listDeliverables(requestId) })
 
@@ -40,6 +51,25 @@ export function DeliverablesBox({ requestId, manage, locked }: { requestId: stri
     else setMsg(tx('الملف مقفل حتى سداد المبلغ المتبقي.', 'This file unlocks once the remaining balance is paid.'))
   }
 
+  // Watermarked, view-only preview (PDF) — the client reads the work before
+  // paying without a clean file ever reaching the browser.
+  const openPreview = async (d: Deliverable) => {
+    setMsg('')
+    setPreviewingId(d.id)
+    try {
+      const blob = await previewDeliverable(d.id)
+      setPreview({ blob, name: d.file_name })
+    } catch (e) {
+      setMsg(
+        e instanceof Error && /pdf/i.test(e.message)
+          ? tx('المعاينة متاحة لملفات PDF فقط.', 'Preview is available for PDF files only.')
+          : tx('تعذّرت المعاينة، حاول مجددًا.', 'Preview failed, please try again.'),
+      )
+    } finally {
+      setPreviewingId(null)
+    }
+  }
+
   const remove = async (d: Deliverable) => {
     if (!confirm(tx(`حذف «${d.file_name}»؟`, `Delete “${d.file_name}”?`))) return
     await deleteDeliverable(d)
@@ -55,7 +85,7 @@ export function DeliverablesBox({ requestId, manage, locked }: { requestId: stri
           📦 {tx('الملفات النهائية', 'Final files')}
           {locked && (
             <span className="ms-2 rounded-full bg-gold/15 px-2 py-0.5 text-[11px] font-semibold text-accent">
-              🔒 {manage ? tx('مقفلة للطالب حتى السداد', 'Locked for the student until paid') : tx('تُفتح بعد سداد المتبقي', 'Unlock after the remaining payment')}
+              🔒 {manage ? tx('مقفلة للطالب حتى السداد', 'Locked for the student until paid') : tx('معاينة متاحة · التحميل بعد السداد', 'Preview available · download after payment')}
             </span>
           )}
         </div>
@@ -79,10 +109,21 @@ export function DeliverablesBox({ requestId, manage, locked }: { requestId: stri
         <ul className="flex flex-col gap-1.5">
           {(files ?? []).map((d) => (
             <li key={d.id} className="flex items-center justify-between gap-2 text-[13px]">
-              <button type="button" onClick={() => void open(d)} className="min-w-0 truncate text-start text-navy underline underline-offset-2">
-                {locked && !manage ? '🔒 ' : '📄 '}
-                {d.file_name}
-              </button>
+              {!manage && locked ? (
+                <button
+                  type="button"
+                  onClick={() => void openPreview(d)}
+                  disabled={previewingId === d.id}
+                  className="min-w-0 truncate text-start text-accent underline underline-offset-2 disabled:opacity-50"
+                >
+                  👁 {previewingId === d.id ? tx('جارٍ الفتح…', 'Opening…') : d.file_name}
+                  <span className="ms-1 text-[11px] text-muted">({tx('معاينة', 'preview')})</span>
+                </button>
+              ) : (
+                <button type="button" onClick={() => void open(d)} className="min-w-0 truncate text-start text-navy underline underline-offset-2">
+                  📄 {d.file_name}
+                </button>
+              )}
               {manage && (
                 <button type="button" onClick={() => void remove(d)} className="shrink-0 text-[12px] text-faint hover:text-error">
                   🗑
@@ -93,6 +134,11 @@ export function DeliverablesBox({ requestId, manage, locked }: { requestId: stri
         </ul>
       )}
       {msg && <div className="mt-2 text-[12.5px] text-error">{msg}</div>}
+      {preview && (
+        <Suspense fallback={null}>
+          <DeliverablePreview blob={preview.blob} fileName={preview.name} onClose={() => setPreview(null)} />
+        </Suspense>
+      )}
     </div>
   )
 }
