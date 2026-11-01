@@ -48,6 +48,45 @@ function waNumber(phone: string | null | undefined): string | null {
   return d
 }
 
+/**
+ * A clean, ready-to-send WhatsApp message to the client with the quote/offer —
+ * name, service, and (once a deal is saved) the price, deposit and remaining,
+ * plus a link to track and pay. Newlines go through encodeURIComponent at the
+ * call site (%0A), so the message stays organized and never breaks the URL.
+ */
+function clientOfferWhatsApp(
+  r: ServiceRequestRow,
+  m: { agreed: number | null; remaining?: number | null },
+  ar: boolean,
+): string {
+  const sar = (c: number) =>
+    `${(c / 100).toLocaleString(ar ? 'ar-SA' : 'en-US', { maximumFractionDigits: 2 })} ${ar ? 'ر.س' : 'SAR'}`
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://pioneersresearch.com'
+  const L: string[] = []
+  L.push(ar ? `مرحبًا ${r.full_name || ''} 👋` : `Hello ${r.full_name || ''} 👋`)
+  L.push('')
+  L.push(
+    ar
+      ? `بخصوص طلبك: ${r.serviceTitle}${r.subject ? ` — ${r.subject}` : ''}`
+      : `About your request: ${r.serviceTitle}${r.subject ? ` — ${r.subject}` : ''}`,
+  )
+  if (m.agreed != null) {
+    const pct = r.deposit_percent ?? 50
+    const deposit = Math.round((m.agreed * pct) / 100)
+    L.push('')
+    L.push(ar ? `💰 عرض السعر: ${sar(m.agreed)}` : `💰 Quote: ${sar(m.agreed)}`)
+    L.push(ar ? `• المقدّم (${pct}%): ${sar(deposit)}` : `• Deposit (${pct}%): ${sar(deposit)}`)
+    if ((m.remaining ?? 0) > 0)
+      L.push(ar ? `• المتبقّي: ${sar(m.remaining ?? 0)}` : `• Remaining: ${sar(m.remaining ?? 0)}`)
+  }
+  L.push('')
+  L.push(ar ? 'تابع طلبك وأكمل الدفع من صفحة «طلباتي»:' : 'Track your request and pay under “My requests”:')
+  L.push(`${origin}/my-requests`)
+  L.push('')
+  L.push(ar ? 'الرواد الاستشارية للتدريب والأبحاث' : 'Pioneers Health Research')
+  return L.join('\n')
+}
+
 function Field({ label, value }: { label: string; value: string | number | null | undefined }) {
   if (value === null || value === '' || value === undefined) return null
   return (
@@ -525,7 +564,7 @@ export function OwnerServiceRequestsPage() {
                   <div className="mb-3 flex flex-wrap items-center gap-2">
                     {wa && (
                       <a
-                        href={`https://wa.me/${wa}`}
+                        href={`https://wa.me/${wa}?text=${encodeURIComponent(clientOfferWhatsApp(r, m, lang === 'ar'))}`}
                         target="_blank"
                         rel="noreferrer"
                         className="rounded-md bg-[#1fa855] px-3 py-1.5 text-[12.5px] font-semibold text-white no-underline"

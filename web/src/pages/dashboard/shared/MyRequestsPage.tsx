@@ -32,7 +32,10 @@ export function MyRequestsRedirect() {
   if (!profile) return <Navigate to="/login" replace />
   // Institutions have no service-requests page — send them to their dashboard.
   if (profile.role === 'institution') return <Navigate to="/institution" replace />
-  const base = profile.role === 'teacher' ? '/teacher' : profile.role === 'owner' ? '/owner' : '/student'
+  // The owner's copy lives at /owner/service-requests (not /owner/requests),
+  // so route it explicitly — otherwise the owner lands on a 404.
+  if (profile.role === 'owner') return <Navigate to="/owner/service-requests" replace />
+  const base = profile.role === 'teacher' ? '/teacher' : '/student'
   return <Navigate to={`${base}/requests`} replace />
 }
 
