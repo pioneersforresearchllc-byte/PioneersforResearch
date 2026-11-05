@@ -449,7 +449,7 @@ export const translations = {
 
   'role.student': { ar: 'طالب', en: 'Student' },
   'role.teacher': { ar: 'مدرّب', en: 'Trainer' },
-  'role.owner': { ar: 'رئيس المدرّبين', en: 'Head of Trainers' },
+  'role.owner': { ar: 'إدارة الموقع', en: 'Site Administration' },
 
   'account.title': { ar: 'حسابي', en: 'My Account' },
   'account.profileSection': { ar: 'الملف الشخصي', en: 'Profile' },
