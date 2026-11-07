@@ -12,6 +12,8 @@ import { CourseMaterials } from '@/components/course/CourseMaterials'
 import { AnnouncementBanner, CourseAnnouncements, useAnnouncements } from '@/components/course/CourseAnnouncements'
 import { CourseDiscussion } from '@/components/course/CourseDiscussion'
 import { CourseTabs, useCourseTab } from '@/components/course/CourseTabs'
+import { CpdQuiz, CpdEvaluation, MyAttendance } from '@/components/course/CpdActivity'
+import { hasCpd, parseCpd } from '@/lib/cpd'
 
 export function StudentCourseDetailPage() {
   const { id } = useParams()
@@ -63,11 +65,24 @@ export function StudentCourseDetailPage() {
   const freshAnnouncements = (announcements.data ?? []).filter((a) => now - new Date(a.created_at).getTime() < 7 * 24 * 3_600_000).length
   const pct = contentPct?.get(id!)
 
+  // A CPD activity (SCFHS): the owner has filled the CPD details. Such courses
+  // get the assessment, evaluation and personal-attendance blocks.
+  const cpd = parseCpd(data.course.cpd)
+  const isCpd = hasCpd(cpd)
+  const speakerNames = cpd.speakers.map((s) => s.name).filter(Boolean)
+
   const tabs = [
-    { key: 'content', label: ar ? 'محتوى الدورة' : 'Content' },
+    { key: 'content', label: ar ? 'محاور النشاط والمحتوى' : 'Content & materials' },
     ...(contentHtml ? [{ key: 'lesson', label: ar ? 'الدرس التفاعلي' : 'Interactive lesson' }] : []),
     { key: 'lectures', label: ar ? 'المحاضرات' : 'Lectures', badge: upcomingSessions || undefined },
+    ...(isCpd ? [{ key: 'quiz', label: ar ? 'الاختبار' : 'Assessment' }] : []),
     { key: 'assignments', label: ar ? 'الواجبات' : 'Assignments', badge: pendingAssignments || undefined },
+    ...(isCpd
+      ? [
+          { key: 'attendance', label: ar ? 'حضوري' : 'My attendance' },
+          { key: 'evaluation', label: ar ? 'تقييم النشاط' : 'Evaluation' },
+        ]
+      : []),
     { key: 'announcements', label: ar ? 'الإعلانات' : 'Announcements', badge: freshAnnouncements || undefined },
     { key: 'qa', label: ar ? 'الأسئلة والنقاش' : 'Q&A' },
   ]
@@ -134,6 +149,12 @@ export function StudentCourseDetailPage() {
 
       {/* Live lectures: next-lecture highlight + full schedule */}
       {active === 'lectures' && <CourseSessions sessions={data.sessions} />}
+
+      {active === 'quiz' && isCpd && profile && <CpdQuiz courseId={id!} studentId={profile.id} />}
+      {active === 'attendance' && isCpd && profile && <MyAttendance courseId={id!} studentId={profile.id} />}
+      {active === 'evaluation' && isCpd && profile && (
+        <CpdEvaluation courseId={id!} studentId={profile.id} speakerNames={speakerNames} />
+      )}
 
       {active === 'assignments' && (
         <div className="flex flex-col gap-2.5">

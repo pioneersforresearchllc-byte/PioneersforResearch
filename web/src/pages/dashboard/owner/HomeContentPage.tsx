@@ -27,6 +27,14 @@ import {
 import { LoadingState } from '@/components/LoadingState'
 import { uploadServiceImage } from '@/lib/services'
 import { parseCpdTeam, saveCpdTeam, type CpdTeam } from '@/lib/cpd'
+import {
+  DEFAULT_MISSION,
+  DEFAULT_VISION,
+  MISSION_KEY,
+  VISION_KEY,
+  resolveMission,
+  resolveVision,
+} from '@/lib/visionMission'
 
 const SOCIAL_LABELS: Record<SocialKey, string> = {
   'social.instagram': 'Instagram',
@@ -486,6 +494,75 @@ function AnnouncementEditor({ content, onSaved }: { content: ContentMap | undefi
   )
 }
 
+/** Organisation Vision & Mission, announced on the public /cpd page. */
+function VisionMissionEditor({ content, onSaved }: { content: ContentMap | undefined; onSaved: () => void }) {
+  const { lang } = useLanguage()
+  const ar = lang === 'ar'
+  const [visionAr, setVisionAr] = useState(resolveVision(content, 'ar'))
+  const [visionEn, setVisionEn] = useState(resolveVision(content, 'en'))
+  const [missionAr, setMissionAr] = useState(resolveMission(content, 'ar'))
+  const [missionEn, setMissionEn] = useState(resolveMission(content, 'en'))
+  const [busy, setBusy] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const save = async () => {
+    setBusy(true)
+    setSaved(false)
+    try {
+      await saveSiteContent(VISION_KEY, visionAr.trim(), visionEn.trim())
+      await saveSiteContent(MISSION_KEY, missionAr.trim(), missionEn.trim())
+      setSaved(true)
+      onSaved()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const reset = () => {
+    setVisionAr(DEFAULT_VISION.ar)
+    setVisionEn(DEFAULT_VISION.en)
+    setMissionAr(DEFAULT_MISSION.ar)
+    setMissionEn(DEFAULT_MISSION.en)
+  }
+
+  const field = 'w-full resize-y rounded-md border border-border px-3 py-2 text-[13.5px]'
+  return (
+    <div>
+      <div className="mb-1 text-[14px] font-bold text-navy">{ar ? 'الرؤية والرسالة (صفحة /cpd)' : 'Vision & Mission (the /cpd page)'}</div>
+      <div className="mb-2.5 text-[12.5px] text-muted">
+        {ar
+          ? 'تُعلَن في صفحة التعليم المستمر. الهيئة تطلب إعلان رؤية ورسالة مقدّم التعليم المستمر على الموقع.'
+          : 'Announced on the CPD page. SCFHS requires the CPD provider’s vision and mission to be published on the site.'}
+      </div>
+      <div className="flex flex-col gap-3 rounded-lg border border-border-2 bg-bg-soft p-3.5">
+        <div className="text-[12.5px] font-semibold text-navy">{ar ? 'الرؤية' : 'Vision'}</div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <textarea value={visionAr} onChange={(e) => setVisionAr(e.target.value)} rows={3} className={field} />
+          <textarea dir="ltr" value={visionEn} onChange={(e) => setVisionEn(e.target.value)} rows={3} className={field} />
+        </div>
+        <div className="text-[12.5px] font-semibold text-navy">{ar ? 'الرسالة' : 'Mission'}</div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <textarea value={missionAr} onChange={(e) => setMissionAr(e.target.value)} rows={4} className={field} />
+          <textarea dir="ltr" value={missionEn} onChange={(e) => setMissionEn(e.target.value)} rows={4} className={field} />
+        </div>
+        <div className="flex items-center justify-end gap-2">
+          <button type="button" onClick={reset} className="rounded-md border border-border px-3 py-1.75 text-[12.5px] text-muted hover:border-navy">
+            {ar ? 'النص الافتراضي' : 'Default text'}
+          </button>
+          {saved && <span className="text-[12px] text-success">{ar ? 'تم الحفظ ✓' : 'Saved ✓'}</span>}
+          <button
+            onClick={() => void save()}
+            disabled={busy}
+            className="rounded-md bg-navy px-4 py-1.75 text-[12.5px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+          >
+            {ar ? 'حفظ' : 'Save'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /** Names shown on the public /cpd page: CPD manager, coordinator and the
  *  scientific committee (SCFHS requires at least two members). */
 function CpdTeamEditor({ content, onSaved }: { content: ContentMap | undefined; onSaved: () => void }) {
@@ -619,6 +696,7 @@ export function OwnerHomeContentPage() {
         <PricingGateEditor key={content ? 'pg-loaded' : 'pg-loading'} content={content} onSaved={refresh} />
         <AnnouncementEditor key={content ? 'loaded' : 'loading'} content={content} onSaved={refresh} />
         <BankDetailsEditor key={content ? 'bank-loaded' : 'bank-loading'} content={content} onSaved={refresh} />
+        <VisionMissionEditor key={content ? 'vm-loaded' : 'vm-loading'} content={content} onSaved={refresh} />
         <CpdTeamEditor key={content ? 'cpd-loaded' : 'cpd-loading'} content={content} onSaved={refresh} />
         <TeamEditor />
       </div>

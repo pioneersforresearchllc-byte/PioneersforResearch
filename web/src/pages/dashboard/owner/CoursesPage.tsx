@@ -25,6 +25,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { LoadingState } from '@/components/LoadingState'
 import { Price } from '@/components/Riyal'
 import { NO_RELATIONSHIP_AR, parseCpd, setCourseCpd, type CourseCpd, type CpdSpeaker } from '@/lib/cpd'
+import { emptyQuiz, getCourseQuizAdmin, saveCourseQuiz, type Quiz, type QuizQuestion } from '@/lib/cpdActivity'
 
 /** SCFHS CPD details for a course: shown on its public page (migration 0090). */
 function CpdFields({ cpd, onChange }: { cpd: CourseCpd; onChange: (c: CourseCpd) => void }) {
@@ -95,6 +96,86 @@ function CpdFields({ cpd, onChange }: { cpd: CourseCpd; onChange: (c: CourseCpd)
   )
 }
 
+/** SCFHS CPD assessment (quiz) editor for a course (migration 0091). */
+function QuizFields({ quiz, onChange }: { quiz: Quiz; onChange: (q: Quiz) => void }) {
+  const { lang } = useLanguage()
+  const ar = lang === 'ar'
+  const [open, setOpen] = useState(false)
+  const field = 'w-full rounded-md border border-border px-3 py-2 text-[13px]'
+  const setQ = (i: number, patch: Partial<QuizQuestion>) =>
+    onChange({ ...quiz, questions: quiz.questions.map((q, j) => (j === i ? { ...q, ...patch } : q)) })
+  const setOption = (qi: number, oi: number, value: string) =>
+    setQ(qi, { options: quiz.questions[qi].options.map((o, j) => (j === oi ? value : o)) })
+
+  return (
+    <div className="rounded-lg border border-border-2 bg-bg-soft p-3">
+      <button type="button" onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between text-[13px] font-semibold text-navy">
+        <span>{ar ? `اختبار النشاط (CPD) — ${quiz.questions.length} سؤال` : `Activity assessment (CPD) — ${quiz.questions.length} questions`}</span>
+        <span aria-hidden>{open ? '−' : '+'}</span>
+      </button>
+      {open && (
+        <div className="mt-3 flex flex-col gap-3">
+          <label className="flex items-center gap-2 text-[12.5px] text-navy">
+            {ar ? 'نسبة النجاح (%)' : 'Pass mark (%)'}
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={quiz.passMark}
+              onChange={(e) => onChange({ ...quiz, passMark: Math.min(100, Math.max(0, Math.round(Number(e.target.value) || 0))) })}
+              className="w-20 rounded-md border border-border px-2 py-1 text-[13px]"
+            />
+          </label>
+
+          {quiz.questions.map((q, qi) => (
+            <div key={qi} className="flex flex-col gap-2 rounded-md border border-border bg-white p-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[12.5px] font-semibold text-navy">{(ar ? 'سؤال ' : 'Q') + (qi + 1)}</span>
+                <button type="button" onClick={() => onChange({ ...quiz, questions: quiz.questions.filter((_, j) => j !== qi) })} className="text-[12px] text-error hover:underline">
+                  {ar ? 'حذف' : 'Remove'}
+                </button>
+              </div>
+              <textarea value={q.prompt} onChange={(e) => setQ(qi, { prompt: e.target.value })} rows={2} placeholder={ar ? 'نص السؤال' : 'Question text'} className={`${field} resize-y leading-6`} />
+              <div className="text-[11.5px] text-muted">{ar ? 'اختر الإجابة الصحيحة بالزر الدائري:' : 'Mark the correct answer with the radio button:'}</div>
+              {q.options.map((opt, oi) => (
+                <div key={oi} className="flex items-center gap-2">
+                  <input type="radio" name={`correct-${qi}`} checked={q.correct === oi} onChange={() => setQ(qi, { correct: oi })} />
+                  <input value={opt} onChange={(e) => setOption(qi, oi, e.target.value)} placeholder={`${ar ? 'خيار' : 'Option'} ${oi + 1}`} className={field} />
+                  {q.options.length > 2 && (
+                    <button
+                      type="button"
+                      onClick={() => setQ(qi, { options: q.options.filter((_, j) => j !== oi), correct: q.correct >= oi && q.correct > 0 ? q.correct - 1 : q.correct })}
+                      className="shrink-0 text-[12px] text-error hover:underline"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button type="button" onClick={() => setQ(qi, { options: [...q.options, ''] })} className="self-start text-[12px] text-navy hover:underline">
+                {ar ? '+ خيار' : '+ Option'}
+              </button>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => onChange({ ...quiz, questions: [...quiz.questions, { prompt: '', options: ['', ''], correct: 0 }] })}
+            className="self-start rounded-md border border-navy px-3 py-1 text-[12px] text-navy"
+          >
+            {ar ? '+ سؤال' : '+ Question'}
+          </button>
+          <div className="text-[11.5px] leading-5 text-muted">
+            {ar
+              ? 'الإجابات الصحيحة تُحفظ في الخادم ولا تظهر للمتدرّب. يُصحَّح الاختبار آليًا وتُسجَّل المحاولة.'
+              : 'Correct answers are stored server-side and never sent to the learner. The quiz is auto-graded and the attempt is recorded.'}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function formatSar(cents: number, t: ReturnType<typeof useLanguage>['t']) {
   if (cents === 0) return t('course.free')
   return <Price cents={cents} />
@@ -145,14 +226,16 @@ function CourseEditor({
   const [accessCode, setAccessCode] = useState('')
   const [contentHtml, setContentHtml] = useState('')
   const [cpd, setCpd] = useState<CourseCpd>(() => parseCpd(course?.cpd))
+  const [quiz, setQuiz] = useState<Quiz>(emptyQuiz)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
-  // Load the course's private access code + custom HTML content when editing.
+  // Load the course's private access code + custom HTML content + quiz when editing.
   useEffect(() => {
     if (course) {
       void getCourseAccessCode(course.id).then(setAccessCode)
       void getCourseContent(course.id).then((html) => setContentHtml(html ?? ''))
+      void getCourseQuizAdmin(course.id).then((q) => q && setQuiz(q))
     }
   }, [course])
 
@@ -193,6 +276,11 @@ function CourseEditor({
       await setCourseAccessCode(courseId, accessCode)
       await setCourseContent(courseId, contentHtml)
       await setCourseCpd(courseId, cpd, course?.cpd)
+      try {
+        await saveCourseQuiz(courseId, quiz)
+      } catch {
+        // Quiz table missing (migration 0091 not applied yet): don't block the save.
+      }
       onSaved()
       onClose()
     } catch (e) {
@@ -351,6 +439,7 @@ function CourseEditor({
           </div>
 
           <CpdFields cpd={cpd} onChange={setCpd} />
+          <QuizFields quiz={quiz} onChange={setQuiz} />
 
           <div>
             <div className="mb-1.5 text-[13px] font-semibold text-navy">{t('oCourses.assignedTeachers')}</div>

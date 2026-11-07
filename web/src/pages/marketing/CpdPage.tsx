@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import { fetchSiteContent } from '@/lib/content'
 import { parseCpdTeam } from '@/lib/cpd'
+import { resolveMission, resolveVision } from '@/lib/visionMission'
 import { useDocumentMeta } from '@/lib/useDocumentMeta'
 import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
@@ -91,10 +92,28 @@ export function CpdPage() {
       />
 
       <div className="mx-auto max-w-5xl px-4 py-12 md:px-8 md:py-16">
-        {/* Mission */}
-        <Reveal className="mb-10 rounded-3xl bg-gradient-to-br from-navy to-[#14335c] p-7 text-white md:p-9">
-          <div className="mb-2 text-[13px] font-semibold tracking-[1px] text-gold">{ar ? 'رسالة التعليم المستمر' : 'CPD mission statement'}</div>
-          <p className="text-[17px] leading-[2] md:text-[19px]">
+        {/* Vision & Mission (organisation-wide, owner-editable) */}
+        <Reveal className="mb-10 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="rounded-3xl border border-border bg-white p-7 shadow-[0_18px_40px_-30px_rgba(11,31,58,0.5)]">
+            <div className="mb-2 flex items-center gap-2 text-[13px] font-semibold tracking-[1px] text-accent">
+              <span aria-hidden>🌟</span>
+              {ar ? 'رؤيتنا' : 'Our vision'}
+            </div>
+            <p className="text-[15.5px] leading-[2] text-muted-2">{resolveVision(content, lang)}</p>
+          </div>
+          <div className="rounded-3xl bg-gradient-to-br from-navy to-[#14335c] p-7 text-white">
+            <div className="mb-2 flex items-center gap-2 text-[13px] font-semibold tracking-[1px] text-gold">
+              <span aria-hidden>🎯</span>
+              {ar ? 'رسالتنا' : 'Our mission'}
+            </div>
+            <p className="text-[15.5px] leading-[2] text-white/90">{resolveMission(content, lang)}</p>
+          </div>
+        </Reveal>
+
+        {/* CPD mission */}
+        <Reveal className="mb-10 rounded-3xl border border-border-2 bg-bg-soft p-7 md:p-9">
+          <div className="mb-2 text-[13px] font-semibold tracking-[1px] text-accent">{ar ? 'رسالة التعليم المستمر' : 'CPD mission statement'}</div>
+          <p className="text-[16px] leading-[2] text-navy md:text-[17px]">
             {ar
               ? 'تحسين معارف الممارسين الصحيين ومهاراتهم وأدائهم في البحث العلمي، والممارسة المبنية على الدليل، وجودة الرعاية الصحية وسلامة المرضى — بأنشطة مبنية على احتياج حقيقي، ومستقلة عن أي مصلحة تجارية، ونقيس أثرها على مستوى الممارس وعلى نتائج الرعاية.'
               : 'To improve healthcare practitioners’ knowledge, skills and performance in research, evidence-based practice, quality of care and patient safety — through needs-based activities, independent of commercial interests, whose impact we measure at the level of the practitioner and of healthcare outcomes.'}
