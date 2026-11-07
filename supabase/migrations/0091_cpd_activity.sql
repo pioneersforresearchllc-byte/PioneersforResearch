@@ -1,27 +1,23 @@
--- 0091: SCFHS CPD activity features — per-activity assessment (quiz),
+-- 0091: SCFHS CPD activity features - per-activity assessment (quiz),
 -- learner evaluation/feedback form, and the learner's own attendance view.
 --
 -- Builds on 0090 (courses.cpd, practitioner_info) and 0071 (session_attendance).
 --
--- 1) course_quizzes — the assessment questions + pass mark for a CPD activity.
+-- 1) course_quizzes - the assessment questions + pass mark for a CPD activity.
 --    Owner/teacher-only table: the CORRECT answers never leave the server.
 --    Learners interact only through two SECURITY DEFINER RPCs:
---      • cpd_get_quiz(course)      → questions WITHOUT the correct answers
---      • cpd_submit_quiz(course,…) → grades server-side, stores the attempt,
---                                     returns the score + which were right.
--- 2) quiz_attempts — one row per learner submission (score, pass/fail).
--- 3) course_evaluations — the learner's activity-satisfaction + speaker
+--      cpd_get_quiz(course)       -> questions WITHOUT the correct answers
+--      cpd_submit_quiz(course,..) -> grades server-side, stores the attempt.
+-- 2) quiz_attempts - one row per learner submission (score, pass/fail).
+-- 3) course_evaluations - the learner's activity-satisfaction + speaker
 --    evaluation (one upsertable row per learner per activity).
 --
--- Idempotent: safe to re-run. Frontend is deploy-safe before this runs
--- (every reader tolerates the missing table / RPC and shows a "not ready" note
--- only to staff).
+-- Idempotent: safe to re-run. Frontend is deploy-safe before this runs.
 
--- ── 1. Quiz definition (owner / course teacher only) ───────────────────────
+-- 1. Quiz definition (owner / course teacher only)
 create table if not exists public.course_quizzes (
   course_id uuid primary key references public.courses (id) on delete cascade,
   pass_mark int not null default 60 check (pass_mark between 0 and 100),
-  -- [{ "prompt": text, "options": [text,…], "correct": int (0-based) }, …]
   questions jsonb not null default '[]'::jsonb,
   updated_at timestamptz not null default now()
 );
@@ -40,7 +36,7 @@ create policy course_quizzes_write_staff on public.course_quizzes
 
 grant select, insert, update, delete on public.course_quizzes to authenticated;
 
--- ── 2. Quiz attempts ───────────────────────────────────────────────────────
+-- 2. Quiz attempts
 create table if not exists public.quiz_attempts (
   id uuid primary key default gen_random_uuid(),
   course_id uuid not null references public.courses (id) on delete cascade,
@@ -55,8 +51,7 @@ create index if not exists quiz_attempts_student_idx on public.quiz_attempts (st
 alter table public.quiz_attempts enable row level security;
 
 -- Learner sees their own attempts; owner / course teacher sees everyone's.
--- Rows are only ever created through cpd_submit_quiz (security definer), so
--- there is no INSERT policy for clients.
+-- Rows are only ever created through cpd_submit_quiz (security definer).
 drop policy if exists quiz_attempts_select on public.quiz_attempts;
 create policy quiz_attempts_select on public.quiz_attempts
   for select to authenticated
@@ -152,13 +147,11 @@ $$;
 revoke execute on function public.cpd_submit_quiz(uuid, jsonb) from public, anon;
 grant execute on function public.cpd_submit_quiz(uuid, jsonb) to authenticated;
 
--- ── 3. Learner evaluation / feedback ───────────────────────────────────────
+-- 3. Learner evaluation / feedback
 create table if not exists public.course_evaluations (
   course_id uuid not null references public.courses (id) on delete cascade,
   student_id uuid not null references public.profiles (id) on delete cascade,
-  -- aspect → 1..5 (objectives_met, content_relevance, methods, organization, overall)
   ratings jsonb not null default '{}'::jsonb,
-  -- [{ "name": text, "knowledge": 1..5, "delivery": 1..5, "comment": text }, …]
   speakers jsonb not null default '[]'::jsonb,
   would_recommend boolean,
   comments text check (comments is null or char_length(comments) <= 4000),
