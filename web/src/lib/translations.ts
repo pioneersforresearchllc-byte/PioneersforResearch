@@ -21,7 +21,7 @@ export const translations = {
   'carousel.next': { ar: 'التالي', en: 'Next' },
   'nav.login': { ar: 'تسجيل الدخول', en: 'Log In' },
   'nav.register': { ar: 'إنشاء حساب', en: 'Create Account' },
-  'footer.copyright': { ar: 'Pioneers Health Research © 2026', en: 'Pioneers Health Research © 2026' },
+  'footer.copyright': { ar: 'الرواد الاستشارية للتدريب والأبحاث © 2026', en: 'Pioneers Consulting for Training and Research © 2026' },
   'footer.tagline': { ar: 'منصة تدريب على البحث العلمي', en: 'Academic research training platform' },
   'footer.adminPortal': { ar: 'بوابة الإدارة', en: 'Admin Portal' },
   'footer.terms': { ar: 'شروط الخدمة', en: 'Terms of Service' },
@@ -84,8 +84,8 @@ export const translations = {
   'home.about.eyebrow': { ar: 'من نحن', en: 'About Us' },
   'home.about.title': { ar: 'منصة تدريب تأخذك خطوة بخطوة', en: 'A training platform that guides you step by step' },
   'home.about.body': {
-    ar: 'Pioneers Health Research منصة تدريب متخصصة تخدم الأفراد — طلاب الجامعات والدراسات العليا والباحثين — والمؤسسات من جامعات ومراكز أبحاث، وتغطي رحلة البحث العلمي كاملة: صياغة السؤال البحثي، تصميم أدوات جمع البيانات، التحليل الإحصائي، والكتابة الأكاديمية — بإشراف مباشر ومتابعة مستمرة حتى إنجاز ورقة بحثية جاهزة للنشر.',
-    en: 'Pioneers Health Research is a specialized training platform serving both individuals — university and graduate students and researchers — and institutions such as universities and research centers, covering the full research journey: framing the research question, designing data-collection tools, statistical analysis, and academic writing — with direct supervision and continuous follow-up until a publication-ready paper is complete.',
+    ar: 'الرواد الاستشارية للتدريب والأبحاث منصة تدريب متخصصة تخدم الأفراد — طلاب الجامعات والدراسات العليا والباحثين — والمؤسسات من جامعات ومراكز أبحاث، وتغطي رحلة البحث العلمي كاملة: صياغة السؤال البحثي، تصميم أدوات جمع البيانات، التحليل الإحصائي، والكتابة الأكاديمية — بإشراف مباشر ومتابعة مستمرة حتى إنجاز ورقة بحثية جاهزة للنشر.',
+    en: 'Pioneers Consulting for Training and Research is a specialized training platform serving both individuals — university and graduate students and researchers — and institutions such as universities and research centers, covering the full research journey: framing the research question, designing data-collection tools, statistical analysis, and academic writing — with direct supervision and continuous follow-up until a publication-ready paper is complete.',
   },
   'home.about.teamTitle': { ar: 'فريق العمل', en: 'Our Team' },
   'home.courses.eyebrow': { ar: 'الدورات', en: 'Courses' },
@@ -1109,6 +1109,7 @@ export const translations = {
   'homeContent.save': { ar: 'حفظ', en: 'Save' },
   'homeContent.saved': { ar: 'تم الحفظ', en: 'Saved' },
   'tab.homeContent': { ar: 'محتوى الرئيسية', en: 'Homepage' },
+  'tab.cpd': { ar: 'التعليم المستمر (CPD)', en: 'CPD reports' },
   'tab.manageArticles': { ar: 'المقالات', en: 'Articles' },
   'adminArticles.title': { ar: 'إدارة المقالات', en: 'Manage Articles' },
   'adminArticles.subtitle': { ar: 'كل المقالات المنشورة على المنصة — يمكنك حذف أي مقال.', en: 'All articles published on the platform — you can delete any article.' },
@@ -1569,7 +1570,7 @@ export const translations = {
   'whatsapp.aria': { ar: 'تواصل معنا عبر واتساب', en: 'Chat with us on WhatsApp' },
   'whatsapp.prefill': {
     ar: 'مرحبًا، أود الاستفسار عن خدمات بايونيرز للأبحاث الصحية.',
-    en: "Hello, I'd like to ask about Pioneers Health Research services.",
+    en: "Hello, I'd like to ask about Pioneers Consulting for Training and Research services.",
   },
 
   // Team editor

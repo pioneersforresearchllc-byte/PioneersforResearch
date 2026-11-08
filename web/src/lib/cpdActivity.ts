@@ -161,12 +161,13 @@ export interface CourseEvaluation {
   comments: string
 }
 
-/** The five activity aspects rated 1–5 (keys used in `ratings`). */
+/** The activity aspects rated 1–5 (keys used in `ratings`). */
 export const EVAL_ASPECTS: { key: string; ar: string; en: string }[] = [
   { key: 'objectives_met', ar: 'تحقّقت الأهداف التعليمية المعلنة', en: 'The stated learning objectives were met' },
   { key: 'content_relevance', ar: 'المحتوى وثيق الصلة بممارستي المهنية', en: 'The content was relevant to my practice' },
   { key: 'methods', ar: 'أساليب التعلم كانت مناسبة وفعّالة', en: 'The learning methods were appropriate and effective' },
-  { key: 'organization', ar: 'تنظيم النشاط والوقت والمنصّة', en: 'Organization, timing and the platform' },
+  { key: 'organization', ar: 'تنظيم النشاط والوقت', en: 'Organization and timing' },
+  { key: 'platform', ar: 'رضاي عن نظام إدارة التعلم الإلكتروني (المنصّة) وسهولة استخدامه', en: 'My satisfaction with the e-learning management system (the platform) and its ease of use' },
   { key: 'overall', ar: 'رضاي العام عن النشاط', en: 'My overall satisfaction with the activity' },
 ]
 
@@ -244,3 +245,85 @@ export async function getMyAttendance(courseId: string, studentId: string): Prom
     present: marks.has(s.id as string) ? marks.get(s.id as string)! : null,
   }))
 }
+
+// ── Direct attendance link /attend/<session id> (migration 0092) ────────────
+export type CheckinWindow = 'early' | 'open' | 'closed'
+
+export interface CheckinInfo {
+  status: 'ok' | 'not_found'
+  session_id?: string
+  title?: string
+  course_id?: string
+  course_title?: string
+  session_date?: string
+  session_time?: string
+  enrolled?: boolean
+  present?: boolean | null
+  window?: CheckinWindow
+}
+
+export type CheckinStatus = 'checked_in' | 'already' | 'not_enrolled' | 'too_early' | 'closed' | 'not_found'
+
+/** Path of the learner's direct attendance link for a session. */
+export const checkinPath = (sessionId: string) => `/attend/${sessionId}`
+
+export async function getCheckinInfo(sessionId: string): Promise<CheckinInfo> {
+  const { data, error } = await supabase.rpc('cpd_checkin_info', { p_session_id: sessionId })
+  if (error) throw error
+  return data as CheckinInfo
+}
+
+export async function selfCheckin(sessionId: string): Promise<CheckinStatus> {
+  const { data, error } = await supabase.rpc('cpd_self_checkin', { p_session_id: sessionId })
+  if (error) throw error
+  return ((data as { status?: CheckinStatus })?.status ?? 'not_found') as CheckinStatus
+}
+
+// ── Reports & indicators (migration 0092) ───────────────────────────────────
+export interface ActivityReport {
+  enrolled: number
+  sessions_held: number
+  present_marks: number
+  self_checkins: number
+  quiz: { learners: number; passed: number; avg_score: number }
+  evaluation: { responses: number; recommend_yes: number; recommend_answered: number }
+  aspects: Record<string, number>
+  speakers: { name: string; responses: number; knowledge: number | null; delivery: number | null }[]
+  comments: { comment: string; at: string }[]
+  materials: { published: number; learners_using: number; completions: number }
+}
+
+/** Owner / course trainer. Null when migration 0092 isn't applied yet. */
+export async function getActivityReport(courseId: string): Promise<ActivityReport | null> {
+  const { data, error } = await supabase.rpc('cpd_activity_report', { p_course_id: courseId })
+  if (error || !data) return null
+  return data as ActivityReport
+}
+
+export interface PlatformIndicators {
+  activities: number
+  resources_total: number
+  resources_by_kind: Record<string, number>
+  learners: number
+  learners_using_resources: number
+  evaluations: number
+  lms_rated: number
+  lms_satisfied: number
+  lms_avg: number | null
+  overall_rated: number
+  overall_satisfied: number
+  quiz_takers: number
+  quiz_passed: number
+  attendance_marks: number
+  attendance_present: number
+}
+
+/** Owner only. Null when migration 0092 isn't applied yet. */
+export async function getPlatformIndicators(): Promise<PlatformIndicators | null> {
+  const { data, error } = await supabase.rpc('cpd_platform_indicators')
+  if (error || !data) return null
+  return data as PlatformIndicators
+}
+
+/** Percentage helper: '—' when the denominator is 0. */
+export const pct = (n: number, d: number) => (d > 0 ? `${Math.round((n / d) * 100)}%` : '—')

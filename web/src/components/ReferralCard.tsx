@@ -20,7 +20,7 @@ export function ReferralCard() {
   const share = encodeURIComponent(
     tx(
       `أنصحك بمنصة الرواد الاستشارية للتدريب والأبحاث، فيها دورات وإشراف وخدمات بحثية. سجّل من رابطي واحصل على خصم 5% عند تسجيلك في دورة: ${link}`,
-      `I recommend Pioneers Health Research: courses, mentoring and research services. Sign up with my link and get 5% off when you enrol in a course: ${link}`,
+      `I recommend Pioneers Consulting for Training and Research: courses, mentoring and research services. Sign up with my link and get 5% off when you enrol in a course: ${link}`,
     ),
   )
   const copy = async () => {

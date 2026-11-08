@@ -6,7 +6,7 @@
  */
 import { EMAIL, type Doc, type Lang } from '@/lib/legalDocs'
 
-export const CPD_POLICY_VERSION = '2026-10-29'
+export const CPD_POLICY_VERSION = '2026-11-08'
 
 export const CPD_POLICY: Record<Lang, Doc> = {
   ar: {
@@ -65,6 +65,15 @@ export const CPD_POLICY: Record<Lang, Doc> = {
         p: [
           'يسجّل الممارس الصحي في النشاط بحسابه على المنصة، ويُطلب منه رقم تسجيله المهني في الهيئة لاحتساب الساعات. وتُحفظ بياناته بسرية، ولا يطّلع عليها إلا هو وإدارة التعليم المستمر.',
           'تتحقق المنصة إلكترونيًا من المشاركة: سجلات الدخول، ونسبة إكمال المحتوى والجلسات، وحضور الجلسات المباشرة.',
+          'يُسجَّل حضور كل جلسة مباشرة إما بتسجيل المتدرب حضوره ذاتيًا عبر رابط مباشر أو رمز QR يعرضه المدرّب (يُفتح قبل الجلسة بـ 30 دقيقة ويبقى 4 ساعات من بدايتها، وللمسجّلين في النشاط فقط)، أو بتسجيل المدرّب أو المنسق له. ويطّلع المتدرب على سجل حضوره في صفحة النشاط.',
+        ],
+      },
+      {
+        h: 'تقييم المتحدثين وتحديث قائمتهم',
+        p: [
+          'يقيّم المتدربون كل متحدث في نموذج تقييم النشاط داخل المنصة (المعرفة العلمية، وأسلوب العرض، وملاحظات مكتوبة)، وتُعرض النتائج مجمّعة دون أسماء المقيّمين.',
+          'بعد كل نشاط تراجع اللجنة العلمية تقرير تقييم المتحدثين: يبقى المتحدث الذي متوسط تقييمه 3.5 من 5 فأعلى في قائمة المتحدثين المعتمدين، ويُحال من يقل عن ذلك للمراجعة، فتُقدَّم له ملاحظات تطويرية، أو يُراجَع محتواه، أو يُستبعد من الأنشطة القادمة.',
+          'تُحدَّث قائمة المتحدثين وبياناتهم (المؤهلات، والإفصاحات، ونتائج التقييم) بعد كل نشاط، وتُوثَّق قرارات اللجنة في محاضرها.',
         ],
       },
       {
@@ -145,6 +154,15 @@ export const CPD_POLICY: Record<Lang, Doc> = {
         p: [
           'Practitioners register through their platform account and are asked for their SCFHS registration number to record hours. This data is kept confidential and visible only to them and CPD management.',
           'The platform verifies participation electronically: sign-in records, completion of content and sessions, and attendance at live sessions.',
+          'Attendance at each live session is recorded either by the learner checking in through a direct link or QR code shown by the trainer (open from 30 minutes before the session until 4 hours after it starts, for enrolled learners only), or by the trainer or coordinator. Learners can see their attendance record on the activity page.',
+        ],
+      },
+      {
+        h: 'Speaker evaluation & updating the speakers list',
+        p: [
+          'Learners rate each speaker in the in-platform activity evaluation (scientific knowledge, delivery and written comments). Results are reported in aggregate, without evaluators’ names.',
+          'After every activity the scientific committee reviews the speaker evaluation report: speakers averaging 3.5 of 5 or above remain on the approved speakers list; those below are referred for review — developmental feedback, content review, or exclusion from future activities.',
+          'The speakers list and records (qualifications, disclosures, evaluation results) are updated after each activity, and committee decisions are minuted.',
         ],
       },
       {

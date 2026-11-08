@@ -57,6 +57,7 @@ const OwnerLoginPage = page(() => import('@/pages/auth/OwnerLoginPage'), 'OwnerL
 const OwnerOtpPage = page(() => import('@/pages/auth/OwnerOtpPage'), 'OwnerOtpPage')
 // Pulls in the (large) Daily video SDK only when a call is opened.
 const CallPage = page(() => import('@/pages/call/CallPage'), 'CallPage')
+const AttendPage = page(() => import('@/pages/attend/AttendPage'), 'AttendPage')
 
 // Shared dashboard pages
 const ChatPage = page(() => import('@/pages/dashboard/chat/ChatPage'), 'ChatPage')
@@ -105,6 +106,7 @@ const OwnerBroadcastPage = page(() => import('@/pages/dashboard/owner/BroadcastP
 const OwnerConsentsPage = page(() => import('@/pages/dashboard/owner/ConsentsPage'), 'OwnerConsentsPage')
 const OwnerContactPage = page(() => import('@/pages/dashboard/owner/ContactPage'), 'OwnerContactPage')
 const OwnerHomeContentPage = page(() => import('@/pages/dashboard/owner/HomeContentPage'), 'OwnerHomeContentPage')
+const OwnerCpdReportsPage = page(() => import('@/pages/dashboard/owner/CpdReportsPage'), 'OwnerCpdReportsPage')
 const OwnerReviewsPage = page(() => import('@/pages/dashboard/owner/ReviewsPage'), 'OwnerReviewsPage')
 const OwnerProfitPage = page(() => import('@/pages/dashboard/owner/ProfitPage'), 'OwnerProfitPage')
 const OwnerArticlesPage = page(() => import('@/pages/dashboard/owner/ArticlesPage'), 'OwnerArticlesPage')
@@ -161,6 +163,7 @@ export default function App() {
         <Route path="/owner-otp" element={<OwnerOtpPage />} />
         <Route path="/call/:sessionId" element={<CallPage />} />
         <Route path="/group-call/:sessionId" element={<CallPage kind="group" />} />
+        <Route path="/attend/:sessionId" element={<AttendPage />} />
 
         <Route element={<RequireRole role="student" />}>
           <Route element={<StudentDashboard />}>
@@ -219,6 +222,7 @@ export default function App() {
             <Route path="/owner/messages" element={<ChatPage />} />
             <Route path="/owner/contact" element={<OwnerContactPage />} />
             <Route path="/owner/home-content" element={<OwnerHomeContentPage />} />
+            <Route path="/owner/cpd" element={<OwnerCpdReportsPage />} />
         <Route path="/owner/reviews" element={<OwnerReviewsPage />} />
         <Route path="/owner/profit" element={<OwnerProfitPage />} />
             <Route path="/owner/articles" element={<OwnerArticlesPage />} />
