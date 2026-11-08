@@ -1,8 +1,10 @@
 // Lecture management for a course's trainers (and the owner): the shared
 // CourseSessions view plus "add lecture", and edit / delete on every row.
 // Writes are allowed by RLS for the course's teachers (migration 0087).
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import QRCode from 'qrcode'
+import { checkinPath } from '@/lib/cpdActivity'
 import { useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import { CourseSessions } from '@/components/CourseSessions'
@@ -24,6 +26,7 @@ export function SessionsManager({ courseId, sessions }: { courseId: string; sess
   const ar = lang === 'ar'
   const qc = useQueryClient()
   const [editing, setEditing] = useState<CourseSession | 'new' | null>(null)
+  const [checkin, setCheckin] = useState<CourseSession | null>(null)
   const [error, setError] = useState('')
 
   const refresh = () => {
@@ -63,6 +66,16 @@ export function SessionsManager({ courseId, sessions }: { courseId: string; sess
         rowActions={(s) => (
           <span className="flex items-center gap-0.5">
             <button
+              onClick={() => setCheckin(s)}
+              title={ar ? 'رابط تسجيل الحضور' : 'Attendance check-in link'}
+              aria-label={ar ? 'رابط تسجيل الحضور' : 'Attendance check-in link'}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-navy hover:bg-bg-soft"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9" />
+              </svg>
+            </button>
+            <button
               onClick={() => setEditing(s)}
               title={ar ? 'تعديل' : 'Edit'}
               aria-label={ar ? 'تعديل' : 'Edit'}
@@ -85,6 +98,7 @@ export function SessionsManager({ courseId, sessions }: { courseId: string; sess
           </span>
         )}
       />
+      {checkin && <CheckinLinkDialog session={checkin} onClose={() => setCheckin(null)} />}
       {editing && (
         <SessionForm
           courseId={courseId}
@@ -95,6 +109,65 @@ export function SessionsManager({ courseId, sessions }: { courseId: string; sess
         />
       )}
     </div>
+  )
+}
+
+/** The learner's direct check-in link for a lecture, with a QR code to show
+ *  on screen during the session (migration 0092). */
+function CheckinLinkDialog({ session, onClose }: { session: CourseSession; onClose: () => void }) {
+  const { lang } = useLanguage()
+  const ar = lang === 'ar'
+  const url = `${window.location.origin}${checkinPath(session.id)}`
+  const [qr, setQr] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    let alive = true
+    void QRCode.toDataURL(url, { width: 260, margin: 1 }).then((d) => alive && setQr(d))
+    return () => {
+      alive = false
+    }
+  }, [url])
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      /* clipboard blocked: the link is selectable below */
+    }
+  }
+
+  return createPortal(
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-navy/50 p-4" onClick={onClose}>
+      <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="text-[16px] font-bold text-navy">{ar ? 'رابط تسجيل الحضور' : 'Attendance check-in link'}</div>
+        <div className="mt-1 text-[13px] text-muted">{session.title}</div>
+        {qr ? (
+          <img src={qr} alt="" className="mx-auto my-4 h-[220px] w-[220px]" />
+        ) : (
+          <div className="mx-auto my-4 h-[220px] w-[220px] rounded-lg bg-bg-soft" />
+        )}
+        <div className="select-all break-all rounded-lg border border-border bg-bg-soft px-3 py-2 text-[12px] text-navy" dir="ltr">
+          {url}
+        </div>
+        <p className="mt-3 text-[12px] leading-6 text-muted">
+          {ar
+            ? 'اعرض الرمز أو أرسل الرابط للمتدربين أثناء المحاضرة. يُفتح التسجيل قبل البدء بـ 30 دقيقة ويبقى 4 ساعات، وللمسجّلين في النشاط فقط.'
+            : 'Show the code or share the link during the lecture. Check-in opens 30 minutes before the start, stays open 4 hours, and only for enrolled learners.'}
+        </p>
+        <div className="mt-4 flex justify-center gap-2">
+          <button onClick={() => void copy()} className="rounded-md bg-navy px-4 py-2 text-[13px] font-semibold text-white hover:bg-navy-hover">
+            {copied ? (ar ? 'تم النسخ ✓' : 'Copied ✓') : ar ? 'نسخ الرابط' : 'Copy link'}
+          </button>
+          <button onClick={onClose} className="rounded-md border border-border px-4 py-2 text-[13px] text-muted hover:border-navy">
+            {ar ? 'إغلاق' : 'Close'}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
   )
 }
 

@@ -169,7 +169,7 @@ export function DashboardShell({ subtitleKey, userName, tabs, badges }: Dashboar
           <Link to="/" className="flex min-w-0 items-center gap-2.5 no-underline" title={t('shell.visitSite')}>
             <img src="/logo.png" alt="" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
             <span className="hidden min-w-0 flex-col leading-tight sm:flex">
-              <span className="font-heading truncate text-[16px] font-bold text-navy md:text-lg">Pioneers Health Research</span>
+              <span className="font-heading truncate text-[16px] font-bold text-navy md:text-lg">Pioneers Consulting for Training and Research</span>
               <span className="truncate text-[12px] text-muted">{t(subtitleKey)}</span>
             </span>
           </Link>

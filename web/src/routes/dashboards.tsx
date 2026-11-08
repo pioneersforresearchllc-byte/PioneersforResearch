@@ -44,6 +44,7 @@ const ownerTabs: DashboardTab[] = [
   { key: 'applications', labelKey: 'tab.teacherApplications', to: '/owner/applications' },
   { key: 'teachers', labelKey: 'tab.teachers', to: '/owner/teachers' },
   { key: 'courses', labelKey: 'tab.coursesPrograms', to: '/owner/courses' },
+  { key: 'cpd', labelKey: 'tab.cpd', to: '/owner/cpd' },
   { key: 'services', labelKey: 'tab.services', to: '/owner/services' },
   { key: 'service-requests', labelKey: 'tab.serviceRequests', to: '/owner/service-requests' },
   { key: 'workshops', labelKey: 'tab.workshops', to: '/owner/workshops' },

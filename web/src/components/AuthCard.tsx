@@ -42,7 +42,7 @@ export function AuthCard({ width = 420, dark = false, children }: AuthCardProps)
           <Link to="/" className="relative flex items-center gap-3 no-underline">
             <img src="/logo.png" alt="" className="h-12 w-12" />
             <span className="flex flex-col leading-tight">
-              <span className="font-heading text-[19px] font-bold text-white">Pioneers Health Research</span>
+              <span className="font-heading text-[19px] font-bold text-white">Pioneers Consulting for Training and Research</span>
               <span className="text-[12.5px] text-white/65">الرواد الاستشارية للتدريب والأبحاث</span>
             </span>
           </Link>
@@ -62,7 +62,7 @@ export function AuthCard({ width = 420, dark = false, children }: AuthCardProps)
               ))}
             </ul>
           </div>
-          <div className="relative text-[12.5px] text-white/50">© {new Date().getFullYear()} Pioneers Health Research</div>
+          <div className="relative text-[12.5px] text-white/50">© {new Date().getFullYear()} Pioneers Consulting for Training and Research</div>
         </aside>
       )}
 

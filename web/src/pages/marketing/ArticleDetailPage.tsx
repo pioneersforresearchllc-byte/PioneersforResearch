@@ -130,7 +130,7 @@ export function ArticleDetailPage() {
   })
   // Anonymous visitors can't read author profiles, so the byline falls back to
   // the team instead of showing an empty "By".
-  const teamName = lang === 'en' ? 'Pioneers Health Research team' : 'فريق الرواد الاستشارية للتدريب والأبحاث'
+  const teamName = lang === 'en' ? 'Pioneers Consulting for Training and Research team' : 'فريق الرواد الاستشارية للتدريب والأبحاث'
   const authorName = article?.author_name || teamName
   useJsonLd(
     article && {

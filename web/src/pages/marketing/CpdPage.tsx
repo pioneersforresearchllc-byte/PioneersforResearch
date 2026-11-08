@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useLanguage } from '@/lib/i18n'
 import { fetchSiteContent } from '@/lib/content'
 import { parseCpdTeam } from '@/lib/cpd'
-import { resolveMission, resolveVision } from '@/lib/visionMission'
+import { resolveMission, resolveSlogan, resolveVision } from '@/lib/visionMission'
 import { useDocumentMeta } from '@/lib/useDocumentMeta'
 import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
@@ -17,10 +17,10 @@ export function CpdPage() {
   const { data: content } = useQuery({ queryKey: ['site-content'], queryFn: fetchSiteContent })
   const team = parseCpdTeam(content)
   useDocumentMeta(
-    ar ? 'التعليم الطبي المستمر (CPD) | الرواد الاستشارية للتدريب والأبحاث' : 'Continuing Professional Development (CPD) | Pioneers Health Research',
+    ar ? 'التعليم الطبي المستمر (CPD) | الرواد الاستشارية للتدريب والأبحاث' : 'Continuing Professional Development (CPD) | Pioneers Consulting for Training and Research',
     ar
       ? 'إدارة التطوير المهني المستمر في الرواد: الرسالة، والهيكل التنظيمي، واللجنة العلمية، وآلية تخطيط الأنشطة وتقييمها والتحقق من الحضور.'
-      : 'CPD at Pioneers Health Research: mission, structure, scientific committee, and how activities are planned, evaluated and attendance verified.',
+      : 'CPD at Pioneers Consulting for Training and Research: mission, structure, scientific committee, and how activities are planned, evaluated and attendance verified.',
   )
 
   const steps = ar
@@ -108,6 +108,11 @@ export function CpdPage() {
             </div>
             <p className="text-[15.5px] leading-[2] text-white/90">{resolveMission(content, lang)}</p>
           </div>
+          <div className="text-center md:col-span-2">
+            <span className="inline-block rounded-full bg-gold/15 px-5 py-2 font-heading text-[16px] font-bold text-navy">
+              {resolveSlogan(content, lang)}
+            </span>
+          </div>
         </Reveal>
 
         {/* CPD mission */}
@@ -128,6 +133,85 @@ export function CpdPage() {
               ? 'الأطباء، والممرضون، والصيادلة، وأخصائيو العلوم الصحية التطبيقية، والباحثون في المجال الصحي — وتُحدَّد الفئة المستهدفة ومستواها بدقة في صفحة كل نشاط.'
               : 'Physicians, nurses, pharmacists, allied health professionals and health researchers — each activity page states its exact target audience and level.'}
           </p>
+        </Reveal>
+
+        {/* Educational goal, learning experience types and tools */}
+        <Reveal className="mb-12">
+          <h2 className="font-heading mb-3 text-[22px] font-bold text-navy">{ar ? 'الهدف التعليمي للمنصة وتجربة التعلم' : 'Educational goal & learning experience'}</h2>
+          <p className="mb-5 text-[15px] leading-8 text-muted-2">
+            {ar
+              ? 'تهدف المنصة إلى رفع كفاءة الممارسين الصحيين في البحث العلمي والممارسة المبنية على الدليل وجودة الرعاية، عبر أنشطة مرتبطة باحتياج تعليمي محدد وأهداف قابلة للقياس.'
+              : 'The platform aims to raise healthcare practitioners’ competence in research, evidence-based practice and quality of care, through activities tied to a defined learning need and measurable objectives.'}
+          </p>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            {(ar
+              ? [
+                  ['🎥', 'تعلّم افتراضي متزامن', 'محاضرات وورش مباشرة بالفيديو داخل المنصة، مع نقاش وأسئلة، وتسجيل حضور إلكتروني برابط مباشر.'],
+                  ['📚', 'تعلّم ذاتي غير متزامن', 'وحدات ومحتوى مسجّل يتقدّم فيه المتدرب بحسب وقته، مع تتبّع إكمال كل مادة.'],
+                  ['🧩', 'تعلّم مدمج وتطبيقي', 'دراسات حالة، وتمارين وواجبات تطبيقية، ونقاش جماعي، واختبار قبلي وبعدي.'],
+                ]
+              : [
+                  ['🎥', 'Synchronous virtual learning', 'Live video lectures and workshops inside the platform with discussion and Q&A, and electronic check-in by direct link.'],
+                  ['📚', 'Asynchronous self-paced learning', 'Modules and recorded content learners progress through at their own pace, with per-item completion tracking.'],
+                  ['🧩', 'Blended & applied learning', 'Case studies, practical exercises and assignments, group discussion, and pre/post assessment.'],
+                ]
+            ).map(([icon, h, p]) => (
+              <div key={h} className="rounded-xl border border-border bg-white p-4">
+                <div className="mb-2 text-[22px]" aria-hidden>{icon}</div>
+                <div className="mb-1 text-[14.5px] font-bold text-navy">{h}</div>
+                <div className="text-[13px] leading-7 text-muted">{p}</div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="rounded-xl border border-border-2 bg-bg-soft p-4">
+              <div className="mb-1.5 text-[14px] font-bold text-navy">{ar ? 'الوسائط والتقنيات التعليمية' : 'Learning media & technologies'}</div>
+              <p className="text-[13px] leading-7 text-muted-2">
+                {ar
+                  ? 'كتب ومراجع إلكترونية (PDF)، وعروض تقديمية، وتسجيلات صوتية، وأفلام فيديو، وروابط لمصادر علمية موثوقة، ودروس تفاعلية مكتوبة — منظّمة في وحدات داخل كل نشاط.'
+                  : 'E-books and references (PDF), slide presentations, audio recordings, videos, links to trusted scientific sources and interactive written lessons — organised in modules within each activity.'}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border-2 bg-bg-soft p-4">
+              <div className="mb-1.5 text-[14px] font-bold text-navy">{ar ? 'أدوات التواصل' : 'Communication tools'}</div>
+              <p className="text-[13px] leading-7 text-muted-2">
+                {ar
+                  ? 'غرف دردشة فردية وجماعية، ومؤتمرات فيديو وصوت مباشرة داخل المنصة، ومنتدى أسئلة ونقاش لكل نشاط، وإعلانات وإشعارات فورية.'
+                  : 'One-to-one and group chat rooms, live video and audio conferencing inside the platform, a Q&A and discussion forum per activity, and announcements with instant notifications.'}
+              </p>
+            </div>
+          </div>
+          <p className="mt-4 text-[13.5px] leading-7 text-muted">
+            {ar
+              ? 'التخصصات الصحية المخدومة: الطب البشري، والتمريض، والصيدلة، والعلوم الصحية التطبيقية (المختبرات، والأشعة، والعلاج الطبيعي، والتغذية وغيرها)، وطب الأسنان، والصحة العامة.'
+              : 'Health specialties served: medicine, nursing, pharmacy, applied health sciences (laboratory, radiology, physiotherapy, nutrition and more), dentistry and public health.'}
+          </p>
+        </Reveal>
+
+        {/* Learning evaluation strategies */}
+        <Reveal className="mb-12">
+          <h2 className="font-heading mb-3 text-[22px] font-bold text-navy">{ar ? 'استراتيجيات تقييم التعلم ومخرجاته' : 'Evaluating learning & outcomes'}</h2>
+          <ol className="flex flex-col gap-2 text-[13.5px] leading-7 text-muted-2">
+            {(ar
+              ? [
+                  'رضا المتدرب: نموذج تقييم إلكتروني إلزامي لكل نشاط يقيس تحقق الأهداف، وملاءمة المحتوى والأساليب، والرضا عن نظام إدارة التعلم، ويقيّم كل متحدث.',
+                  'اكتساب المعرفة: اختبار إلكتروني بنسبة نجاح محددة يُصحَّح آليًا داخل المنصة، وتُحلَّل نتائجه لقياس تحقق الأهداف.',
+                  'المشاركة: تتبّع الحضور المباشر والتسجيل الذاتي للحضور، ونسبة إكمال مصادر التعلم لكل متدرب.',
+                  'الأثر والتحسين: مؤشرات دورية (عدد مصادر التعلم، ونسبة استخدامها، ونسبة الرضا عن المنصة، ونسب النجاح والحضور) تراجعها اللجنة العلمية لتحسين الأنشطة وتحديث قائمة المتحدثين.',
+                ]
+              : [
+                  'Learner satisfaction: a mandatory electronic evaluation per activity covering objectives, relevance, methods, LMS satisfaction, and each speaker.',
+                  'Knowledge gain: an auto-graded in-platform test with a stated pass mark, whose results are analysed against the objectives.',
+                  'Participation: live-session attendance and self check-in tracking, and each learner’s completion of learning resources.',
+                  'Impact & improvement: periodic indicators (number of learning resources, usage rate, LMS satisfaction, pass and attendance rates) reviewed by the scientific committee to improve activities and update the speakers list.',
+                ]
+            ).map((t, i) => (
+              <li key={i} className="flex gap-3 rounded-xl border border-border bg-white p-3.5">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold/15 text-[13px] font-bold text-navy">{i + 1}</span>
+                <span>{t}</span>
+              </li>
+            ))}
+          </ol>
         </Reveal>
 
         {/* Structure */}
