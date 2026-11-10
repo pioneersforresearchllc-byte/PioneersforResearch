@@ -17,6 +17,7 @@ const ADMIN_ERRORS: Record<string, { ar: string; en: string }> = {
   username_taken: { ar: 'اسم المستخدم مستخدم بالفعل', en: 'That username is already taken' },
   email_in_use: { ar: 'هذا البريد مرتبط بحساب آخر في المنصة', en: 'This email already belongs to another account' },
   missing_fields: { ar: 'املأ جميع الحقول', en: 'Fill in all fields' },
+  invalid_role: { ar: 'دور غير صالح', en: 'Invalid role' },
 }
 
 async function adminErrorText(e: unknown, lang: string, fallback: string): Promise<string> {
@@ -125,6 +126,118 @@ function NewAdminModal({ onClose, onCreated }: { onClose: () => void; onCreated:
   )
 }
 
+// One-click, pre-confirmed demo/review accounts (teacher/student) for SCFHS.
+// No OTP, a throwaway email; the generated credentials are shown once so the
+// owner can record them (e.g. to hand to the reviewer).
+interface DemoCred { role: 'teacher' | 'student'; name: string; username: string; email: string; password: string }
+
+function randomSuffix(): string {
+  const a = new Uint8Array(3)
+  crypto.getRandomValues(a)
+  return Array.from(a, (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 4)
+}
+function randomPassword(): string {
+  const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  const a = new Uint8Array(12)
+  crypto.getRandomValues(a)
+  return Array.from(a, (b) => chars[b % chars.length]).join('')
+}
+
+function DemoAccounts() {
+  const { lang } = useLanguage()
+  const ar = lang === 'ar'
+  const tx = (a: string, e: string) => (ar ? a : e)
+  const [busy, setBusy] = useState<'teacher' | 'student' | null>(null)
+  const [created, setCreated] = useState<DemoCred[]>([])
+  const [error, setError] = useState('')
+  const [copied, setCopied] = useState('')
+
+  const make = async (role: 'teacher' | 'student') => {
+    setBusy(role)
+    setError('')
+    const suffix = randomSuffix()
+    const username = `cpd_${role}_${suffix}`
+    const cred: DemoCred = {
+      role,
+      name: role === 'teacher' ? tx('محاضر تجريبي (CPD)', 'Demo lecturer (CPD)') : tx('متعلّم تجريبي (CPD)', 'Demo learner (CPD)'),
+      username,
+      email: `${username}@demo.pioneersresearch.com`,
+      password: randomPassword(),
+    }
+    try {
+      await createAdmin({ name: cred.name, username: cred.username, email: cred.email, password: cred.password, isTemp: false, role })
+      setCreated((c) => [cred, ...c])
+    } catch (e) {
+      setError(await adminErrorText(e, lang, tx('تعذّر إنشاء الحساب', 'Could not create the account')))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const copy = async (c: DemoCred) => {
+    const text = `${tx('اسم المستخدم', 'Username')}: ${c.username}\n${tx('كلمة المرور', 'Password')}: ${c.password}`
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(c.username)
+      setTimeout(() => setCopied(''), 2000)
+    } catch {
+      // clipboard blocked — the fields are visible to copy manually
+    }
+  }
+
+  return (
+    <div className="mb-6 rounded-xl border border-gold/40 bg-gold/5 p-4">
+      <div className="text-[14.5px] font-bold text-navy">{tx('حسابات تجريبية للمراجعة (الهيئة)', 'Demo accounts for review (SCFHS)')}</div>
+      <p className="mt-1 mb-3 text-[12.5px] leading-6 text-muted">
+        {tx(
+          'إنشاء حساب مؤكَّد بنقرة واحدة دون رمز تحقق (OTP)، لتزويد الهيئة ببيانات دخول للأدوار. تظهر كلمة المرور مرة واحدة فقط — انسخها واحفظها.',
+          'Create a pre-confirmed account in one click, no OTP, to give the reviewer role logins. The password is shown once — copy and keep it.',
+        )}
+      </p>
+      <div className="flex flex-wrap gap-2.5">
+        <button
+          onClick={() => void make('teacher')}
+          disabled={busy !== null}
+          className="rounded-md bg-navy px-4 py-2 text-[13px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+        >
+          {busy === 'teacher' ? '…' : tx('+ حساب محاضر تجريبي', '+ Demo lecturer')}
+        </button>
+        <button
+          onClick={() => void make('student')}
+          disabled={busy !== null}
+          className="rounded-md bg-navy px-4 py-2 text-[13px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+        >
+          {busy === 'student' ? '…' : tx('+ حساب متعلّم تجريبي', '+ Demo learner')}
+        </button>
+      </div>
+      {error && <div className="mt-2 text-[12.5px] text-error">{error}</div>}
+      {created.length > 0 && (
+        <div className="mt-3 flex flex-col gap-2">
+          {created.map((c) => (
+            <div key={c.username} className="rounded-lg border border-border bg-white p-3">
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-[12px] font-semibold text-accent">
+                  {c.role === 'teacher' ? tx('محاضر', 'Lecturer') : tx('متعلّم', 'Learner')} — {tx('تم الإنشاء ✔', 'Created ✔')}
+                </span>
+                <button onClick={() => void copy(c)} className="rounded border border-border px-2.5 py-1 text-[11.5px] text-navy hover:border-navy">
+                  {copied === c.username ? tx('نُسخ', 'Copied') : tx('نسخ', 'Copy')}
+                </button>
+              </div>
+              <div className="grid grid-cols-1 gap-0.5 text-[12.5px] text-navy sm:grid-cols-2" dir="ltr">
+                <div><span className="text-muted">{tx('اسم المستخدم', 'Username')}:</span> <b>{c.username}</b></div>
+                <div><span className="text-muted">{tx('كلمة المرور', 'Password')}:</span> <b>{c.password}</b></div>
+              </div>
+            </div>
+          ))}
+          <div className="text-[11.5px] text-muted">
+            {tx('البريد المستخدم وهمي ولا يُرسَل إليه شيء. الدخول باسم المستخدم وكلمة المرور.', 'The email is a throwaway and receives nothing. Sign in with the username and password.')}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function OwnerAdminsPage() {
   const { t, lang } = useLanguage()
   const queryClient = useQueryClient()
@@ -159,6 +272,8 @@ export function OwnerAdminsPage() {
           </button>
         )}
       </div>
+
+      {canRemove && <DemoAccounts />}
 
       {isLoading && <LoadingState />}
 

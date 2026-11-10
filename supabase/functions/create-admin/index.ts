@@ -3,12 +3,16 @@
 // signUp would hijack the CALLING owner's browser session by signing in as
 // the brand-new user instead of keeping them logged in.
 //
-//   { name, username, email, password, isTemp } → create
-//   { action: 'remove', userId }                → delete the admin's login too
+//   { name, username, email, password, isTemp, role? } → create
+//   { action: 'remove', userId }                        → delete the login too
+//
+// `role` (default 'owner') lets the owner mint a pre-confirmed account for any
+// role — used for SCFHS demo/review logins (teacher/student) that skip OTP.
+// Any non-owner role is always is_temp_admin=false.
 //
 // Errors come back as { error: <code> } so the dashboard can show a clear
-// message: invalid_email, invalid_username, password_short, username_taken,
-// email_in_use, missing_fields.
+// message: invalid_email, invalid_username, invalid_role, password_short,
+// username_taken, email_in_use, missing_fields.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 function firstFromJsonDict(raw: string | undefined): string {
@@ -74,7 +78,7 @@ Deno.serve(async (req) => {
   const { data: me } = await admin.from('profiles').select('is_temp_admin').eq('id', user.id).maybeSingle()
   if (me?.is_temp_admin) return json({ error: 'temp admins cannot manage admins' }, 403)
 
-  let body: { action?: string; userId?: string; name?: string; username?: string; email?: string; password?: string; isTemp?: boolean }
+  let body: { action?: string; userId?: string; name?: string; username?: string; email?: string; password?: string; isTemp?: boolean; role?: string }
   try {
     body = await req.json()
   } catch {
@@ -96,6 +100,12 @@ Deno.serve(async (req) => {
   const username = body.username?.trim() ?? ''
   const email = body.email?.trim().toLowerCase() ?? ''
   const password = body.password ?? ''
+  // Role: default 'owner' (unchanged behaviour). Non-owner roles are for
+  // pre-confirmed demo/review accounts and can never be a temp admin.
+  const ALLOWED_ROLES = ['owner', 'teacher', 'student', 'institution']
+  const role = body.role === undefined ? 'owner' : body.role
+  if (!ALLOWED_ROLES.includes(role)) return json({ error: 'invalid_role' }, 400)
+  const isTemp = role === 'owner' ? !!body.isTemp : false
   if (!name || !username || !email || !password) return json({ error: 'missing_fields' }, 400)
   if (!EMAIL_RE.test(email)) return json({ error: 'invalid_email' }, 400)
   if (!USERNAME_RE.test(username)) return json({ error: 'invalid_username' }, 400)
@@ -125,7 +135,7 @@ Deno.serve(async (req) => {
 
   const { data: profile, error: profileErr } = await admin
     .from('profiles')
-    .insert({ id: userId, role: 'owner', status: 'active', name, username, is_temp_admin: !!body.isTemp })
+    .insert({ id: userId, role, status: 'active', name, username, is_temp_admin: isTemp })
     .select('*')
     .single()
   if (profileErr) {

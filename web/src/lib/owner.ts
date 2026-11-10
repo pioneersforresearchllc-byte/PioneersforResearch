@@ -186,6 +186,8 @@ export async function createAdmin(params: {
   email: string
   password: string
   isTemp: boolean
+  /** Defaults to 'owner' on the server. Use 'teacher'/'student' for pre-confirmed demo logins. */
+  role?: 'owner' | 'teacher' | 'student' | 'institution'
 }) {
   const { data: session } = await supabase.auth.getSession()
   const { data, error } = await supabase.functions.invoke('create-admin', {
