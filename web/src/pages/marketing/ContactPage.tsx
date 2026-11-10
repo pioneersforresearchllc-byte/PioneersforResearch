@@ -6,7 +6,7 @@ import { ContactForm } from '@/components/ContactForm'
 export function MarketingContactPage() {
   const { t } = useLanguage()
   const ct = useContentText()
-  useDocumentMeta('تواصل معنا | Pioneers Health Research', 'تواصل مع فريق بيونيرز للأبحاث الصحية — نجيب استفساراتك حول الدورات والخدمات البحثية.')
+  useDocumentMeta('تواصل معنا | Pioneers Consulting for Training and Research', 'تواصل مع فريق بيونيرز للأبحاث الصحية — نجيب استفساراتك حول الدورات والخدمات البحثية.')
 
   return (
     <div className="relative overflow-hidden bg-[#0a1c34] px-4 py-16 text-white md:px-16 md:py-24">

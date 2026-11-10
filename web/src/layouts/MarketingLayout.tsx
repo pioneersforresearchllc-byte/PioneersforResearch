@@ -150,12 +150,12 @@ export function MarketingLayout() {
           <Link to="/" className="flex items-center gap-2.5 no-underline">
             <img src="/logo.png" alt="" className="h-10 w-10 md:h-11 md:w-11" />
             <span className="flex flex-col leading-tight">
-              <span className="font-heading text-[15px] font-bold text-navy md:text-[20px]">Pioneers Health Research</span>
-              <span className="text-[10.5px] text-muted md:text-[12px]">الرواد الاستشارية للتدريب والأبحاث</span>
+              <span className="font-heading whitespace-nowrap text-[15px] font-bold text-navy md:text-[18px]">الرواد الاستشارية للتدريب والأبحاث</span>
+              <span className="whitespace-nowrap text-[9.5px] text-muted md:text-[11px]" dir="ltr">Pioneers Consulting for Training and Research</span>
             </span>
           </Link>
-          <div className="hidden items-center gap-6 text-[14.5px] xl:flex">{navLinks}</div>
-          <div className="hidden items-center gap-2.5 xl:flex">{authLinks}</div>
+          <div className="hidden items-center gap-5 whitespace-nowrap text-[14.5px] xl:flex">{navLinks}</div>
+          <div className="hidden items-center gap-2.5 whitespace-nowrap xl:flex">{authLinks}</div>
           <button
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="Menu"
@@ -187,7 +187,7 @@ export function MarketingLayout() {
             <Link to="/" className="mb-4 flex items-center gap-3 no-underline">
               <img src="/logo.png" alt="" className="h-12 w-12" />
               <span className="flex flex-col leading-tight">
-                <span className="font-heading text-[18px] font-bold text-white">Pioneers Health Research</span>
+                <span className="font-heading text-[18px] font-bold text-white">Pioneers Consulting for Training and Research</span>
                 <span className="text-[12px] text-white/60">الرواد الاستشارية للتدريب والأبحاث</span>
               </span>
             </Link>

@@ -116,8 +116,8 @@ export function CpdPolicyPage() {
       doc={CPD_POLICY[lang]}
       lang={lang}
       version={{
-        ar: `تاريخ السريان وآخر تحديث: 29 أكتوبر 2026 — الإصدار ${CPD_POLICY_VERSION}`,
-        en: `Effective & last updated: 29 October 2026 — version ${CPD_POLICY_VERSION}`,
+        ar: `تاريخ السريان: 29 أكتوبر 2026 — آخر تحديث: 8 نوفمبر 2026 — الإصدار ${CPD_POLICY_VERSION}`,
+        en: `Effective 29 October 2026 — last updated 8 November 2026 — version ${CPD_POLICY_VERSION}`,
       }}
       hashKey={['cpd-policy-hash', CPD_POLICY_VERSION]}
       hashFn={cpdPolicyHash}

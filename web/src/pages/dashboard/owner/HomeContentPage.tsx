@@ -29,10 +29,13 @@ import { uploadServiceImage } from '@/lib/services'
 import { parseCpdTeam, saveCpdTeam, type CpdTeam } from '@/lib/cpd'
 import {
   DEFAULT_MISSION,
+  DEFAULT_SLOGAN,
   DEFAULT_VISION,
   MISSION_KEY,
+  SLOGAN_KEY,
   VISION_KEY,
   resolveMission,
+  resolveSlogan,
   resolveVision,
 } from '@/lib/visionMission'
 
@@ -502,6 +505,8 @@ function VisionMissionEditor({ content, onSaved }: { content: ContentMap | undef
   const [visionEn, setVisionEn] = useState(resolveVision(content, 'en'))
   const [missionAr, setMissionAr] = useState(resolveMission(content, 'ar'))
   const [missionEn, setMissionEn] = useState(resolveMission(content, 'en'))
+  const [sloganAr, setSloganAr] = useState(resolveSlogan(content, 'ar'))
+  const [sloganEn, setSloganEn] = useState(resolveSlogan(content, 'en'))
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -511,6 +516,7 @@ function VisionMissionEditor({ content, onSaved }: { content: ContentMap | undef
     try {
       await saveSiteContent(VISION_KEY, visionAr.trim(), visionEn.trim())
       await saveSiteContent(MISSION_KEY, missionAr.trim(), missionEn.trim())
+      await saveSiteContent(SLOGAN_KEY, sloganAr.trim(), sloganEn.trim())
       setSaved(true)
       onSaved()
     } finally {
@@ -523,12 +529,14 @@ function VisionMissionEditor({ content, onSaved }: { content: ContentMap | undef
     setVisionEn(DEFAULT_VISION.en)
     setMissionAr(DEFAULT_MISSION.ar)
     setMissionEn(DEFAULT_MISSION.en)
+    setSloganAr(DEFAULT_SLOGAN.ar)
+    setSloganEn(DEFAULT_SLOGAN.en)
   }
 
   const field = 'w-full resize-y rounded-md border border-border px-3 py-2 text-[13.5px]'
   return (
     <div>
-      <div className="mb-1 text-[14px] font-bold text-navy">{ar ? 'الرؤية والرسالة (صفحة /cpd)' : 'Vision & Mission (the /cpd page)'}</div>
+      <div className="mb-1 text-[14px] font-bold text-navy">{ar ? 'الرؤية والرسالة والشعار (صفحتا /cpd و«نبذة عنا»)' : 'Vision, Mission & Slogan (/cpd and About pages)'}</div>
       <div className="mb-2.5 text-[12.5px] text-muted">
         {ar
           ? 'تُعلَن في صفحة التعليم المستمر. الهيئة تطلب إعلان رؤية ورسالة مقدّم التعليم المستمر على الموقع.'
@@ -544,6 +552,11 @@ function VisionMissionEditor({ content, onSaved }: { content: ContentMap | undef
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <textarea value={missionAr} onChange={(e) => setMissionAr(e.target.value)} rows={4} className={field} />
           <textarea dir="ltr" value={missionEn} onChange={(e) => setMissionEn(e.target.value)} rows={4} className={field} />
+        </div>
+        <div className="text-[12.5px] font-semibold text-navy">{ar ? 'الشعار' : 'Slogan'}</div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <input value={sloganAr} onChange={(e) => setSloganAr(e.target.value)} className={field} />
+          <input dir="ltr" value={sloganEn} onChange={(e) => setSloganEn(e.target.value)} className={field} />
         </div>
         <div className="flex items-center justify-end gap-2">
           <button type="button" onClick={reset} className="rounded-md border border-border px-3 py-1.75 text-[12.5px] text-muted hover:border-navy">

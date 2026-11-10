@@ -1,19 +1,25 @@
-// Organisation Vision & Mission (الرؤية والرسالة), announced on the site for
-// SCFHS CPD-provider readiness. Stored in site_content so the owner can edit
-// them; code holds professional defaults until then.
+// Organisation Vision, Mission & Slogan (الرؤية والرسالة والشعار), announced on
+// the site for SCFHS CPD-provider readiness. Stored in site_content so the
+// owner can edit them; code holds the approved wording until then.
 import type { ContentMap } from '@/lib/content'
 
 export const VISION_KEY = 'org.vision'
 export const MISSION_KEY = 'org.mission'
+export const SLOGAN_KEY = 'org.slogan'
 
 export const DEFAULT_VISION = {
-  ar: 'أن نكون شريكًا موثوقًا للممارسين والمؤسسات الصحية في المملكة لتطوير البحث العلمي والممارسة المبنية على الدليل، ومرجعًا للتعليم المهني المستمر عالي الجودة في المجال الصحي.',
-  en: 'To be a trusted partner to healthcare practitioners and institutions in the Kingdom in advancing scientific research and evidence-based practice, and a reference for high-quality continuing professional development in healthcare.',
+  ar: 'الريادة في تدريبٍ يصنع المهارة ويحقق الأثر، محليًا وإقليميًا وعالميًا.',
+  en: 'Leadership in training that builds skills and delivers impact — locally, regionally and globally.',
 }
 
 export const DEFAULT_MISSION = {
-  ar: 'تطوير معارف الممارسين الصحيين ومهاراتهم وأدائهم عبر أنشطة تعليمية وخدمات بحثية مبنية على احتياج حقيقي، ومستقلة عن المصالح التجارية، ومصمّمة وفق معايير الهيئة السعودية للتخصصات الصحية، ونقيس أثرها على مستوى الممارس وعلى جودة الرعاية الصحية.',
-  en: 'To develop healthcare practitioners’ knowledge, skills and performance through needs-based educational activities and research services that are independent of commercial interests, designed to the standards of the Saudi Commission for Health Specialties, and whose impact we measure on the practitioner and on quality of care.',
+  ar: 'نصمّم برامج تدريبية ونقدّمها وفق أعلى المعايير، مستندة إلى البحث العلمي، تُكسب المتدربين مهارات قابلة للتطبيق، ونقيس أثرها في الأداء الفردي والمؤسسي.',
+  en: 'We design and deliver training programmes to the highest standards, grounded in scientific research, that give trainees applicable skills — and we measure their impact on individual and organisational performance.',
+}
+
+export const DEFAULT_SLOGAN = {
+  ar: 'تدريب.. مهارة.. أثر.',
+  en: 'Training.. Skill.. Impact.',
 }
 
 function resolve(content: ContentMap | undefined, key: string, def: { ar: string; en: string }, lang: 'ar' | 'en'): string {
@@ -27,4 +33,8 @@ export function resolveVision(content: ContentMap | undefined, lang: 'ar' | 'en'
 
 export function resolveMission(content: ContentMap | undefined, lang: 'ar' | 'en'): string {
   return resolve(content, MISSION_KEY, DEFAULT_MISSION, lang)
+}
+
+export function resolveSlogan(content: ContentMap | undefined, lang: 'ar' | 'en'): string {
+  return resolve(content, SLOGAN_KEY, DEFAULT_SLOGAN, lang)
 }

@@ -23,7 +23,7 @@ export function VerifyCertificatePage() {
   return (
     <div dir={dir} lang={lang} className="flex min-h-screen items-center justify-center bg-gradient-to-b from-bg-soft to-white px-4 py-10">
       <div className="w-full max-w-md">
-        <div className="mb-6 text-center font-heading text-lg font-bold text-navy">Pioneers Health Research</div>
+        <div className="mb-6 text-center font-heading text-lg font-bold text-navy">Pioneers Consulting for Training and Research</div>
 
         <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-soft">
           {isLoading ? (

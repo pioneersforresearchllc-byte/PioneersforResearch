@@ -70,7 +70,7 @@ export function InstitutionsPage() {
   const packages = resolveOrgPackages(content).filter((p) => p.active)
   const [openPkg, setOpenPkg] = useState<OrgPackage | null>(null)
   useDocumentMeta(
-    'للمؤسسات والجهات الصحية | Pioneers Health Research',
+    'للمؤسسات والجهات الصحية | Pioneers Consulting for Training and Research',
     'برامج تدريب واستشارات في البحث العلمي الصحي مصمّمة للمستشفيات ومراكز الأبحاث والجامعات ومراكز التدريب في المملكة.',
   )
 

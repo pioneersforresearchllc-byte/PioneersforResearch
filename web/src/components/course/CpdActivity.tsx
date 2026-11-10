@@ -5,8 +5,10 @@
 // All tolerate migration 0091 not being applied yet.
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { useLanguage } from '@/lib/i18n'
 import {
+  checkinPath,
   EVAL_ASPECTS,
   emptyEvaluation,
   getLearnerQuiz,
@@ -392,6 +394,14 @@ export function MyAttendance({ courseId, studentId }: { courseId: string; studen
                   </span>
                 </div>
               </div>
+              {r.session_date === today && r.present !== true && (
+                <Link
+                  to={checkinPath(r.session_id)}
+                  className="shrink-0 rounded-full bg-gold px-3.5 py-1.5 text-[12px] font-bold text-navy no-underline"
+                >
+                  {tx('سجّل حضوري', 'Check in')}
+                </Link>
+              )}
               <span
                 className={`shrink-0 rounded-full px-3 py-1 text-[11.5px] font-bold ${
                   upcoming

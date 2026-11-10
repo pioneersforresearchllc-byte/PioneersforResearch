@@ -119,7 +119,7 @@ export function CallPage({ kind = 'service' }: { kind?: 'service' | 'group' }) {
         <div className="flex min-w-0 items-center gap-2.5">
           <img src="/logo.png" alt="" className="h-7 w-7 shrink-0" />
           <div className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate text-[13.5px] font-bold text-white">Pioneers Health Research</span>
+            <span className="truncate text-[13.5px] font-bold text-white">Pioneers Consulting for Training and Research</span>
             <span className="truncate text-[11px] text-white/60">{headerTitle}</span>
           </div>
         </div>
@@ -143,7 +143,7 @@ export function CallPage({ kind = 'service' }: { kind?: 'service' | 'group' }) {
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-gradient-to-b from-[#0a1626] to-[#0f2547] px-6">
             <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-white/[0.04] p-7 text-center text-white shadow-2xl backdrop-blur">
               <img src="/logo.png" alt="" className="mx-auto mb-3 h-16 w-16" />
-              <div className="font-heading text-[17px] font-bold">Pioneers Health Research</div>
+              <div className="font-heading text-[17px] font-bold">Pioneers Consulting for Training and Research</div>
               <div className="mt-0.5 text-[12.5px] text-white/60">بايونيرز للأبحاث الصحية</div>
               <div className="my-4 h-px bg-white/10" />
               <div className="text-[11px] uppercase tracking-wide text-white/45">{t('call.workshop')}</div>

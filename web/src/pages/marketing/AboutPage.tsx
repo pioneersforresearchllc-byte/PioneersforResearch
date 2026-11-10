@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { useLanguage } from '@/lib/i18n'
-import { useContentText } from '@/lib/content'
+import { useQuery } from '@tanstack/react-query'
+import { fetchSiteContent, useContentText } from '@/lib/content'
+import { resolveMission, resolveSlogan, resolveVision } from '@/lib/visionMission'
 import { useDocumentMeta } from '@/lib/useDocumentMeta'
 import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
@@ -11,21 +13,23 @@ export function AboutPage() {
   const ar = lang === 'ar'
   const ct = useContentText()
   useDocumentMeta(
-    'نبذة عنا | Pioneers Health Research',
+    'نبذة عنا | Pioneers Consulting for Training and Research',
     'تعرّف على منصة بيونيرز للأبحاث الصحية: رؤيتنا في تدريب وإشراف الباحثين، وفريقنا المتخصص.',
   )
 
-  const pillars = ar
-    ? [
-        { icon: '🎯', h: 'رسالتنا', p: 'تمكين الطلاب والباحثين في المجال الصحي من إنجاز أبحاث رصينة، بالتدريب والإشراف العملي خطوة بخطوة.' },
-        { icon: '🔭', h: 'رؤيتنا', p: 'أن نكون المرجع العربي الأول في التدريب والإشراف على البحث العلمي الصحي.' },
-        { icon: '🤝', h: 'قيمنا', p: 'النزاهة العلمية، والسرية، والالتزام بالمواعيد، والشفافية مع كل عميل.' },
-      ]
-    : [
-        { icon: '🎯', h: 'Our mission', p: 'Empower health students and researchers to produce rigorous research through hands-on, step-by-step training and mentoring.' },
-        { icon: '🔭', h: 'Our vision', p: 'To be the leading Arabic reference for health-research training and mentoring.' },
-        { icon: '🤝', h: 'Our values', p: 'Scientific integrity, confidentiality, punctuality, and transparency with every client.' },
-      ]
+  const { data: content } = useQuery({ queryKey: ['site-content'], queryFn: fetchSiteContent })
+  const pillars = [
+    { icon: '🔭', h: ar ? 'رؤيتنا' : 'Our vision', p: resolveVision(content, lang) },
+    { icon: '🎯', h: ar ? 'رسالتنا' : 'Our mission', p: resolveMission(content, lang) },
+    {
+      icon: '🤝',
+      h: ar ? 'قيمنا' : 'Our values',
+      p: ar
+        ? 'النزاهة العلمية، والسرية، والالتزام بالمواعيد، والشفافية مع كل عميل.'
+        : 'Scientific integrity, confidentiality, punctuality, and transparency with every client.',
+    },
+  ]
+  const slogan = resolveSlogan(content, lang)
 
   const credentials = ar
     ? [
@@ -58,6 +62,9 @@ export function AboutPage() {
               <p className="text-[14px] leading-7 text-muted">{p.p}</p>
             </Reveal>
           ))}
+        </div>
+        <div className="-mt-8 mb-14 text-center">
+          <span className="inline-block rounded-full bg-gold/15 px-5 py-2 font-heading text-[16px] font-bold text-navy">{slogan}</span>
         </div>
 
         {/* Official credentials */}

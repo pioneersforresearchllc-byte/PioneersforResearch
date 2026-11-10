@@ -83,7 +83,7 @@ function clientOfferWhatsApp(
   L.push(ar ? 'تابع طلبك وأكمل الدفع من صفحة «طلباتي»:' : 'Track your request and pay under “My requests”:')
   L.push(`${origin}/my-requests`)
   L.push('')
-  L.push(ar ? 'الرواد الاستشارية للتدريب والأبحاث' : 'Pioneers Health Research')
+  L.push(ar ? 'الرواد الاستشارية للتدريب والأبحاث' : 'Pioneers Consulting for Training and Research')
   return L.join('\n')
 }
 

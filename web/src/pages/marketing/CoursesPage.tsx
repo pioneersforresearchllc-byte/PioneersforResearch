@@ -8,7 +8,7 @@ export function MarketingCoursesPage() {
   const ct = useContentText()
   const { data: courses } = useCourses()
   useDocumentMeta(
-    'الدورات والبرامج | Pioneers Health Research',
+    'الدورات والبرامج | Pioneers Consulting for Training and Research',
     'دورات وبرامج تدريبية متخصصة في منهجية البحث العلمي: من السؤال البحثي والتحليل حتى النشر.',
   )
 

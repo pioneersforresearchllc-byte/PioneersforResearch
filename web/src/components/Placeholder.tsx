@@ -7,7 +7,7 @@ export function Placeholder({ title }: { title?: string }) {
   const { t } = useLanguage()
   // The SPA answers every URL with 200, so at least tell search engines not to
   // index the "not found" page under the mistyped URL.
-  useDocumentMeta(`${title ?? t('placeholder.notFound')} | Pioneers Health Research`, undefined, { noindex: true })
+  useDocumentMeta(`${title ?? t('placeholder.notFound')} | Pioneers Consulting for Training and Research`, undefined, { noindex: true })
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center gap-3 px-6 text-center">
       <img src="/logo.png" alt="" className="mb-2 h-14 w-14" />
