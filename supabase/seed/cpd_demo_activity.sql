@@ -119,6 +119,51 @@ select '0cbd0a01-0000-4000-8000-000000000001', p.id
  where p.role = 'student' and p.username like 'cpd\_student\_%'
 on conflict (course_id, student_id) do nothing;
 
+-- 6) In-platform video conference for the demo lectures. Live lectures join a
+--    built-in Daily room (/group-call/<id>, the same engine as workshops): the
+--    admin and the demo lecturer open the room as host; an enrolled demo
+--    learner (signed up below) joins and waits to be admitted. Dates are kept
+--    ~6 weeks ahead so the lectures stay "upcoming" (join button visible) for
+--    the whole review.
+insert into public.group_sessions (id, title, description, scheduled_at, duration_min, capacity, host_id, status, is_private)
+values (
+  '0cbd0a01-0000-4000-8000-0000000000b1',
+  'غرفة المؤتمر المرئي للنشاط التجريبي (الممارسة المبنية على الدليل)',
+  'مؤتمر فيديو وصوت داخل المنصة مع مشاركة الشاشة والدردشة. يدخل المسؤول أو المحاضر كمضيف، ويدخل المتعلم المسجّل ثم يقبله المضيف.',
+  ((current_date + 45) + time '19:00') at time zone 'Asia/Riyadh',
+  120,
+  30,
+  (select p.id from public.profiles p
+    where p.role = 'teacher' and p.username like 'cpd\_teacher\_%' order by p.created_at limit 1),
+  'scheduled',
+  true
+)
+on conflict (id) do update set
+  title = excluded.title,
+  description = excluded.description,
+  scheduled_at = excluded.scheduled_at,
+  duration_min = excluded.duration_min,
+  host_id = coalesce(excluded.host_id, public.group_sessions.host_id),
+  status = 'scheduled',
+  is_private = true,
+  -- a new date needs a fresh room (Daily rooms expire after the session)
+  daily_room_name = null,
+  daily_room_url = null;
+
+insert into public.group_session_signups (session_id, user_id)
+select '0cbd0a01-0000-4000-8000-0000000000b1', p.id
+  from public.profiles p
+ where p.role = 'student' and p.username like 'cpd\_student\_%'
+on conflict do nothing;
+
+update public.course_sessions
+   set link = 'https://pioneersresearch.com/group-call/0cbd0a01-0000-4000-8000-0000000000b1',
+       session_date = case id
+         when '0cbd0a01-0000-4000-8000-0000000000a2' then current_date + 45
+         when '0cbd0a01-0000-4000-8000-0000000000a3' then current_date + 44
+       end
+ where id in ('0cbd0a01-0000-4000-8000-0000000000a2', '0cbd0a01-0000-4000-8000-0000000000a3');
+
 -- Check.
 select 'course' as object, count(*) from public.courses where id = '0cbd0a01-0000-4000-8000-000000000001'
 union all
