@@ -11,11 +11,12 @@ import { useDocumentMeta } from '@/lib/useDocumentMeta'
 import { AuthCard } from '@/components/AuthCard'
 import { Spinner } from '@/components/LoadingState'
 import { getCheckinInfo, selfCheckin, type CheckinStatus } from '@/lib/cpdActivity'
+import { enrollFree } from '@/lib/courses'
 
 export function AttendPage() {
   const { sessionId = '' } = useParams()
   const location = useLocation()
-  const { session, loading } = useAuth()
+  const { session, profile, loading } = useAuth()
   const { lang } = useLanguage()
   const ar = lang === 'ar'
   const tx = (a: string, e: string) => (ar ? a : e)
@@ -23,6 +24,8 @@ export function AttendPage() {
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<CheckinStatus | null>(null)
   const [error, setError] = useState('')
+  const [enrolling, setEnrolling] = useState(false)
+  const [enrollFailed, setEnrollFailed] = useState(false)
   useDocumentMeta(tx('تسجيل الحضور', 'Attendance check-in'), undefined, { noindex: true })
 
   const { data: info, isLoading, error: infoError } = useQuery({
@@ -53,6 +56,23 @@ export function AttendPage() {
       setError((e as Error).message || tx('تعذّر تسجيل الحضور', 'Check-in failed'))
     } finally {
       setBusy(false)
+    }
+  }
+
+  // Not enrolled yet: a free activity is joined right here, then the page
+  // refreshes into the check-in button. Paid/code-only ones fall back to the
+  // activity page.
+  const enrollHere = async () => {
+    if (!info?.course_id || !profile) return
+    setEnrolling(true)
+    setEnrollFailed(false)
+    try {
+      await enrollFree(info.course_id, profile.id)
+      await qc.invalidateQueries({ queryKey: ['checkin-info', sessionId] })
+    } catch {
+      setEnrollFailed(true)
+    } finally {
+      setEnrolling(false)
     }
   }
 
@@ -94,6 +114,11 @@ export function AttendPage() {
               {info.session_time ? ` · ${info.session_time.slice(0, 5)}` : ''} ({tx('بتوقيت الرياض', 'Riyadh time')})
             </span>
           </div>
+          {info.always_open && (
+            <div className="mt-2 rounded-md bg-gold/15 px-2.5 py-1.5 text-[12px] text-navy">
+              {tx('جلسة تجريبية: رابط الحضور مفتوح دائمًا للعرض. في الجلسات الفعلية يُفتح قبل البدء بـ 30 دقيقة ويبقى 4 ساعات.', 'Demo session: the check-in link is always open for review. Real sessions open 30 minutes before start and stay open 4 hours.')}
+            </div>
+          )}
         </div>
 
         {done ? (
@@ -107,9 +132,27 @@ export function AttendPage() {
             {tx('حضورك مسجّل لهذه الجلسة ✔', 'You are marked present for this session ✔')}
           </p>
         ) : !info.enrolled ? (
-          <p className="rounded-xl border border-error/30 bg-error-bg p-4 text-[13.5px] text-error">
-            {tx('أنت غير مسجّل في هذا النشاط. سجّل فيه أولًا ثم افتح الرابط مجددًا.', 'You are not enrolled in this activity. Enrol first, then open the link again.')}
-          </p>
+          <div className="rounded-xl border border-border bg-white p-4 text-[13.5px] text-muted">
+            <p className="mb-3">
+              {profile?.role === 'student'
+                ? tx('أنت غير مسجّل في هذا النشاط بعد. سجّل فيه ثم سجّل حضورك.', 'You are not enrolled in this activity yet. Enrol, then record your attendance.')
+                : tx('تسجيل الحضور متاح لحساب المتدرب المسجّل في النشاط.', 'Check-in is available to a learner account enrolled in the activity.')}
+            </p>
+            {profile?.role === 'student' && !enrollFailed && (
+              <button
+                onClick={() => void enrollHere()}
+                disabled={enrolling}
+                className="w-full rounded-full bg-navy px-6 py-3 text-[14.5px] font-bold text-white disabled:opacity-60"
+              >
+                {enrolling ? tx('جارٍ التسجيل…', 'Enrolling…') : tx('سجّل في النشاط', 'Enrol in the activity')}
+              </button>
+            )}
+            {(enrollFailed || profile?.role !== 'student') && info.course_id && (
+              <Link to={`/course/${info.course_id}`} className="font-semibold text-navy underline underline-offset-4">
+                {tx('افتح صفحة النشاط', 'Open the activity page')}
+              </Link>
+            )}
+          </div>
         ) : info.window === 'early' ? (
           <p className="rounded-xl border border-border bg-white p-4 text-[13.5px] text-muted">
             {tx('يُفتح تسجيل الحضور قبل بدء الجلسة بـ 30 دقيقة ويبقى مفتوحًا 4 ساعات من بدايتها.', 'Check-in opens 30 minutes before the session starts and stays open for 4 hours after it starts.')}

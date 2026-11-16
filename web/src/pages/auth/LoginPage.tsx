@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import type { Profile } from '@/types/profile'
 import { resolveLoginEmail } from '@/lib/authHelpers'
+import { continueOwnerLogin } from '@/lib/ownerLogin'
 import { AuthCard, FieldError, PasswordInput, inputClass } from '@/components/AuthCard'
 import { GoogleButton } from '@/components/GoogleButton'
 import { Button } from '@/components/ui/Button'
@@ -66,19 +67,20 @@ export function LoginPage() {
         return
       }
 
+      // An admin signing in here is carried into the admin flow (emailed code,
+      // or straight in for a trusted device / SCFHS review account) instead of
+      // being turned away — reviewers were given one login link for all roles.
       if (profile.role === 'owner') {
-        await supabase.auth.signOut()
-        setError(t('login.useAdminPortal'))
+        const ok = await continueOwnerLogin(navigate, redirect)
+        if (!ok) {
+          await supabase.auth.signOut()
+          setError(t('ownerLogin.otpSendError'))
+        }
         return
       }
 
-      // Keep the chosen tab and the account type in sync, so a teacher who
-      // picked "Student" (or vice versa) isn't silently dropped into another portal.
-      if (profile.role !== role) {
-        await supabase.auth.signOut()
-        setError(t('login.wrongPortal', { role: t(`login.${profile.role}`) }))
-        return
-      }
+      // The tab is only a hint: every account is routed by its real role, so
+      // picking the wrong tab never blocks a valid login.
 
       if (profile.role === 'teacher' && profile.status === 'pending') {
         navigate('/teacher-pending')

@@ -7,6 +7,16 @@ import { resolveMission, resolveSlogan, resolveVision } from '@/lib/visionMissio
 import { useDocumentMeta } from '@/lib/useDocumentMeta'
 import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
+import {
+  AttendanceMechanism,
+  DirectLinks,
+  LearnerJourney,
+  PlatformEquipment,
+  PublicIndicators,
+  SpeakerListUpdate,
+  UserRoles,
+} from '@/components/cpd/CpdReviewSections'
+import { demoLinks } from '@/lib/cpdDemo'
 
 /** Public CPD (continuing medical education) page: the mission, structure,
  *  scientific committee and process SCFHS reviews for CPD providers. Names
@@ -14,6 +24,7 @@ import { Reveal } from '@/components/Reveal'
 export function CpdPage() {
   const { lang } = useLanguage()
   const ar = lang === 'ar'
+  const tx = (a: string, e: string) => (ar ? a : e)
   const { data: content } = useQuery({ queryKey: ['site-content'], queryFn: fetchSiteContent })
   const team = parseCpdTeam(content)
   useDocumentMeta(
@@ -66,6 +77,7 @@ export function CpdPage() {
   const policies: [string, string][] = ar
     ? [
         ['/disclosure-policy', 'سياسة الإفصاح وتضارب المصالح والرعاية التجارية'],
+        ['/cpd/forms', 'نماذج التقييم والإفصاح والحضور المستخدمة في الأنشطة'],
         ['/privacy', 'سياسة الخصوصية وحماية البيانات'],
         ['/terms', 'الشروط والأحكام'],
         ['/refund', 'سياسة الاسترجاع والإلغاء'],
@@ -73,6 +85,7 @@ export function CpdPage() {
       ]
     : [
         ['/disclosure-policy', 'Disclosure, conflict of interest & commercial support policy'],
+        ['/cpd/forms', 'Evaluation, disclosure & attendance forms used in activities'],
         ['/privacy', 'Privacy & data protection policy'],
         ['/terms', 'Terms & conditions'],
         ['/refund', 'Refund & cancellation policy'],
@@ -92,6 +105,8 @@ export function CpdPage() {
       />
 
       <div className="mx-auto max-w-5xl px-4 py-12 md:px-8 md:py-16">
+        <DirectLinks tx={tx} />
+
         {/* Vision & Mission (organisation-wide, owner-editable) */}
         <Reveal className="mb-10 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="rounded-3xl border border-border bg-white p-7 shadow-[0_18px_40px_-30px_rgba(11,31,58,0.5)]">
@@ -188,6 +203,10 @@ export function CpdPage() {
           </p>
         </Reveal>
 
+        <PlatformEquipment tx={tx} />
+        <LearnerJourney tx={tx} />
+        <UserRoles tx={tx} />
+
         {/* Learning evaluation strategies */}
         <Reveal className="mb-12">
           <h2 className="font-heading mb-3 text-[22px] font-bold text-navy">{ar ? 'استراتيجيات تقييم التعلم ومخرجاته' : 'Evaluating learning & outcomes'}</h2>
@@ -212,7 +231,14 @@ export function CpdPage() {
               </li>
             ))}
           </ol>
+          <div className="mt-3 flex flex-wrap gap-3 text-[13px]">
+            <Link to={demoLinks.quiz} className="font-semibold text-navy underline decoration-gold/60 underline-offset-4">{tx('الاختبار داخل المنصة', 'Assessment in the platform')}</Link>
+            <Link to={demoLinks.evaluation} className="font-semibold text-navy underline decoration-gold/60 underline-offset-4">{tx('نموذج التقييم داخل المنصة', 'Evaluation form in the platform')}</Link>
+            <Link to={demoLinks.forms} className="font-semibold text-navy underline decoration-gold/60 underline-offset-4">{tx('جميع النماذج (عرض وطباعة)', 'All forms (view & print)')}</Link>
+          </div>
         </Reveal>
+
+        <PublicIndicators tx={tx} />
 
         {/* Structure */}
         <Reveal className="mb-12">
@@ -297,6 +323,9 @@ export function CpdPage() {
               : 'CPD hours and the accreditation number appear on an activity page only after SCFHS has accredited that activity.'}
           </p>
         </Reveal>
+
+        <AttendanceMechanism tx={tx} />
+        <SpeakerListUpdate tx={tx} />
 
         {/* Policies */}
         <Reveal className="mb-6">

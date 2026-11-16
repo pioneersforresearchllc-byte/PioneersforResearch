@@ -13,7 +13,7 @@ import { AnnouncementBanner, CourseAnnouncements, useAnnouncements } from '@/com
 import { CourseDiscussion } from '@/components/course/CourseDiscussion'
 import { CourseTabs, useCourseTab } from '@/components/course/CourseTabs'
 import { CpdQuiz, CpdEvaluation, MyAttendance } from '@/components/course/CpdActivity'
-import { hasCpd, parseCpd } from '@/lib/cpd'
+import { hasCpd, lines, parseCpd } from '@/lib/cpd'
 
 export function StudentCourseDetailPage() {
   const { id } = useParams()
@@ -51,9 +51,16 @@ export function StudentCourseDetailPage() {
     return (
       <div>
         <div className="mb-3 text-muted">{t('cDetail.notEnrolled')}</div>
-        <Link to="/student/courses" className="text-navy no-underline">
-          {t('cDetail.backToMine')}
-        </Link>
+        {/* A direct link (e.g. from /cpd) lands here before enrolling: offer the
+            activity page, where a free activity is one click to join. */}
+        <div className="flex flex-wrap gap-3">
+          <Link to={`/course/${id}`} className="rounded-md bg-navy px-4 py-2 text-[13.5px] font-semibold text-white no-underline hover:bg-navy-hover">
+            {ar ? 'افتح صفحة النشاط وسجّل فيه' : 'Open the activity page and enrol'}
+          </Link>
+          <Link to="/student/courses" className="self-center text-navy no-underline">
+            {t('cDetail.backToMine')}
+          </Link>
+        </div>
       </div>
     )
   }
@@ -122,6 +129,19 @@ export function StudentCourseDetailPage() {
 
       <CourseTabs tabs={tabs} active={active} onChange={setTab} />
 
+      {active === 'content' && isCpd && cpd.topics.trim() && (
+        <div className="mb-4 rounded-xl border border-border-2 bg-bg-soft p-4">
+          <div className="mb-1.5 text-[14px] font-bold text-navy">📂 {ar ? 'محاور النشاط' : 'Activity topics'}</div>
+          <ul className="list-disc ps-5 text-[13.5px] leading-7 text-muted-2">
+            {lines(cpd.topics).map((l, i) => (
+              <li key={i}>{l}</li>
+            ))}
+          </ul>
+          <div className="mt-1.5 text-[12px] text-muted">
+            {ar ? 'المحتوى العلمي أدناه: اعرض كل مادة أو نزّلها بزر التنزيل.' : 'Scientific content below: view each item or download it with the download button.'}
+          </div>
+        </div>
+      )}
       {active === 'content' && <CourseMaterials courseId={id!} mode="student" />}
 
       {active === 'lesson' && contentHtml && (

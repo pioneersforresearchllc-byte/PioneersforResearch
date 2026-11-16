@@ -47,6 +47,7 @@ function CpdFields({ cpd, onChange }: { cpd: CourseCpd; onChange: (c: CourseCpd)
       {open && (
         <div className="mt-3 flex flex-col gap-2.5">
           <textarea value={cpd.audience} onChange={(e) => set('audience', e.target.value)} rows={2} placeholder={ar ? 'الفئة المستهدفة ومستواها (مثال: أطباء وممرضون وصيادلة — مستوى متوسط)' : 'Target audience and level'} className={area} />
+          <textarea value={cpd.topics} onChange={(e) => set('topics', e.target.value)} rows={4} placeholder={ar ? 'محاور النشاط — محور في كل سطر (تظهر للزوار في صفحة النشاط)' : 'Activity topics — one per line (shown on the public activity page)'} className={area} />
           <textarea value={cpd.objectives} onChange={(e) => set('objectives', e.target.value)} rows={4} placeholder={ar ? 'الأهداف التعليمية SMART — هدف في كل سطر، تبدأ بفعل قابل للقياس (يشرح، يطبّق، يحسب…)' : 'SMART learning objectives — one per line'} className={area} />
           <textarea value={cpd.outcomes} onChange={(e) => set('outcomes', e.target.value)} rows={3} placeholder={ar ? 'مخرجات التعلم المتوقعة — مخرج في كل سطر' : 'Expected learning outcomes — one per line'} className={area} />
           <textarea value={cpd.methods} onChange={(e) => set('methods', e.target.value)} rows={2} placeholder={ar ? 'أساليب التعلم (محاضرات تفاعلية، دراسات حالة، تمارين، نقاش وأسئلة…)' : 'Learning methods'} className={area} />

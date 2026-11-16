@@ -2,8 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { fetchProfile } from '@/lib/profile'
-import { getOwnerDeviceId } from '@/lib/device'
 import { resolveLoginEmail } from '@/lib/authHelpers'
+import { continueOwnerLogin } from '@/lib/ownerLogin'
 import { AuthCard, FieldError, PasswordInput, inputClass } from '@/components/AuthCard'
 import { useLanguage } from '@/lib/i18n'
 
@@ -44,30 +44,8 @@ export function OwnerLoginPage() {
         return
       }
 
-      const { data: otpData, error: otpErr } = await supabase.functions.invoke('send-otp', {
-        body: { deviceId: getOwnerDeviceId() },
-      })
-      if (otpErr) {
-        // Supabase flags any non-2xx as an error. A 429 here means a code was
-        // already sent moments ago and is still valid (10-min window) — don't
-        // dead-end the owner on a "send failed" message; send them to the code
-        // screen to enter the code they already received.
-        const ctx = (otpErr as { context?: Response }).context
-        if (ctx?.status === 429) {
-          navigate('/owner-otp', { state: { devCode: null } })
-          return
-        }
-        setError(t('ownerLogin.otpSendError'))
-        return
-      }
-
-      // Trusted device within the 48h window: no code was sent, go straight in.
-      if ((otpData as { skipped?: boolean } | null)?.skipped) {
-        navigate('/owner')
-        return
-      }
-
-      navigate('/owner-otp', { state: { devCode: (otpData as { devCode?: string })?.devCode ?? null } })
+      // Emailed code, or straight in for a trusted device / SCFHS review account.
+      if (!(await continueOwnerLogin(navigate))) setError(t('ownerLogin.otpSendError'))
     } finally {
       setBusy(false)
     }

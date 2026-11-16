@@ -13,6 +13,8 @@ export interface CpdSpeaker {
 
 export interface CourseCpd {
   audience: string
+  /** Activity topics (محاور النشاط), one per line — shown publicly. */
+  topics: string
   objectives: string
   outcomes: string
   methods: string
@@ -28,6 +30,7 @@ export const NO_RELATIONSHIP_AR = 'لا توجد لديّ أي علاقة مال
 
 export const emptyCpd: CourseCpd = {
   audience: '',
+  topics: '',
   objectives: '',
   outcomes: '',
   methods: '',
@@ -45,6 +48,7 @@ export function parseCpd(raw: unknown): CourseCpd {
   const r = raw as Record<string, unknown>
   return {
     audience: str(r.audience),
+    topics: str(r.topics),
     objectives: str(r.objectives),
     outcomes: str(r.outcomes),
     methods: str(r.methods),
@@ -64,7 +68,7 @@ export function parseCpd(raw: unknown): CourseCpd {
 /** True when the owner has filled in any CPD detail for the course. */
 export function hasCpd(c: CourseCpd): boolean {
   return (
-    [c.audience, c.objectives, c.outcomes, c.methods, c.assessment, c.hours].some((v) => v.trim()) ||
+    [c.audience, c.topics, c.objectives, c.outcomes, c.methods, c.assessment, c.hours].some((v) => v.trim()) ||
     c.speakers.some((s) => s.name.trim())
   )
 }
@@ -78,6 +82,7 @@ export const lines = (text: string) =>
 function cleanCpd(c: CourseCpd): CourseCpd | null {
   const trimmed: CourseCpd = {
     audience: c.audience.trim(),
+    topics: c.topics.trim(),
     objectives: c.objectives.trim(),
     outcomes: c.outcomes.trim(),
     methods: c.methods.trim(),

@@ -37,6 +37,7 @@ const RefundPage = page(() => import('@/pages/marketing/LegalPages'), 'RefundPag
 const ConsultantAgreementPage = page(() => import('@/pages/marketing/LegalPages'), 'ConsultantAgreementPage')
 const CpdPolicyPage = page(() => import('@/pages/marketing/LegalPages'), 'CpdPolicyPage')
 const CpdPage = page(() => import('@/pages/marketing/CpdPage'), 'CpdPage')
+const CpdFormsPage = page(() => import('@/pages/marketing/CpdFormsPage'), 'CpdFormsPage')
 const QuotePage = page(() => import('@/pages/marketing/QuotePage'), 'QuotePage')
 const VerifyLookupPage = page(() => import('@/pages/marketing/VerifyLookupPage'), 'VerifyLookupPage')
 const VerifyCertificatePage = page(() => import('@/pages/marketing/VerifyCertificatePage'), 'VerifyCertificatePage')
@@ -142,6 +143,7 @@ export default function App() {
         <Route path="/consultant-agreement" element={<ConsultantAgreementPage />} />
         <Route path="/disclosure-policy" element={<CpdPolicyPage />} />
         <Route path="/cpd" element={<CpdPage />} />
+        <Route path="/cpd/forms" element={<CpdFormsPage />} />
         <Route path="/quote" element={<QuotePage />} />
         <Route path="/verify" element={<VerifyLookupPage />} />
         </Route>

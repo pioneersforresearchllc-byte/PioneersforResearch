@@ -260,6 +260,8 @@ export interface CheckinInfo {
   enrolled?: boolean
   present?: boolean | null
   window?: CheckinWindow
+  /** Demo session whose check-in never closes (migration 0093). */
+  always_open?: boolean
 }
 
 export type CheckinStatus = 'checked_in' | 'already' | 'not_enrolled' | 'too_early' | 'closed' | 'not_found'
@@ -323,6 +325,15 @@ export async function getPlatformIndicators(): Promise<PlatformIndicators | null
   const { data, error } = await supabase.rpc('cpd_platform_indicators')
   if (error || !data) return null
   return data as PlatformIndicators
+}
+
+/** Public (anyone, incl. signed-out): aggregate counts and rates only, for
+ *  the /cpd page. Null when migration 0093 isn't applied yet. */
+export type PublicIndicators = Omit<PlatformIndicators, 'lms_avg'> & { as_of?: string }
+export async function getPublicIndicators(): Promise<PublicIndicators | null> {
+  const { data, error } = await supabase.rpc('cpd_public_indicators')
+  if (error || !data) return null
+  return data as PublicIndicators
 }
 
 /** Percentage helper: '—' when the denominator is 0. */

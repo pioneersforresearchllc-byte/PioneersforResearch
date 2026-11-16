@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
   const { data: me } = await admin.from('profiles').select('is_temp_admin').eq('id', user.id).maybeSingle()
   if (me?.is_temp_admin) return json({ error: 'temp admins cannot manage admins' }, 403)
 
-  let body: { action?: string; userId?: string; name?: string; username?: string; email?: string; password?: string; isTemp?: boolean; role?: string }
+  let body: { action?: string; userId?: string; name?: string; username?: string; email?: string; password?: string; isTemp?: boolean; role?: string; reviewDays?: number }
   try {
     body = await req.json()
   } catch {
@@ -105,7 +105,13 @@ Deno.serve(async (req) => {
   const ALLOWED_ROLES = ['owner', 'teacher', 'student', 'institution']
   const role = body.role === undefined ? 'owner' : body.role
   if (!ALLOWED_ROLES.includes(role)) return json({ error: 'invalid_role' }, 400)
-  const isTemp = role === 'owner' ? !!body.isTemp : false
+  // SCFHS review admin: always temporary (cannot mint/remove admins) and
+  // signs in without the emailed code until it expires (1–120 days).
+  const reviewDays =
+    role === 'owner' && typeof body.reviewDays === 'number' && body.reviewDays >= 1 && body.reviewDays <= 120
+      ? Math.floor(body.reviewDays)
+      : 0
+  const isTemp = role === 'owner' ? !!body.isTemp || reviewDays > 0 : false
   if (!name || !username || !email || !password) return json({ error: 'missing_fields' }, 400)
   if (!EMAIL_RE.test(email)) return json({ error: 'invalid_email' }, 400)
   if (!USERNAME_RE.test(username)) return json({ error: 'invalid_username' }, 400)
@@ -142,6 +148,17 @@ Deno.serve(async (req) => {
     if (created?.user) await admin.auth.admin.deleteUser(userId)
     if (profileErr.code === '23505') return json({ error: 'username_taken' }, 409)
     return json({ error: profileErr.message }, 500)
+  }
+
+  if (reviewDays > 0) {
+    const until = new Date(Date.now() + reviewDays * 24 * 60 * 60 * 1000).toISOString()
+    const { error: exErr } = await admin.from('profiles').update({ otp_exempt_until: until }).eq('id', userId)
+    if (exErr) {
+      // Column missing (migration 0093 not run): don't leave a half-made admin.
+      await admin.auth.admin.deleteUser(userId)
+      return json({ error: 'migration_0093_missing' }, 500)
+    }
+    return json({ profile: { ...profile, otp_exempt_until: until } })
   }
 
   return json({ profile })

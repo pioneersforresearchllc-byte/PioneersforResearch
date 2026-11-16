@@ -121,6 +121,29 @@ Deno.serve(async (req) => {
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).maybeSingle()
   if (!profile || profile.role !== 'owner') return json({ error: 'not an owner account' }, 403)
 
+  // SCFHS review account (migration 0093): a temporary admin minted with an
+  // expiry date. The external reviewer cannot receive our emailed code, so
+  // until otp_exempt_until it is let in without one — same verified row the
+  // trusted-device path writes. Read separately so a missing column (before
+  // 0093 runs) just falls through to the normal code.
+  const { data: review } = await admin
+    .from('profiles')
+    .select('otp_exempt_until, is_temp_admin')
+    .eq('id', user.id)
+    .maybeSingle()
+  const exemptUntil = review?.otp_exempt_until ? new Date(review.otp_exempt_until).getTime() : 0
+  if (review?.is_temp_admin && exemptUntil > Date.now()) {
+    await admin.from('admin_login_otps').insert({
+      user_id: user.id,
+      code_hash: 'review-account-skip',
+      expires_at: new Date().toISOString(),
+      consumed: true,
+      verified_at: new Date().toISOString(),
+    })
+    await admin.from('login_events').insert({ user_id: user.id })
+    return json({ skipped: true, review: true })
+  }
+
   // A recognised device that verified an OTP within the last 48h skips the
   // email entirely: we write a fresh consumed+verified OTP row so
   // is_verified_owner() passes, and tell the client to route straight in.

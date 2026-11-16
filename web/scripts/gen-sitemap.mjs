@@ -16,6 +16,7 @@ const STATIC = [
   ['/services', '0.9', 'weekly'],
   ['/institutions', '0.8', 'monthly'],
   ['/cpd', '0.8', 'monthly'],
+  ['/cpd/forms', '0.4', 'yearly'],
   ['/contact', '0.6', 'monthly'],
   ['/register', '0.6', 'monthly'],
   ['/login', '0.4', 'monthly'],

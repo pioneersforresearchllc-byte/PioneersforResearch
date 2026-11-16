@@ -15,9 +15,30 @@ import { hasCpd, lines, parseCpd } from '@/lib/cpd'
 
 /** SCFHS-required activity details: audience, objectives, outcomes, methods,
  *  assessment, sponsorship and speaker disclosures (shown before enrolment). */
-function CpdDetails({ raw, ar }: { raw: unknown; ar: boolean }) {
+function CpdDetails({ raw, ar, courseId }: { raw: unknown; ar: boolean; courseId: string }) {
   const cpd = parseCpd(raw)
   if (!hasCpd(cpd)) return null
+  // Learner tools of the activity, each one click away (SCFHS asked for an
+  // icon that opens the activity topics and downloads the scientific content).
+  // Not signed in → login, then straight back to the chosen tab.
+  const space = `/student/courses/${courseId}`
+  const tools: [string, string, string][] = ar
+    ? [
+        ['📂', 'محاور النشاط وتحميل المحتوى العلمي', `${space}?tab=content`],
+        ['🎥', 'الجلسات المباشرة', `${space}?tab=lectures`],
+        ['📝', 'الاختبار', `${space}?tab=quiz`],
+        ['⭐', 'نموذج تقييم النشاط والمتحدثين', `${space}?tab=evaluation`],
+        ['🕒', 'سجل حضوري', `${space}?tab=attendance`],
+        ['💬', 'الأسئلة والنقاش', `${space}?tab=qa`],
+      ]
+    : [
+        ['📂', 'Activity topics & download content', `${space}?tab=content`],
+        ['🎥', 'Live sessions', `${space}?tab=lectures`],
+        ['📝', 'Assessment', `${space}?tab=quiz`],
+        ['⭐', 'Activity & speaker evaluation', `${space}?tab=evaluation`],
+        ['🕒', 'My attendance', `${space}?tab=attendance`],
+        ['💬', 'Q&A & discussion', `${space}?tab=qa`],
+      ]
   const h = 'mb-1.5 text-[15px] font-bold text-navy'
   const p = 'text-[14px] leading-7 text-muted-2 whitespace-pre-line'
   const list = (text: string) => (
@@ -40,10 +61,34 @@ function CpdDetails({ raw, ar }: { raw: unknown; ar: boolean }) {
           )}
         </div>
       )}
+      <section>
+        <h2 className={h}>{ar ? 'أدوات النشاط للمتدرب' : 'Learner tools'}</h2>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {tools.map(([icon, label, to]) => (
+            <Link
+              key={to}
+              to={to}
+              className="flex items-center gap-2 rounded-md border border-border bg-white px-3 py-2.5 text-[13px] font-semibold text-navy no-underline hover:border-navy"
+            >
+              <span className="text-[18px]" aria-hidden>{icon}</span>
+              <span>{label}</span>
+            </Link>
+          ))}
+        </div>
+        <p className="mt-1.5 text-[12px] text-muted">
+          {ar ? 'تتطلب الدخول بحساب متدرب والتسجيل في النشاط.' : 'Requires signing in as a learner and enrolling in the activity.'}
+        </p>
+      </section>
       {cpd.audience && (
         <section>
           <h2 className={h}>{ar ? 'الفئة المستهدفة' : 'Target audience'}</h2>
           <p className={p}>{cpd.audience}</p>
+        </section>
+      )}
+      {cpd.topics && (
+        <section>
+          <h2 className={h}>{ar ? 'محاور النشاط' : 'Activity topics'}</h2>
+          {list(cpd.topics)}
         </section>
       )}
       {cpd.objectives && (
@@ -400,7 +445,7 @@ export function CourseDetailPage() {
         <p className="mb-6 text-[15.5px] leading-[2] text-muted-2">
           {lang === 'en' ? course.description_en || course.description : course.description}
         </p>
-        <CpdDetails raw={course.cpd} ar={lang === 'ar'} />
+        <CpdDetails raw={course.cpd} ar={lang === 'ar'} courseId={course.id} />
         <div className="mb-5.5 flex flex-wrap items-center justify-between gap-2 border-y border-border-2 py-4.5">
           <div className="text-sm font-semibold text-accent">{course.duration_label}</div>
           <div className="flex flex-wrap items-center gap-3">
@@ -440,7 +485,7 @@ export function CourseDetailPage() {
           <>
             {alreadyEnrolled ? (
               <Link
-                to="/student/courses"
+                to={`/student/courses/${course.id}`}
                 className="block w-full rounded-md bg-success py-4 text-center text-[15px] font-semibold text-white no-underline hover:opacity-90"
               >
                 {t('course.alreadyEnrolled')}

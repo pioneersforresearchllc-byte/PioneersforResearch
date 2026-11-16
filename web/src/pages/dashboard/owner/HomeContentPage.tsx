@@ -644,7 +644,7 @@ function CpdTeamEditor({ content, onSaved }: { content: ContentMap | undefined; 
         {team.committee.map((m, i) => (
           <div key={i} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_1.4fr_auto]">
             <input value={m.name} onChange={(e) => setMember(i, 'name', e.target.value)} placeholder={ar ? 'الاسم' : 'Name'} className={field} />
-            <input value={m.role} onChange={(e) => setMember(i, 'role', e.target.value)} placeholder={ar ? 'الدور (رئيس اللجنة، عضو…)' : 'Role (chair, member…)'} className={field} />
+            <input value={m.role} onChange={(e) => setMember(i, 'role', e.target.value)} placeholder={ar ? 'المنصب (رئيس اللجنة، سكرتير اللجنة، عضو…)' : 'Position (chair, secretary, member…)'} className={field} />
             <input value={m.title} onChange={(e) => setMember(i, 'title', e.target.value)} placeholder={ar ? 'المؤهل والتخصص والجهة' : 'Qualification, specialty, affiliation'} className={field} />
             <button
               type="button"

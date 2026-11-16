@@ -6,6 +6,7 @@ import { fnErrorBody, isValidUsername } from '@/lib/authHelpers'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/lib/i18n'
 import { LoadingState } from '@/components/LoadingState'
+import { DEMO_COURSE_ID } from '@/lib/cpdDemo'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
@@ -18,6 +19,10 @@ const ADMIN_ERRORS: Record<string, { ar: string; en: string }> = {
   email_in_use: { ar: 'هذا البريد مرتبط بحساب آخر في المنصة', en: 'This email already belongs to another account' },
   missing_fields: { ar: 'املأ جميع الحقول', en: 'Fill in all fields' },
   invalid_role: { ar: 'دور غير صالح', en: 'Invalid role' },
+  migration_0093_missing: {
+    ar: 'شغّل ملف قاعدة البيانات 0093_scfhs_review_access.sql أولًا، ثم أعد المحاولة.',
+    en: 'Run database migration 0093_scfhs_review_access.sql first, then try again.',
+  },
 }
 
 async function adminErrorText(e: unknown, lang: string, fallback: string): Promise<string> {
@@ -126,10 +131,14 @@ function NewAdminModal({ onClose, onCreated }: { onClose: () => void; onCreated:
   )
 }
 
-// One-click, pre-confirmed demo/review accounts (teacher/student) for SCFHS.
-// No OTP, a throwaway email; the generated credentials are shown once so the
-// owner can record them (e.g. to hand to the reviewer).
-interface DemoCred { role: 'teacher' | 'student'; name: string; username: string; email: string; password: string }
+// One-click, pre-confirmed demo/review accounts for SCFHS — one per role the
+// reviewer asked for: Admin, coordinator, lecturer, learner. A throwaway email;
+// the generated credentials are shown once so the owner can record them.
+// Admin/coordinator are temporary admins that sign in WITHOUT the emailed code
+// until they expire (REVIEW_DAYS) — the reviewer cannot receive our email.
+type DemoRole = 'admin' | 'coordinator' | 'teacher' | 'student'
+interface DemoCred { role: DemoRole; name: string; username: string; email: string; password: string }
+const REVIEW_DAYS = 60
 
 function randomSuffix(): string {
   const a = new Uint8Array(3)
@@ -147,26 +156,50 @@ function DemoAccounts() {
   const { lang } = useLanguage()
   const ar = lang === 'ar'
   const tx = (a: string, e: string) => (ar ? a : e)
-  const [busy, setBusy] = useState<'teacher' | 'student' | null>(null)
+  const queryClient = useQueryClient()
+  const [busy, setBusy] = useState<DemoRole | null>(null)
   const [created, setCreated] = useState<DemoCred[]>([])
   const [error, setError] = useState('')
   const [copied, setCopied] = useState('')
 
-  const make = async (role: 'teacher' | 'student') => {
+  const roleLabel: Record<DemoRole, string> = {
+    admin: tx('مسؤول المنصة (Admin)', 'Platform admin'),
+    coordinator: tx('منسق الأنشطة', 'Activities coordinator'),
+    teacher: tx('محاضر', 'Lecturer'),
+    student: tx('متعلّم', 'Learner'),
+  }
+
+  const make = async (role: DemoRole) => {
     setBusy(role)
     setError('')
     const suffix = randomSuffix()
     const username = `cpd_${role}_${suffix}`
     const cred: DemoCred = {
       role,
-      name: role === 'teacher' ? tx('محاضر تجريبي (CPD)', 'Demo lecturer (CPD)') : tx('متعلّم تجريبي (CPD)', 'Demo learner (CPD)'),
+      name: `${roleLabel[role]} — ${tx('حساب مراجعة الهيئة', 'SCFHS review account')}`,
       username,
       email: `${username}@demo.pioneersresearch.com`,
       password: randomPassword(),
     }
+    const isAdminRole = role === 'admin' || role === 'coordinator'
     try {
-      await createAdmin({ name: cred.name, username: cred.username, email: cred.email, password: cred.password, isTemp: false, role })
+      const res = (await createAdmin({
+        name: cred.name,
+        username: cred.username,
+        email: cred.email,
+        password: cred.password,
+        isTemp: isAdminRole,
+        role: isAdminRole ? 'owner' : role,
+        ...(isAdminRole ? { reviewDays: REVIEW_DAYS } : {}),
+      })) as { profile?: { id?: string } } | null
+      // A demo lecturer is assigned to the demo CPD activity so the reviewer
+      // sees a populated lecturer space (no-op if the demo isn't seeded).
+      const newId = res?.profile?.id
+      if (role === 'teacher' && newId) {
+        await supabase.from('course_teachers').insert({ course_id: DEMO_COURSE_ID, teacher_id: newId })
+      }
       setCreated((c) => [cred, ...c])
+      if (isAdminRole) void queryClient.invalidateQueries({ queryKey: ['admins'] })
     } catch (e) {
       setError(await adminErrorText(e, lang, tx('تعذّر إنشاء الحساب', 'Could not create the account')))
     } finally {
@@ -190,25 +223,21 @@ function DemoAccounts() {
       <div className="text-[14.5px] font-bold text-navy">{tx('حسابات تجريبية للمراجعة (الهيئة)', 'Demo accounts for review (SCFHS)')}</div>
       <p className="mt-1 mb-3 text-[12.5px] leading-6 text-muted">
         {tx(
-          'إنشاء حساب مؤكَّد بنقرة واحدة دون رمز تحقق (OTP)، لتزويد الهيئة ببيانات دخول للأدوار. تظهر كلمة المرور مرة واحدة فقط — انسخها واحفظها.',
-          'Create a pre-confirmed account in one click, no OTP, to give the reviewer role logins. The password is shown once — copy and keep it.',
+          `حساب مؤكَّد بنقرة واحدة لكل دور تطلبه الهيئة. جميعها تدخل من صفحة الدخول نفسها (/login) باسم المستخدم وكلمة المرور. حسابا المسؤول والمنسق مؤقتان ويدخلان دون رمز تحقق لمدة ${REVIEW_DAYS} يومًا ثم يتوقفان تلقائيًا، ولا يستطيعان إضافة أو حذف مسؤولين. تظهر كلمة المرور مرة واحدة فقط — انسخها واحفظها، واحذف الحسابات بعد صدور الاعتماد.`,
+          `A pre-confirmed account per role SCFHS asked for. All sign in on the same page (/login) with username and password. The admin and coordinator are temporary, sign in without the emailed code for ${REVIEW_DAYS} days and then stop, and cannot add or remove admins. The password is shown once — copy it, and delete these accounts after accreditation.`,
         )}
       </p>
       <div className="flex flex-wrap gap-2.5">
-        <button
-          onClick={() => void make('teacher')}
-          disabled={busy !== null}
-          className="rounded-md bg-navy px-4 py-2 text-[13px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
-        >
-          {busy === 'teacher' ? '…' : tx('+ حساب محاضر تجريبي', '+ Demo lecturer')}
-        </button>
-        <button
-          onClick={() => void make('student')}
-          disabled={busy !== null}
-          className="rounded-md bg-navy px-4 py-2 text-[13px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
-        >
-          {busy === 'student' ? '…' : tx('+ حساب متعلّم تجريبي', '+ Demo learner')}
-        </button>
+        {(['admin', 'coordinator', 'teacher', 'student'] as DemoRole[]).map((r) => (
+          <button
+            key={r}
+            onClick={() => void make(r)}
+            disabled={busy !== null}
+            className="rounded-md bg-navy px-4 py-2 text-[13px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+          >
+            {busy === r ? '…' : `+ ${roleLabel[r]}`}
+          </button>
+        ))}
       </div>
       {error && <div className="mt-2 text-[12.5px] text-error">{error}</div>}
       {created.length > 0 && (
@@ -217,7 +246,7 @@ function DemoAccounts() {
             <div key={c.username} className="rounded-lg border border-border bg-white p-3">
               <div className="mb-1 flex items-center justify-between">
                 <span className="text-[12px] font-semibold text-accent">
-                  {c.role === 'teacher' ? tx('محاضر', 'Lecturer') : tx('متعلّم', 'Learner')} — {tx('تم الإنشاء ✔', 'Created ✔')}
+                  {roleLabel[c.role]} — {tx('تم الإنشاء ✔', 'Created ✔')}
                 </span>
                 <button onClick={() => void copy(c)} className="rounded border border-border px-2.5 py-1 text-[11.5px] text-navy hover:border-navy">
                   {copied === c.username ? tx('نُسخ', 'Copied') : tx('نسخ', 'Copy')}
@@ -287,6 +316,13 @@ export function OwnerAdminsPage() {
               </div>
               {a.is_temp_admin && (
                 <span className="rounded-full bg-bg-soft px-2.5 py-1 text-[11px] text-muted">{t('oAdmins.tempBadge')}</span>
+              )}
+              {a.otp_exempt_until && (
+                <span className="rounded-full bg-gold/15 px-2.5 py-1 text-[11px] text-navy">
+                  {new Date(a.otp_exempt_until).getTime() > Date.now()
+                    ? `${lang === 'ar' ? 'مراجعة الهيئة — بدون رمز حتى' : 'SCFHS review — no code until'} ${new Date(a.otp_exempt_until).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-GB')}`
+                    : lang === 'ar' ? 'مراجعة الهيئة — منتهٍ' : 'SCFHS review — expired'}
+                </span>
               )}
             </div>
             {canRemove && a.id !== profile?.id && (

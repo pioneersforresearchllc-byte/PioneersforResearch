@@ -168,16 +168,22 @@ export interface AdminRow {
   username: string
   is_temp_admin: boolean
   created_at: string
+  /** SCFHS review account: signs in without the emailed code until this date (migration 0093). */
+  otp_exempt_until?: string | null
 }
 
 export async function listAdmins(): Promise<AdminRow[]> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, name, username, is_temp_admin, created_at')
-    .eq('role', 'owner')
-    .order('created_at')
+  // '*' so the list still loads before migration 0093 adds otp_exempt_until.
+  const { data, error } = await supabase.from('profiles').select('*').eq('role', 'owner').order('created_at')
   if (error) throw error
-  return data ?? []
+  return ((data ?? []) as Record<string, unknown>[]).map((r) => ({
+    id: r.id as string,
+    name: r.name as string,
+    username: r.username as string,
+    is_temp_admin: !!r.is_temp_admin,
+    created_at: r.created_at as string,
+    otp_exempt_until: (r.otp_exempt_until as string | null | undefined) ?? null,
+  }))
 }
 
 export async function createAdmin(params: {
@@ -188,6 +194,8 @@ export async function createAdmin(params: {
   isTemp: boolean
   /** Defaults to 'owner' on the server. Use 'teacher'/'student' for pre-confirmed demo logins. */
   role?: 'owner' | 'teacher' | 'student' | 'institution'
+  /** Owner role only: an SCFHS review admin that skips the emailed code for this many days. */
+  reviewDays?: number
 }) {
   const { data: session } = await supabase.auth.getSession()
   const { data, error } = await supabase.functions.invoke('create-admin', {
