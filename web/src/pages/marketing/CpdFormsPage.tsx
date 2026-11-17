@@ -47,7 +47,9 @@ export function CpdFormsPage() {
         />
       </div>
 
-      <div className="mx-auto max-w-4xl px-4 py-10 md:px-8">
+      {/* print-area: the global print stylesheet (index.css) hides everything
+          outside it, so without this class "Print / save PDF" gave a blank page. */}
+      <div className="print-area mx-auto max-w-4xl px-4 py-10 md:px-8">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border-2 bg-bg-soft p-4 print:hidden">
           <ul className="flex flex-col gap-1 text-[13.5px]">
             {toc.map(([id, label]) => (
