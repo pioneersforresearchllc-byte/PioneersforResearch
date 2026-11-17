@@ -284,18 +284,18 @@ function PractitionerCard({ userId }: { userId: string }) {
           value={scfhs}
           onChange={(e) => setScfhs(e.target.value.replace(/[^0-9A-Za-z-]/g, '').slice(0, 20))}
           placeholder={ar ? 'رقم التصنيف المهني' : 'SCFHS registration no.'}
-          className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
+          className="min-w-0 flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
         />
         <input
           value={profession}
           onChange={(e) => setProfession(e.target.value.slice(0, 120))}
           placeholder={ar ? 'المهنة والتخصص (مثال: صيدلي إكلينيكي)' : 'Profession & specialty'}
-          className="flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
+          className="min-w-0 flex-1 rounded-md border border-border px-3.5 py-2.5 text-[14px]"
         />
         <button
           onClick={() => void save()}
           disabled={busy || !changed || !valid}
-          className="rounded-md bg-navy px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
+          className="shrink-0 rounded-md bg-navy px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-navy-hover disabled:opacity-50"
         >
           {ar ? 'حفظ' : 'Save'}
         </button>
