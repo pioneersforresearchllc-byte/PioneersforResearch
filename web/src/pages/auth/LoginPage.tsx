@@ -12,8 +12,8 @@ import { useLanguage } from '@/lib/i18n'
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { t } = useLanguage()
-  const [role, setRole] = useState<'student' | 'teacher' | 'institution'>('student')
+  const { t, lang } = useLanguage()
+  const [role, setRole] = useState<'student' | 'teacher' | 'institution' | 'owner'>('student')
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -156,7 +156,27 @@ export function LoginPage() {
         >
           {t('login.institution')}
         </button>
+        {/* Admin / activities coordinator sign in on this same page (routed to
+            the admin flow by role). The tab only makes that visible — reviewers
+            looked for it. */}
+        <button
+          type="button"
+          onClick={() => setRole('owner')}
+          className={`flex-1 rounded-md border-none py-2.25 text-[13.5px] font-semibold ${
+            role === 'owner' ? 'bg-navy text-white' : 'bg-transparent text-navy'
+          }`}
+        >
+          {lang === 'ar' ? 'الإدارة' : 'Admin'}
+        </button>
       </div>
+
+      {role === 'owner' && (
+        <div className="-mt-2 mb-4 rounded-md bg-bg-soft px-3 py-2 text-center text-[12.5px] leading-6 text-muted">
+          {lang === 'ar'
+            ? 'لمسؤول المنصة ومنسق الأنشطة. أدخل اسم المستخدم وكلمة المرور، وقد يُطلب رمز تحقق يصل إلى بريد الحساب.'
+            : 'For the platform admin and activities coordinator. Enter your username and password; a verification code may be sent to the account email.'}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
         <input
